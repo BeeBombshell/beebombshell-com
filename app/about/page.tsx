@@ -5,6 +5,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "About · BeeBombshell",
   description: "About Bhavya Verma - product engineer, builder, and creative technologist.",
+  alternates: {
+    canonical: "/about",
+  },
 };
 
 export default async function AboutPage() {

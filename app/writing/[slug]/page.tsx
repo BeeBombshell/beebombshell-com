@@ -7,6 +7,7 @@ import { renderMarkdown } from "@/lib/markdown";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { ArticleContent } from "@/components/writing/article-content";
 import { TableOfContents } from "@/components/writing/table-of-contents";
+import { JsonLd } from "@/components/seo/json-ld";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -25,6 +26,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${post.title} · Writing · BeeBombshell`,
     description: post.excerpt,
+    alternates: {
+      canonical: `/writing/${slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -67,8 +71,25 @@ export default async function BlogPostPage({ params }: PageProps) {
       ? allPosts[currentIndex + 1]
       : null;
 
+  const blogJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt || post.publishedAt,
+    author: {
+      "@type": "Person",
+      name: "Bhavya Verma",
+      url: "https://beebombshell.com",
+    },
+    url: `https://beebombshell.com/writing/${slug}`,
+    keywords: post.tags.join(", "),
+  };
+
   return (
     <div className="flex-1 w-full max-w-4xl mx-auto px-5 sm:px-8 py-8 md:py-12 flex flex-col justify-between font-sans">
+      <JsonLd data={blogJsonLd} />
       <div>
         {/* Specimen Header & Back Link */}
         <div className="flex items-center justify-between border-b border-[var(--line)] pb-3 mb-8 text-[11px] font-mono uppercase tracking-wider text-[var(--mut)]">

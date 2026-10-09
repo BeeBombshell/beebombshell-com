@@ -7,6 +7,9 @@ import { calculateReadingTime } from "@/lib/reading-time";
 export const metadata: Metadata = {
   title: "Writing · BeeBombshell",
   description: "Essays, notes, and technical articles on systems and design.",
+  alternates: {
+    canonical: "/writing",
+  },
 };
 
 export default async function WritingPage() {

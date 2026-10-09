@@ -24,7 +24,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function NotchNav({
-  bookingUrl = "https://cal.com/bhavya",
+  bookingUrl = "https://cal.com/beebombshell/coffee",
   statusText = "Open for chats",
 }: {
   bookingUrl?: string;

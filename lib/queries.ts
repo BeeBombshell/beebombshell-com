@@ -98,7 +98,7 @@ async function fetchConfig(): Promise<SiteConfig> {
 
 // ── Cached Query APIs (with Next.js ISR tag revalidation) ───────────────────
 
-export const getProfile = unstable_cache(
+const cachedGetProfile = unstable_cache(
   fetchProfile,
   ["profile-data"],
   {
@@ -107,7 +107,14 @@ export const getProfile = unstable_cache(
   }
 );
 
-export const getProjects = unstable_cache(
+export async function getProfile(): Promise<Profile> {
+  if (process.env.NODE_ENV === "development" || !firestore) {
+    return fetchProfile();
+  }
+  return cachedGetProfile();
+}
+
+const cachedGetProjects = unstable_cache(
   fetchProjects,
   ["projects-data"],
   {
@@ -116,12 +123,19 @@ export const getProjects = unstable_cache(
   }
 );
 
+export async function getProjects(): Promise<Project[]> {
+  if (process.env.NODE_ENV === "development" || !firestore) {
+    return fetchProjects();
+  }
+  return cachedGetProjects();
+}
+
 export async function getProject(slug: string): Promise<Project | null> {
   const projects = await getProjects();
   return projects.find((p) => p.slug === slug) ?? null;
 }
 
-export const getPosts = unstable_cache(
+const cachedGetPosts = unstable_cache(
   fetchPosts,
   ["posts-data"],
   {
@@ -130,12 +144,19 @@ export const getPosts = unstable_cache(
   }
 );
 
+export async function getPosts(): Promise<Post[]> {
+  if (process.env.NODE_ENV === "development" || !firestore) {
+    return fetchPosts();
+  }
+  return cachedGetPosts();
+}
+
 export async function getPost(slug: string): Promise<Post | null> {
   const posts = await getPosts();
   return posts.find((p) => p.slug === slug) ?? null;
 }
 
-export const getConfig = unstable_cache(
+const cachedGetConfig = unstable_cache(
   fetchConfig,
   ["config-data"],
   {
@@ -143,3 +164,11 @@ export const getConfig = unstable_cache(
     revalidate: 3600,
   }
 );
+
+export async function getConfig(): Promise<SiteConfig> {
+  if (process.env.NODE_ENV === "development" || !firestore) {
+    return fetchConfig();
+  }
+  return cachedGetConfig();
+}
+

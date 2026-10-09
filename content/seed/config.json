@@ -1,6 +1,6 @@
 {
   "availability": "open",
-  "bookingUrl": "https://cal.com/bhavya",
+  "bookingUrl": "https://cal.com/beebombshell/coffee",
   "bookingProvider": "cal",
   "featureFlags": {
     "showBooking": true,

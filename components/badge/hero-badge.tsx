@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useSyncExternalStore } from "react";
 import { RopeSimulation } from "./rope";
 import {
   sampleStrandSpline,
@@ -11,7 +11,12 @@ import {
 import { drawCrimp, drawSwivelHook } from "./hardware";
 import { BadgeCard } from "./badge-card";
 import { useParticleEngine, useRegisterTextBlock } from "@/components/particles/use-particles";
-import { scrollStore } from "@/lib/scroll-store";
+
+function subscribeReducedMotion(cb: () => void) {
+  const q = window.matchMedia("(prefers-reduced-motion: reduce)");
+  q.addEventListener("change", cb);
+  return () => q.removeEventListener("change", cb);
+}
 
 interface HeroBadgeProps {
   className?: string;
@@ -26,7 +31,11 @@ export function HeroBadge({ className = "" }: HeroBadgeProps) {
   useRegisterTextBlock("hero-badge", cardWrapperRef);
 
   // Reduced motion preference
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false
+  );
   const [isMobile, setIsMobile] = useState(false);
 
   // Card physics state for React render
@@ -62,11 +71,8 @@ export function HeroBadge({ className = "" }: HeroBadgeProps) {
   // Active theme for strap colors
   const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
 
-  // Check reduced motion & mobile
+  // Check mobile & theme
   useEffect(() => {
-    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(motionQuery.matches);
-
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };

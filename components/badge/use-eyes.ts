@@ -78,17 +78,7 @@ export function useEyes({
 
   // Animation frame loop
   useEffect(() => {
-    if (reducedMotion) {
-      setState({
-        offsetX: 0,
-        offsetY: 0,
-        scaleY: 1,
-        blobLeanX: 0,
-        blobLeanY: 0,
-        blobScale: 1,
-      });
-      return;
-    }
+    if (reducedMotion) return;
 
     let rafId = 0;
     const scheduleNextBlink = (now: number) => {

@@ -1,5 +1,3 @@
-import { RopeNode } from "./rope";
-
 export interface RibbonTheme {
   front: string;
   back: string;

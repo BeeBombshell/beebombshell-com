@@ -12,11 +12,13 @@
  */
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import type { Theme } from "./particle-engine";
+import type { Theme, ParticleMode } from "./particle-engine";
 
 export function ParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pathname = usePathname();
   const { resolvedTheme } = useTheme();
 
   // ── Bootstrap engine ────────────────────────────────────────────────────────
@@ -81,6 +83,26 @@ export function ParticleCanvas() {
     if (!resolvedTheme) return;
     window.__particleEngine?.setTheme(resolvedTheme as Theme);
   }, [resolvedTheme]);
+
+  // ── Route-based Particle Mode Sync ──────────────────────────────────────────
+  useEffect(() => {
+    if (!pathname) return;
+
+    let targetMode: ParticleMode = "burst";
+    if (pathname === "/") {
+      targetMode = "burst";
+    } else if (pathname.startsWith("/work")) {
+      targetMode = "lattice";
+    } else if (pathname.startsWith("/about")) {
+      targetMode = "contours";
+    } else if (pathname.startsWith("/writing")) {
+      targetMode = "writing";
+    } else if (pathname.startsWith("/llms")) {
+      targetMode = "llms";
+    }
+
+    window.__particleEngine?.morphTo(targetMode);
+  }, [pathname]);
 
   return (
     <canvas

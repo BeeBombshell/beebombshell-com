@@ -1,336 +1,170 @@
-export interface RopeNode {
+/**
+ * rope.ts
+ * 11-node Verlet physics simulation for the lanyard and card.
+ * Pure functions matching badge-agent-prompt.md specification.
+ */
+
+export type RopeNode = {
   x: number;
   y: number;
-  prevX: number;
-  prevY: number;
-  isPinned: boolean;
+  ox: number;
+  oy: number;
+  pin: boolean;
+};
+
+export type Constraint = [number, number, number, boolean?];
+
+export const GRAVITY = 0.55;
+export const DAMPING = 0.992;
+export const VMAX = 30;
+
+function clamp(val: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, val));
 }
 
-export interface Constraint {
-  nodeA: number;
-  nodeB: number;
-  length: number;
+/**
+ * Build 11-node rope layout in stage coordinates.
+ * origin top-left of stage, ax = stageWidth / 2.
+ *
+ * 0: ax-34, -50  pinned      // left anchor, above the viewport
+ * 1: ax-23, -10
+ * 2: ax-11,  30
+ * 3: ax,     70              // junction
+ * 4: ax+34, -50  pinned      // right anchor
+ * 5: ax+23, -10
+ * 6: ax+11,  30
+ * 7: ax,    100              // stem
+ * 8: ax,    130
+ * 9: ax,    160              // clip (top center of the card)
+ * 10: ax,   540              // card bottom center (start at ax+60 so the card swings in on mount)
+ */
+export function createRopeNodes(ax: number, cardHeight = 380, anchorOffsetY = 0): RopeNode[] {
+  const y0 = -50 + anchorOffsetY;
+  return [
+    { x: ax - 34, y: y0, ox: ax - 34, oy: y0, pin: true },
+    { x: ax - 23, y: -10, ox: ax - 23, oy: -10, pin: false },
+    { x: ax - 11, y: 30, ox: ax - 11, oy: 30, pin: false },
+    { x: ax, y: 70, ox: ax, oy: 70, pin: false },
+    { x: ax + 34, y: y0, ox: ax + 34, oy: y0, pin: true },
+    { x: ax + 23, y: -10, ox: ax + 23, oy: -10, pin: false },
+    { x: ax + 11, y: 30, ox: ax + 11, oy: 30, pin: false },
+    { x: ax, y: 100, ox: ax, oy: 100, pin: false },
+    { x: ax, y: 130, ox: ax, oy: 130, pin: false },
+    { x: ax, y: 160, ox: ax, oy: 160, pin: false },
+    { x: ax + 60, y: 160 + cardHeight, ox: ax + 60, oy: 160 + cardHeight, pin: false },
+  ];
 }
 
-export interface RopeConfig {
-  gravity?: number;
-  damping?: number;
-  iterations?: number;
-  strandSegmentLength?: number;
-  stemSegmentLength?: number;
-  cardLength?: number;
-  minBendDistance?: number;
-  anchorSpacing?: number;
+/**
+ * Constraints: [a, b, length, minOnly?]
+ */
+export function createRopeConstraints(cardHeight = 380): Constraint[] {
+  return [
+    [0, 1, 44],
+    [1, 2, 44],
+    [2, 3, 44],
+    [4, 5, 44],
+    [5, 6, 44],
+    [6, 3, 44],
+    [3, 7, 30],
+    [7, 8, 30],
+    [8, 9, 30],
+    [9, 10, cardHeight],
+    [8, 10, cardHeight + 15, true],
+  ];
 }
 
+/**
+ * Step Verlet physics simulation
+ */
+export function step(
+  nodes: RopeNode[],
+  cons: Constraint[],
+  drag: { active: boolean; target: { x: number; y: number } },
+  iterations = 18
+) {
+  // 1. Verlet integration for free nodes
+  for (const p of nodes) {
+    if (p.pin) continue;
+    const vx = (p.x - p.ox) * DAMPING;
+    const vy = (p.y - p.oy) * DAMPING;
+    p.ox = p.x;
+    p.oy = p.y;
+    p.x += clamp(vx, -VMAX, VMAX);
+    p.y += clamp(vy, -VMAX, VMAX) + GRAVITY;
+  }
+
+  // 2. Drag target on card bottom
+  const bottom = nodes[10];
+  if (drag.active) {
+    bottom.x = drag.target.x;
+    bottom.y = drag.target.y;
+    bottom.ox = bottom.x - (bottom.x - bottom.ox) * 0.5; // keep half velocity so release flings
+    bottom.oy = bottom.y - (bottom.y - bottom.oy) * 0.5;
+  }
+
+  // 3. Relax constraints
+  for (let it = 0; it < iterations; it++) {
+    for (const [ia, ib, len, minOnly] of cons) {
+      const a = nodes[ia];
+      const b = nodes[ib];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const d = Math.hypot(dx, dy) || 0.001;
+      if (minOnly && d >= len) continue;
+      const diff = (d - len) / d;
+      const ma = a.pin || (drag.active && ia === 10) ? 0 : 1;
+      const mb = b.pin || (drag.active && ib === 10) ? 0 : 1;
+      const t = ma + mb;
+      if (!t) continue;
+      a.x += (dx * diff * ma) / t;
+      a.y += (dy * diff * ma) / t;
+      b.x -= (dx * diff * mb) / t;
+      b.y -= (dy * diff * mb) / t;
+    }
+  }
+}
+
+/** Backwards-compatible class wrapper if needed */
 export class RopeSimulation {
   nodes: RopeNode[] = [];
-  constraints: Constraint[] = [];
-  
-  gravity = 0.55;
-  damping = 0.992;
+  cons: Constraint[] = [];
+  drag = { active: false, target: { x: 0, y: 0 } };
+  cardHeight = 380;
   iterations = 18;
-  maxVelocity = 30;
-  maxAnchorDelta = 90;
-  
-  strandLen = 36;
-  stemLen = 34;
-  cardLen = 190;
-  minBendDist = 205;
-  anchorHalfSpacing = 34;
 
-  // Node Indices
-  // 0: Left Anchor, 1: Right Anchor
-  // 2, 3, 4: Left strand free nodes
-  // 5, 6, 7: Right strand free nodes
-  // 8: Junction
-  // 9: Stem node 1
-  // 10: Stem node 2
-  // 11: Hook node (top of card)
-  // 12: Badge bottom node (bottom of card)
-  idxAnchorL = 0;
-  idxAnchorR = 1;
-  idxStrandL = [2, 3, 4];
-  idxStrandR = [5, 6, 7];
-  idxJunction = 8;
-  idxStem = [9, 10];
-  idxHook = 11;
-  idxBadgeBottom = 12;
-
-  // Drag state
-  isDragging = false;
-  dragTargetX = 0;
-  dragTargetY = 0;
-
-  // Previous anchor Y for clamping large scroll jumps
-  lastAnchorY = 0;
-
-  constructor(centerX: number, startY: number, isMobile = false) {
-    if (isMobile) {
-      this.iterations = 10;
-    }
-    this.lastAnchorY = startY;
-    this.init(centerX, startY);
+  constructor(centerX: number, startY = -50, isMobile = false) {
+    this.cardHeight = isMobile ? 320 : 380;
+    this.iterations = isMobile ? 10 : 18;
+    this.nodes = createRopeNodes(centerX, this.cardHeight, startY - -50);
+    this.cons = createRopeConstraints(this.cardHeight);
   }
 
-  init(centerX: number, startY: number) {
-    this.nodes = [];
-    this.constraints = [];
-
-    const createNode = (x: number, y: number, isPinned = false): RopeNode => ({
-      x,
-      y,
-      prevX: x,
-      prevY: y,
-      isPinned,
-    });
-
-    const anchorLX = centerX - this.anchorHalfSpacing;
-    const anchorRX = centerX + this.anchorHalfSpacing;
-
-    // 0: Anchor Left (pinned)
-    this.nodes.push(createNode(anchorLX, startY, true));
-    // 1: Anchor Right (pinned)
-    this.nodes.push(createNode(anchorRX, startY, true));
-
-    // Left strand (3 nodes)
-    let curYL = startY;
-    for (let i = 1; i <= 3; i++) {
-      curYL += this.strandLen * 0.9;
-      const t = i / 4;
-      const x = anchorLX * (1 - t) + centerX * t;
-      this.nodes.push(createNode(x, curYL));
-    }
-
-    // Right strand (3 nodes)
-    let curYR = startY;
-    for (let i = 1; i <= 3; i++) {
-      curYR += this.strandLen * 0.9;
-      const t = i / 4;
-      const x = anchorRX * (1 - t) + centerX * t;
-      this.nodes.push(createNode(x, curYR));
-    }
-
-    // 8: Junction
-    const junctionY = Math.max(curYL, curYR) + this.strandLen * 0.8;
-    this.nodes.push(createNode(centerX, junctionY));
-
-    // 9, 10: Stem nodes
-    let stemY = junctionY;
-    for (let i = 0; i < 2; i++) {
-      stemY += this.stemLen;
-      this.nodes.push(createNode(centerX, stemY));
-    }
-
-    // 11: Hook node
-    stemY += this.stemLen;
-    this.nodes.push(createNode(centerX, stemY));
-
-    // 12: Badge bottom node
-    const badgeBottomY = stemY + this.cardLen;
-    this.nodes.push(createNode(centerX, badgeBottomY));
-
-    // Constraints setup
-    // Left strand
-    this.constraints.push({ nodeA: 0, nodeB: 2, length: this.strandLen });
-    this.constraints.push({ nodeA: 2, nodeB: 3, length: this.strandLen });
-    this.constraints.push({ nodeA: 3, nodeB: 4, length: this.strandLen });
-    this.constraints.push({ nodeA: 4, nodeB: 8, length: this.strandLen });
-
-    // Right strand
-    this.constraints.push({ nodeA: 1, nodeB: 5, length: this.strandLen });
-    this.constraints.push({ nodeA: 5, nodeB: 6, length: this.strandLen });
-    this.constraints.push({ nodeA: 6, nodeB: 7, length: this.strandLen });
-    this.constraints.push({ nodeA: 7, nodeB: 8, length: this.strandLen });
-
-    // Stem
-    this.constraints.push({ nodeA: 8, nodeB: 9, length: this.stemLen });
-    this.constraints.push({ nodeA: 9, nodeB: 10, length: this.stemLen });
-    this.constraints.push({ nodeA: 10, nodeB: 11, length: this.stemLen });
-
-    // Card rigid length (Hook to Badge Bottom)
-    this.constraints.push({ nodeA: 11, nodeB: 12, length: this.cardLen });
-  }
-
-  setAnchorPosition(centerX: number, targetY: number) {
-    // Clamp anchor delta per frame to 40px to survive anchor-link jumps
-    const deltaY = targetY - this.lastAnchorY;
-    const clampedDelta = Math.max(-this.maxAnchorDelta, Math.min(this.maxAnchorDelta, deltaY));
-    const effectiveY = this.lastAnchorY + clampedDelta;
-    this.lastAnchorY = effectiveY;
-
-    this.nodes[this.idxAnchorL].x = centerX - this.anchorHalfSpacing;
-    this.nodes[this.idxAnchorL].y = effectiveY;
-    this.nodes[this.idxAnchorR].x = centerX + this.anchorHalfSpacing;
-    this.nodes[this.idxAnchorR].y = effectiveY;
+  setAnchorPosition(centerX: number, anchorY: number) {
+    this.nodes[0].x = centerX - 34;
+    this.nodes[0].y = anchorY;
+    this.nodes[4].x = centerX + 34;
+    this.nodes[4].y = anchorY;
   }
 
   startDrag(x: number, y: number) {
-    this.isDragging = true;
-    this.dragTargetX = x;
-    this.dragTargetY = y;
+    this.drag.active = true;
+    this.drag.target.x = x;
+    this.drag.target.y = y;
   }
 
   updateDrag(x: number, y: number) {
-    if (this.isDragging) {
-      this.dragTargetX = x;
-      this.dragTargetY = y;
+    if (this.drag.active) {
+      this.drag.target.x = x;
+      this.drag.target.y = y;
     }
   }
 
-  endDrag(flingVx = 0, flingVy = 0) {
-    if (this.isDragging) {
-      this.isDragging = false;
-      const bottom = this.nodes[this.idxBadgeBottom];
-      // Apply fling velocity by offsetting prevX / prevY
-      bottom.prevX = bottom.x - Math.max(-this.maxVelocity, Math.min(this.maxVelocity, flingVx));
-      bottom.prevY = bottom.y - Math.max(-this.maxVelocity, Math.min(this.maxVelocity, flingVy));
-    }
+  endDrag() {
+    this.drag.active = false;
   }
 
   step() {
-    // 1. Verlet Integration for free nodes
-    for (let i = 0; i < this.nodes.length; i++) {
-      const node = this.nodes[i];
-      if (node.isPinned) continue;
-
-      if (this.isDragging && i === this.idxBadgeBottom) {
-        node.prevX = node.x;
-        node.prevY = node.y;
-        node.x = this.dragTargetX;
-        node.y = this.dragTargetY;
-        continue;
-      }
-
-      let vx = (node.x - node.prevX) * this.damping;
-      let vy = (node.y - node.prevY) * this.damping;
-
-      // Velocity clamp
-      vx = Math.max(-this.maxVelocity, Math.min(this.maxVelocity, vx));
-      vy = Math.max(-this.maxVelocity, Math.min(this.maxVelocity, vy));
-
-      node.prevX = node.x;
-      node.prevY = node.y;
-
-      node.x += vx;
-      node.y += vy + this.gravity;
-    }
-
-    // 2. Solve Distance Constraints over iterations
-    for (let iter = 0; iter < this.iterations; iter++) {
-      for (const c of this.constraints) {
-        const a = this.nodes[c.nodeA];
-        const b = this.nodes[c.nodeB];
-
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist === 0) continue;
-
-        const diff = (dist - c.length) / dist;
-
-        const aIsFixed = a.isPinned;
-        const bIsFixed = b.isPinned || (this.isDragging && c.nodeB === this.idxBadgeBottom);
-
-        if (aIsFixed && !bIsFixed) {
-          b.x -= dx * diff;
-          b.y -= dy * diff;
-        } else if (!aIsFixed && bIsFixed) {
-          a.x += dx * diff;
-          a.y += dy * diff;
-        } else if (!aIsFixed && !bIsFixed) {
-          a.x += dx * 0.5 * diff;
-          a.y += dy * 0.5 * diff;
-          b.x -= dx * 0.5 * diff;
-          b.y -= dy * 0.5 * diff;
-        }
-      }
-
-      // One-sided bend limit: distance from Junction (node 8) to BadgeBottom (node 12) >= minBendDist
-      const j = this.nodes[this.idxJunction];
-      const bottom = this.nodes[this.idxBadgeBottom];
-      const jDx = bottom.x - j.x;
-      const jDy = bottom.y - j.y;
-      const jDist = Math.hypot(jDx, jDy);
-      if (jDist < this.minBendDist && jDist > 0) {
-        const jDiff = (jDist - this.minBendDist) / jDist;
-        if (!this.isDragging) {
-          bottom.x -= jDx * jDiff;
-          bottom.y -= jDy * jDiff;
-        }
-      }
-    }
-  }
-
-  /**
-   * Derive card orientation and physics parameters
-   */
-  getCardState() {
-    const hook = this.nodes[this.idxHook];
-    const bottom = this.nodes[this.idxBadgeBottom];
-
-    const dx = bottom.x - hook.x;
-    const dy = bottom.y - hook.y;
-    // theta is the angle from vertical down (0 = hanging straight down)
-    const theta = Math.atan2(dx, dy);
-    const thetaDeg = (theta * 180) / Math.PI;
-
-    // Horizontal velocity of the badge card
-    const vx = bottom.x - bottom.prevX;
-    // Tilt angle in degrees: clamp(vx * 4.5, -38°, 38°)
-    const tiltDeg = Math.max(-38, Math.min(38, vx * 4.5));
-
-    // Card center position
-    const centerX = (hook.x + bottom.x) / 2;
-    const centerY = (hook.y + bottom.y) / 2;
-
-    return {
-      hookX: hook.x,
-      hookY: hook.y,
-      bottomX: bottom.x,
-      bottomY: bottom.y,
-      centerX,
-      centerY,
-      theta,
-      thetaDeg,
-      vx,
-      tiltDeg,
-      isDragging: this.isDragging,
-    };
-  }
-
-  /** Return array of point coordinates for left strand: AnchorL -> L1 -> L2 -> L3 -> Junction */
-  getLeftStrandPoints() {
-    return [
-      this.nodes[this.idxAnchorL],
-      ...this.idxStrandL.map((i) => this.nodes[i]),
-      this.nodes[this.idxJunction],
-    ];
-  }
-
-  /** Return array of point coordinates for right strand: AnchorR -> R1 -> R2 -> R3 -> Junction */
-  getRightStrandPoints() {
-    return [
-      this.nodes[this.idxAnchorR],
-      ...this.idxStrandR.map((i) => this.nodes[i]),
-      this.nodes[this.idxJunction],
-    ];
-  }
-
-  /** Return array of point coordinates for stem: Junction -> S1 -> S2 -> Hook */
-  getStemPoints() {
-    return [
-      this.nodes[this.idxJunction],
-      ...this.idxStem.map((i) => this.nodes[i]),
-      this.nodes[this.idxHook],
-    ];
-  }
-
-  getJunctionPoint() {
-    return this.nodes[this.idxJunction];
-  }
-
-  getHookPoint() {
-    return this.nodes[this.idxHook];
+    step(this.nodes, this.cons, this.drag, this.iterations);
   }
 }

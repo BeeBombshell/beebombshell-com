@@ -1,3 +1,12 @@
+/**
+ * ribbon.ts
+ * Catmull-Rom spline smoothing, twisted ribbon renderer,
+ * and hardware drawing (crimp, ring, swivel hook).
+ * Conforms to badge-agent-prompt.md specification.
+ */
+
+export type V = { x: number; y: number };
+
 export interface RibbonTheme {
   front: string;
   back: string;
@@ -5,272 +14,207 @@ export interface RibbonTheme {
   stitching: string;
 }
 
-export const RIBBON_THEMES: { light: RibbonTheme; dark: RibbonTheme } = {
+export const RIBBON_THEMES = {
   light: {
     front: "#121212",
     back: "#2c2c31",
-    print: "rgba(246, 245, 241, 0.88)",
-    stitching: "rgba(255, 255, 255, 0.35)",
+    print: "rgba(246,245,241,.88)",
+    stitching: "rgba(255,255,255,.35)",
   },
   dark: {
     front: "#eeece6",
     back: "#cfcdc6",
-    print: "rgba(18, 18, 18, 0.88)",
-    stitching: "rgba(0, 0, 0, 0.3)",
+    print: "rgba(18,18,18,.88)",
+    stitching: "rgba(0,0,0,.3)",
   },
 };
 
-interface SplineSample {
-  x: number;
-  y: number;
-  nx: number;
-  ny: number;
-  angle: number;
-  arcLength: number;
-  u: number;
-  phi: number;
-  cosPhi: number;
-  halfWidth: number;
-}
-
-/** Catmull-Rom point and derivative evaluation */
-function catmullRom(
-  p0: { x: number; y: number },
-  p1: { x: number; y: number },
-  p2: { x: number; y: number },
-  p3: { x: number; y: number },
-  t: number
-) {
-  const t2 = t * t;
-  const t3 = t2 * t;
-
-  // Catmull-Rom matrix coefficients
-  const x =
-    0.5 *
-    (2 * p1.x +
-      (-p0.x + p2.x) * t +
-      (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
-      (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3);
-
-  const y =
-    0.5 *
-    (2 * p1.y +
-      (-p0.y + p2.y) * t +
-      (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
-      (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3);
-
-  const dx =
-    0.5 *
-    (-p0.x +
-      p2.x +
-      2 * (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t +
-      3 * (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t2);
-
-  const dy =
-    0.5 *
-    (-p0.y +
-      p2.y +
-      2 * (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t +
-      3 * (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t2);
-
-  return { x, y, dx, dy };
-}
-
 /**
- * Sample a spline curve through rope nodes with 8 samples per segment
+ * Smooth polyline using Catmull-Rom spline with n samples per segment
  */
-export function sampleStrandSpline(
-  nodes: { x: number; y: number }[],
-  baseWidth: number,
-  theta: number,
-  vx: number,
-  flipRadians: number,
-  k: number,
-  phase: number,
-  timeMs: number
-): SplineSample[] {
-  if (nodes.length < 2) return [];
+export function catmull(P: V[], n = 8): V[] {
+  const out: V[] = [];
+  const L = P.length;
+  if (L < 2) return [...P];
 
-  // Pad endpoints for Catmull-Rom
-  const pts = [
-    {
-      x: nodes[0].x - (nodes[1].x - nodes[0].x),
-      y: nodes[0].y - (nodes[1].y - nodes[0].y),
-    },
-    ...nodes,
-    {
-      x: nodes[nodes.length - 1].x + (nodes[nodes.length - 1].x - nodes[nodes.length - 2].x),
-      y: nodes[nodes.length - 1].y + (nodes[nodes.length - 1].y - nodes[nodes.length - 2].y),
-    },
-  ];
-
-  const samples: SplineSample[] = [];
-  const segments = nodes.length - 1;
-  const samplesPerSeg = 8;
-  const totalSamples = segments * samplesPerSeg;
-
-  let cumulativeLength = 0;
-  let prevX = nodes[0].x;
-  let prevY = nodes[0].y;
-
-  for (let seg = 0; seg < segments; seg++) {
-    const p0 = pts[seg];
-    const p1 = pts[seg + 1];
-    const p2 = pts[seg + 2];
-    const p3 = pts[seg + 3];
-
-    for (let s = 0; s < samplesPerSeg; s++) {
-      const segT = s / samplesPerSeg;
-      const globalU = (seg * samplesPerSeg + s) / totalSamples;
-
-      const evalResult = catmullRom(p0, p1, p2, p3, segT);
-      const x = evalResult.x;
-      const y = evalResult.y;
-
-      const dist = Math.hypot(x - prevX, y - prevY);
-      cumulativeLength += dist;
-      prevX = x;
-      prevY = y;
-
-      const len = Math.hypot(evalResult.dx, evalResult.dy) || 1;
-      const nx = -evalResult.dy / len;
-      const ny = evalResult.dx / len;
-      const angle = Math.atan2(evalResult.dy, evalResult.dx);
-
-      // Twist formula from design.md:
-      // φ(u) = (θ·2.2 + vx·0.1)·u + flipRadians·k·u + 0.3·sin(t/900 + 4u + phase)
-      const phi =
-        (theta * 2.2 + vx * 0.1) * globalU +
-        flipRadians * k * globalU +
-        0.3 * Math.sin(timeMs / 900 + 4 * globalU + phase);
-
-      const cosPhi = Math.cos(phi);
-      // Half-width = width/2 · max(0.12, |cos φ|)
-      const halfWidth = (baseWidth / 2) * Math.max(0.12, Math.abs(cosPhi));
-
-      samples.push({
-        x,
-        y,
-        nx,
-        ny,
-        angle,
-        arcLength: cumulativeLength,
-        u: globalU,
-        phi,
-        cosPhi,
-        halfWidth,
+  for (let s = 0; s < L - 1; s++) {
+    const p0 = P[Math.max(0, s - 1)];
+    const p1 = P[s];
+    const p2 = P[s + 1];
+    const p3 = P[Math.min(L - 1, s + 2)];
+    for (let k = 0; k < n; k++) {
+      const t = k / n;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      out.push({
+        x:
+          0.5 *
+          (2 * p1.x +
+            (-p0.x + p2.x) * t +
+            (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
+            (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
+        y:
+          0.5 *
+          (2 * p1.y +
+            (-p0.y + p2.y) * t +
+            (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+            (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
       });
     }
   }
-
-  return samples;
+  out.push({ ...P[L - 1] });
+  return out;
 }
 
-const STRAP_TEXT = "BHAVYA VERMA · PRODUCT ENGINEER · ";
-
 /**
- * Render ribbon strand with Catmull-Rom smoothing, dynamic twist,
- * stitched edges, weave texture, and printed text along path.
+ * Draw a twisting flat ribbon with stitched edges and printed text along path
  */
 export function drawRibbon(
   ctx: CanvasRenderingContext2D,
-  samples: SplineSample[],
-  theme: RibbonTheme,
-  showPrint = true
+  poly: V[],
+  o: {
+    width: number;
+    twist: (u: number) => number;
+    front: string;
+    back: string;
+    stitching?: string;
+    print?: { text: string; phase: number; color: string; font: string };
+  }
 ) {
-  if (samples.length < 2) return;
+  const n = poly.length;
+  if (n < 2) return;
 
-  // 1. Draw ribbon quad segments with front / back faces
-  for (let i = 0; i < samples.length - 1; i++) {
-    const s0 = samples[i];
-    const s1 = samples[i + 1];
+  const s = [0];
+  for (let i = 1; i < n; i++) {
+    s.push(s[i - 1] + Math.hypot(poly[i].x - poly[i - 1].x, poly[i].y - poly[i - 1].y));
+  }
+  const total = s[n - 1] || 1;
 
-    const isFront = s0.cosPhi >= 0;
-    ctx.fillStyle = isFront ? theme.front : theme.back;
+  const tx: number[] = [];
+  const ty: number[] = [];
+  const nx: number[] = [];
+  const ny: number[] = [];
+  const c: number[] = [];
 
+  for (let i = 0; i < n; i++) {
+    const a = poly[Math.max(0, i - 1)];
+    const b = poly[Math.min(n - 1, i + 1)];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const l = Math.hypot(dx, dy) || 1;
+    tx.push(dx / l);
+    ty.push(dy / l);
+    nx.push(-dy / l);
+    ny.push(dx / l);
+    c.push(Math.cos(o.twist(s[i] / total))); // cos of the twist angle at this sample
+  }
+
+  for (let i = 0; i < n - 1; i++) {
+    const c1 = c[i];
+    const c2 = c[i + 1];
+    const h1 = (o.width / 2) * Math.max(0.12, Math.abs(c1));
+    const h2 = (o.width / 2) * Math.max(0.12, Math.abs(c2));
+
+    ctx.fillStyle = ctx.strokeStyle = c1 + c2 >= 0 ? o.front : o.back;
+    ctx.lineWidth = 0.6;
     ctx.beginPath();
-    ctx.moveTo(s0.x + s0.nx * s0.halfWidth, s0.y + s0.ny * s0.halfWidth);
-    ctx.lineTo(s1.x + s1.nx * s1.halfWidth, s1.y + s1.ny * s1.halfWidth);
-    ctx.lineTo(s1.x - s1.nx * s1.halfWidth, s1.y - s1.ny * s1.halfWidth);
-    ctx.lineTo(s0.x - s0.nx * s0.halfWidth, s0.y - s0.ny * s0.halfWidth);
+    ctx.moveTo(poly[i].x + nx[i] * h1, poly[i].y + ny[i] * h1);
+    ctx.lineTo(poly[i + 1].x + nx[i + 1] * h2, poly[i + 1].y + ny[i + 1] * h2);
+    ctx.lineTo(poly[i + 1].x - nx[i + 1] * h2, poly[i + 1].y - ny[i + 1] * h2);
+    ctx.lineTo(poly[i].x - nx[i] * h1, poly[i].y - ny[i] * h1);
     ctx.closePath();
     ctx.fill();
-
-    // Subtle edge boundary line
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.15)";
-    ctx.lineWidth = 0.5;
     ctx.stroke();
 
-    // 2. Weave ticks at 0.5 of half-width, alpha 0.06
-    if (i % 2 === 0) {
-      ctx.strokeStyle = isFront
-        ? "rgba(255, 255, 255, 0.06)"
-        : "rgba(0, 0, 0, 0.06)";
+    // Stitching on both edges when face is forward
+    if (c1 + c2 > 0.7 && i % 2 === 0) {
+      ctx.strokeStyle = o.stitching || "rgba(255,255,255,.35)";
       ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(s0.x + s0.nx * s0.halfWidth * 0.5, s0.y + s0.ny * s0.halfWidth * 0.5);
-      ctx.lineTo(s0.x - s0.nx * s0.halfWidth * 0.5, s0.y - s0.ny * s0.halfWidth * 0.5);
-      ctx.stroke();
+      for (const sg of [1, -1]) {
+        ctx.beginPath();
+        ctx.moveTo(poly[i].x + sg * nx[i] * h1 * 0.78, poly[i].y + sg * ny[i] * h1 * 0.78);
+        ctx.lineTo(poly[i + 1].x + sg * nx[i + 1] * h2 * 0.78, poly[i + 1].y + sg * ny[i + 1] * h2 * 0.78);
+        ctx.stroke();
+      }
     }
   }
 
-  // 3. Stitches at 0.78 of half-width on both edges
-  // (drawn on alternate samples, only when face is clearly forward)
-  ctx.strokeStyle = theme.stitching;
-  ctx.lineWidth = 1.2;
-  for (let i = 0; i < samples.length - 1; i += 2) {
-    const s0 = samples[i];
-    const s1 = samples[i + 1];
-    if (Math.abs(s0.cosPhi) >= 0.35) {
-      // Left stitch
-      ctx.beginPath();
-      ctx.moveTo(s0.x + s0.nx * s0.halfWidth * 0.78, s0.y + s0.ny * s0.halfWidth * 0.78);
-      ctx.lineTo(s1.x + s1.nx * s1.halfWidth * 0.78, s1.y + s1.ny * s1.halfWidth * 0.78);
-      ctx.stroke();
-
-      // Right stitch
-      ctx.beginPath();
-      ctx.moveTo(s0.x - s0.nx * s0.halfWidth * 0.78, s0.y - s0.ny * s0.halfWidth * 0.78);
-      ctx.lineTo(s1.x - s1.nx * s1.halfWidth * 0.78, s1.y - s1.ny * s1.halfWidth * 0.78);
-      ctx.stroke();
-    }
-  }
-
-  // 4. Printed text along the strap
-  // "11px mono, weight 500, uppercase, +1.4px tracking: BHAVYA VERMA · PRODUCT ENGINEER ·"
-  // Squashed by |cos φ|, and hidden below 0.3
-  if (showPrint && samples.length > 5) {
-    ctx.save();
-    ctx.font = "500 11px var(--font-mono), monospace";
-    ctx.fillStyle = theme.print;
+  // Text printed along the strap by arc length
+  if (o.print) {
+    ctx.font = o.print.font;
     ctx.textBaseline = "middle";
-    ctx.textAlign = "center";
+    let d = o.print.phase;
+    let k = 0;
+    const T = o.print.text;
 
-    const totalLen = samples[samples.length - 1].arcLength;
-    const charSpacing = 8.5; // pixel spacing between characters
-    const textLen = STRAP_TEXT.length;
+    while (d < total - 8) {
+      const ch = T[k % T.length];
+      const w = ctx.measureText(ch).width + 1.4;
+      let j = 0;
+      while (j < n - 2 && s[j + 1] < d) j++;
+      const f = (d - s[j]) / (s[j + 1] - s[j] || 1);
+      const px = poly[j].x + (poly[j + 1].x - poly[j].x) * f;
+      const py = poly[j].y + (poly[j + 1].y - poly[j].y) * f;
 
-    let textIdx = 0;
-    for (let targetDist = 18; targetDist < totalLen - 20; targetDist += charSpacing) {
-      // Find sample corresponding to targetDist
-      const sample = samples.find((s) => s.arcLength >= targetDist);
-      if (!sample) continue;
-
-      const cosVal = Math.abs(sample.cosPhi);
-      // Hide print when cos φ is below 0.3 per design.md
-      if (cosVal >= 0.3 && sample.cosPhi > 0) {
-        const char = STRAP_TEXT[textIdx % textLen];
+      if (c[j] > 0.3 && d > 14) {
         ctx.save();
-        ctx.translate(sample.x, sample.y);
-        ctx.rotate(sample.angle);
-        // Squash across the ribbon by cosPhi
-        ctx.scale(1, cosVal);
-        ctx.fillText(char, 0, 0);
+        ctx.translate(px, py);
+        ctx.rotate(Math.atan2(ty[j], tx[j]));
+        ctx.scale(1, Math.abs(c[j]));
+        ctx.fillStyle = o.print.color;
+        ctx.fillText(ch, 0, 0);
         ctx.restore();
       }
 
-      textIdx++;
+      d += w;
+      k++;
     }
-    ctx.restore();
   }
+}
+
+/**
+ * Metal hardware drawer (brushed gradient with bevel border)
+ */
+export function metal(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  angle = 0
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+
+  const grad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+  grad.addColorStop(0, "#f3f3f6");
+  grad.addColorStop(0.45, "#a9a9b2");
+  grad.addColorStop(1, "#e0e0e5");
+
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = "#7d7d86";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+
+  if (typeof ctx.roundRect === "function") {
+    ctx.roundRect(-w / 2, -h / 2, w, h, r);
+  } else {
+    const hw = w / 2;
+    const hh = h / 2;
+    ctx.moveTo(-hw + r, -hh);
+    ctx.lineTo(hw - r, -hh);
+    ctx.quadraticCurveTo(hw, -hh, hw, -hh + r);
+    ctx.lineTo(hw, hh - r);
+    ctx.quadraticCurveTo(hw, hh, hw - r, hh);
+    ctx.lineTo(-hw + r, hh);
+    ctx.quadraticCurveTo(-hw, hh, -hw, hh - r);
+    ctx.lineTo(-hw, -hh + r);
+    ctx.quadraticCurveTo(-hw, -hh, -hw + r, -hh);
+  }
+
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
 }

@@ -84,8 +84,8 @@ export class ParticleEngine {
 
   // Mode center percents
   private modeCenter: Record<ParticleMode, [number, number]> = {
-    burst:    [0.66, 0.50],
-    lattice:  [0.60, 0.50],
+    burst:    [0.50, 0.50],
+    lattice:  [0.50, 0.50],
     contours: [0.50, 0.50],
     writing:  [0.50, 0.50],
     llms:     [0.50, 0.50],

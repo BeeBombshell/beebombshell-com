@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 export interface EyeState {
   offsetX: number;
   offsetY: number;
+  scaleX: number;
   scaleY: number;
   blobLeanX: number;
   blobLeanY: number;
@@ -48,6 +49,7 @@ export function useEyes({
   const [state, setState] = useState<EyeState>({
     offsetX: 0,
     offsetY: 0,
+    scaleX: 1,
     scaleY: 1,
     blobLeanX: 0,
     blobLeanY: 0,
@@ -140,12 +142,14 @@ export function useEyes({
       eyeOffsetRef.current.x = lerp(eyeOffsetRef.current.x, targetOffsetX, 0.22);
       eyeOffsetRef.current.y = lerp(eyeOffsetRef.current.y, targetOffsetY, 0.22);
 
-      // 3. Eye Expression scaleY
+      // 3. Eye Expression scaleY & scaleX
       let scaleY = 1.0;
+      let scaleX = 1.0;
       if (isBlinkingRef.current) {
         scaleY = 0.12;
       } else if (isDragging || Math.abs(scrollVelocityRef.current) > 15) {
         scaleY = 1.25; // Wide when grabbed or fast scroll
+        scaleX = 1.1;
       } else if (Math.abs(cardVx) > 5) {
         scaleY = 0.7; // Squint when swinging fast
       }
@@ -159,6 +163,7 @@ export function useEyes({
       setState({
         offsetX: eyeOffsetRef.current.x,
         offsetY: eyeOffsetRef.current.y,
+        scaleX,
         scaleY,
         blobLeanX,
         blobLeanY,

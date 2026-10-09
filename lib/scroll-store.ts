@@ -22,9 +22,9 @@ function tick() {
     return;
   }
   const rect = heroRef.getBoundingClientRect();
-  const raw = Math.max(0, Math.min(1, -rect.top / (rect.height * 0.9)));
+  const raw = Math.max(0, Math.min(1, -rect.top / (rect.height * 0.78)));
   s = raw;
-  const next = lerp(sSmooth, s, 0.08);
+  const next = lerp(sSmooth, s, 0.22);
   if (Math.abs(next - sSmooth) > 0.0001) {
     sSmooth = next;
     listeners.forEach((l) => l());

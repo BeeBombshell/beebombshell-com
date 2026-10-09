@@ -57,7 +57,7 @@ export function ParticleCanvas() {
         const hero = document.getElementById("hero-section");
         if (!hero) return;
         const rect = hero.getBoundingClientRect();
-        const s = Math.max(0, Math.min(1, -rect.top / (rect.height * 0.9)));
+        const s = Math.max(0, Math.min(1, -rect.top / (rect.height * 0.78)));
         engine.onScroll(s);
       };
       window.addEventListener("scroll", onScroll, { passive: true });

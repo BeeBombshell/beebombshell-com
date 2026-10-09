@@ -42,6 +42,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Lenis smooth scrolling rules */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
 /* Accessible focus ring per design.md */
 :focus-visible {
   outline: 2px solid var(--fg);
@@ -68,3 +90,95 @@ body {
 .text-halo {
   text-shadow: 0 0 12px var(--bg), 0 0 24px var(--bg);
 }
+
+/* Shiki syntax highlighting dual themes */
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+  background-color: transparent !important;
+}
+
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark);
+  background-color: transparent !important;
+}
+
+/* Prose typography for articles */
+.prose-article {
+  line-height: 1.8;
+  color: var(--fg);
+}
+
+.prose-article p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  color: var(--fg);
+  opacity: 0.92;
+}
+
+.prose-article h2 {
+  font-size: 1.625rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  margin-top: 2.5em;
+  margin-bottom: 0.75em;
+  color: var(--fg);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.35em;
+}
+
+.prose-article h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  color: var(--fg);
+}
+
+.prose-article ul,
+.prose-article ol {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+}
+
+.prose-article li {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+  color: var(--mut);
+}
+
+.prose-article li strong {
+  color: var(--fg);
+}
+
+.prose-article a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line);
+  transition: text-decoration-color 0.2s;
+}
+
+.prose-article a:hover {
+  text-decoration-color: var(--fg);
+}
+
+.prose-article code:not(pre code) {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.875em;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  background-color: var(--line);
+  color: var(--fg);
+}
+
+.prose-article pre {
+  margin: 0;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+

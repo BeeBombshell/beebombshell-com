@@ -43,9 +43,9 @@ export function HeroSection({ profile, selectedProjects }: HeroSectionProps) {
   const copyOpacity = Math.max(0, 1 - 2.4 * s);
   const copyTranslateY = -70 * s;
 
-  // Selected work intro fade: (S - 0.5) · 2.2 clamped between 0 and 1
-  const workOpacity = Math.max(0, Math.min(1, (s - 0.5) * 2.2));
-  const workTranslateY = Math.max(0, (1 - s) * 30);
+  // Selected work intro fade: starts earlier at S > 0.2 for snappy reveal
+  const workOpacity = Math.max(0, Math.min(1, (s - 0.2) * 1.8));
+  const workTranslateY = Math.max(0, (1 - s) * 24);
 
   return (
     <div className="relative w-full">
@@ -143,7 +143,7 @@ export function HeroSection({ profile, selectedProjects }: HeroSectionProps) {
         style={{
           opacity: workOpacity,
           transform: `translateY(${workTranslateY}px)`,
-          pointerEvents: workOpacity < 0.1 ? "none" : "auto",
+          pointerEvents: workOpacity < 0.05 ? "none" : "auto",
         }}
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between border-b border-[var(--line)] pb-4 mb-12">

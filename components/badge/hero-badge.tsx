@@ -221,8 +221,8 @@ export function HeroBadge({ className = "" }: HeroBadgeProps) {
     const animate = (time: number) => {
       rafId = requestAnimationFrame(animate);
 
-      // Pause simulation when S > 0.95, tab hidden, or off-screen
-      if (!isVisible || document.hidden || scrollStore.s > 0.95) {
+      // Pause simulation only when tab is hidden or off-screen
+      if (!isVisible || document.hidden) {
         return;
       }
 
@@ -232,11 +232,10 @@ export function HeroBadge({ className = "" }: HeroBadgeProps) {
       const width = container.clientWidth;
       const height = container.clientHeight;
 
-      // Real scroll synchronisation: anchor Y follows hero top relative to viewport
+      // Real scroll synchronisation: anchor follows hero scroll
       const heroRect = container.getBoundingClientRect();
       const anchorX = isMobile ? width * 0.5 : width * 0.66;
-      // Anchor Y in container local space
-      const anchorY = Math.max(-100, Math.min(100, -heroRect.top * 0.4));
+      const anchorY = -heroRect.top * 0.55;
       rope.setAnchorPosition(anchorX, anchorY);
 
       if (!reducedMotion) {

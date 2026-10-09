@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { SmoothScroll } from "@/components/scroll/smooth-scroll";
 import { NotchNav } from "@/components/notch/notch-nav";
 import { ParticleCanvas } from "@/components/particles/particle-canvas";
 import { getConfig, getProfile } from "@/lib/queries";
@@ -46,16 +47,19 @@ export default async function RootLayout({
           {/* Fixed particle canvas — behind everything (z-index: 0) */}
           <ParticleCanvas />
 
-          {/* Top-docked Notch Navigation */}
-          <NotchNav
-            bookingUrl={config.bookingUrl}
-            statusText={profile.statusText}
-          />
+          {/* Smooth Momentum Scroll with Lenis */}
+          <SmoothScroll>
+            {/* Top-docked Notch Navigation */}
+            <NotchNav
+              bookingUrl={config.bookingUrl}
+              statusText={profile.statusText}
+            />
 
-          {/* Main page content area */}
-          <div className="pt-14 sm:pt-16 min-h-screen flex flex-col relative z-10">
-            {children}
-          </div>
+            {/* Main page content area */}
+            <div className="pt-14 sm:pt-16 min-h-screen flex flex-col relative z-10">
+              {children}
+            </div>
+          </SmoothScroll>
         </ThemeProvider>
       </body>
     </html>

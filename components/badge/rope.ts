@@ -31,7 +31,7 @@ export class RopeSimulation {
   damping = 0.992;
   iterations = 18;
   maxVelocity = 30;
-  maxAnchorDelta = 40;
+  maxAnchorDelta = 90;
   
   strandLen = 36;
   stemLen = 34;

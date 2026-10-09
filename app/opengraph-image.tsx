@@ -57,7 +57,7 @@ export default async function Image() {
               textTransform: "uppercase",
             }}
           >
-            Product Engineer & Builder · India
+            product engineer, developer experience
           </div>
           <div
             style={{

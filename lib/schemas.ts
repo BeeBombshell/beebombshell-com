@@ -9,11 +9,18 @@ export const SocialLinkSchema = z.object({
 export const ProfileSchema = z.object({
   name: z.string(),
   role: z.string(),
-  location: z.string(),
+  location: z.string().optional().default(""),
   bio: z.string(),
   socials: z.array(SocialLinkSchema),
   statusText: z.string().default("open for chats"),
 });
+
+export const TakeSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  order: z.number().int().default(0),
+});
+
 
 export const ProjectSchema = z.object({
   slug: z.string(),
@@ -51,6 +58,7 @@ export const SiteConfigSchema = z.object({
 
 export type SocialLink = z.infer<typeof SocialLinkSchema>;
 export type Profile = z.infer<typeof ProfileSchema>;
+export type Take = z.infer<typeof TakeSchema>;
 export type Project = z.infer<typeof ProjectSchema>;
 export type Post = z.infer<typeof PostSchema>;
 export type SiteConfig = z.infer<typeof SiteConfigSchema>;

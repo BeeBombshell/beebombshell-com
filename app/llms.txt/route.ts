@@ -1,4 +1,5 @@
 import { getProfile, getProjects, getPosts } from "@/lib/queries";
+import { COPY } from "@/lib/copy";
 
 export async function GET() {
   const [profile, projects, posts] = await Promise.all([
@@ -10,35 +11,37 @@ export async function GET() {
   const projectsMarkdown = projects
     .map(
       (p) =>
-        `- [${p.title}](${p.links.repo || p.links.live || "#"}): ${p.blurb} (Stack: ${p.stack.join(", ")})`
+        `- [${p.title}](${p.links.repo || p.links.live || `https://github.com/BeeBombshell/${p.slug}`}): ${p.blurb}`
     )
     .join("\n");
 
-  const postsMarkdown = posts
-    .map(
-      (p) =>
-        `- ${p.title} (${new Date(p.publishedAt).toLocaleDateString()}): ${p.excerpt}`
-    )
-    .join("\n");
+  const postsMarkdown = posts.length
+    ? posts
+        .map(
+          (p) =>
+            `- [${p.title}](https://beebombshell.com/writing/${p.slug}): ${p.excerpt}`
+        )
+        .join("\n")
+    : "- First post loading. Opinions are being formed.";
 
   const socialsMarkdown = profile.socials
-    .map((s) => `- ${s.label}: ${s.url}`)
+    .map((s) => `- [${s.label}](${s.url})`)
     .join("\n");
 
   const body = `# ${profile.name}
-> ${profile.role} · ${profile.location}
-> Status: ${profile.statusText}
+> ${COPY.bio.oneLiner}
 
-${profile.bio}
+${COPY.bio.medium}
 
-## Selected Projects
+## Projects
 ${projectsMarkdown}
 
-## Writing & Dispatches
+## Writing
 ${postsMarkdown}
 
-## Contact & Elsewhere
+## Elsewhere
 ${socialsMarkdown}
+- [Site](https://beebombshell.com)
 `;
 
   return new Response(body, {

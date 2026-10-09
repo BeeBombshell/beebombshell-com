@@ -1,4 +1,5 @@
 import { getProfile, getProjects, getPosts } from "@/lib/queries";
+import { COPY } from "@/lib/copy";
 
 export async function GET() {
   const [profile, projects, posts] = await Promise.all([
@@ -19,21 +20,24 @@ ${p.body}
     )
     .join("\n\n");
 
-  const postsMarkdown = posts
-    .map(
-      (p) => `### ${p.title}
+  const postsMarkdown = posts.length
+    ? posts
+        .map(
+          (p) => `### ${p.title}
 - Published: ${p.publishedAt}
 - Tags: ${p.tags.join(", ")}
 
 ${p.body}
 `
-    )
-    .join("\n\n");
+        )
+        .join("\n\n")
+    : "First post loading. Opinions are being formed.\n";
 
   const body = `# ${profile.name} - Full Documentation & Portfolio Context
 Role: ${profile.role}
-Location: ${profile.location}
-Bio: ${profile.bio}
+Bio: ${COPY.bio.medium}
+
+${COPY.bio.long.join("\n\n")}
 
 ---
 

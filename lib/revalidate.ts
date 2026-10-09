@@ -3,6 +3,7 @@ export const REVALIDATE_TAGS = {
   projects: "projects",
   posts: "posts",
   config: "config",
+  takes: "takes",
 } as const;
 
 export type RevalidateTag = (typeof REVALIDATE_TAGS)[keyof typeof REVALIDATE_TAGS];

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "take-1",
+    "text": "A good README is the cheapest feature you'll ever ship.",
+    "order": 1
+  },
+  {
+    "id": "take-2",
+    "text": "If your error message doesn't say what to do next, it's not an error message. It's a vibe.",
+    "order": 2
+  },
+  {
+    "id": "take-3",
+    "text": "Developer experience is just empathy with a changelog.",
+    "order": 3
+  },
+  {
+    "id": "take-4",
+    "text": "Low-code is still code. It's just somewhere else, and someone is on call for it.",
+    "order": 4
+  },
+  {
+    "id": "take-5",
+    "text": "Mentoring is the only open source contribution with compounding returns.",
+    "order": 5
+  },
+  {
+    "id": "take-6",
+    "text": "Memes are documentation for people who skipped the docs.",
+    "order": 6
+  }
+]

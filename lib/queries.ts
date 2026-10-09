@@ -9,10 +9,12 @@ import {
   ProjectSchema,
   PostSchema,
   SiteConfigSchema,
+  TakeSchema,
   type Profile,
   type Project,
   type Post,
   type SiteConfig,
+  type Take,
 } from "./schemas";
 
 function readSeedFile<T>(filename: string): T {
@@ -171,4 +173,39 @@ export async function getConfig(): Promise<SiteConfig> {
   }
   return cachedGetConfig();
 }
+
+async function fetchTakes(): Promise<Take[]> {
+  if (firestore) {
+    try {
+      const snap = await firestore.collection("takes").orderBy("order", "asc").get();
+      if (!snap.empty) {
+        return snap.docs.map((d: QueryDocumentSnapshot) =>
+          TakeSchema.parse({ ...d.data(), id: d.id })
+        );
+      }
+    } catch (err) {
+      console.warn("Firestore getTakes failed, using seed fallback:", err);
+    }
+  }
+
+  const raw = readSeedFile<unknown[]>("takes.json");
+  return raw.map((item) => TakeSchema.parse(item));
+}
+
+const cachedGetTakes = unstable_cache(
+  fetchTakes,
+  ["takes-data"],
+  {
+    tags: ["takes"],
+    revalidate: 3600,
+  }
+);
+
+export async function getTakes(): Promise<Take[]> {
+  if (process.env.NODE_ENV === "development" || !firestore) {
+    return fetchTakes();
+  }
+  return cachedGetTakes();
+}
+
 

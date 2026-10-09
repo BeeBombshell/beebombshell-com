@@ -5,6 +5,8 @@
   "featureFlags": {
     "showBooking": true,
     "enableLlmsTxt": true,
-    "enableSoundEffects": false
+    "enableSoundEffects": false,
+    "spotifyNowPlaying": true,
+    "character": true
   }
 }

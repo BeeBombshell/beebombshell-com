@@ -1,10 +1,11 @@
 import { getProfile } from "@/lib/queries";
 import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
+import { COPY } from "@/lib/copy";
 
 export const metadata: Metadata = {
-  title: "About · BeeBombshell",
-  description: "About Bhavya Verma - product engineer, builder, and creative technologist.",
+  title: "About · Bhavya Verma",
+  description: "About Bhavya Verma - product engineer, developer experience.",
   alternates: {
     canonical: "/about",
   },
@@ -20,69 +21,95 @@ export default async function AboutPage() {
         <div className="flex items-center justify-between border-b border-[var(--line)] pb-3 mb-8 text-[11px] font-mono uppercase tracking-wider text-[var(--mut)]">
           <div className="flex items-center gap-3">
             <span className="text-[var(--fg)] font-medium">№ 004</span>
-            <span>FIG 0.3 · BIOGRAPHY & SYSTEM</span>
+            <span>{COPY.about.caption}</span>
           </div>
-          <span>ORIGIN: {profile.location}</span>
+          <span>BEEBOMBSHELL.COM</span>
         </div>
 
-        {/* Section statement per design.md (26-28px, line-height 1.28, letter-spacing -0.02em) */}
-        <div className="mb-12">
-          <h1 className="text-2xl sm:text-[28px] font-normal tracking-[-0.02em] leading-[1.28] text-[var(--fg)] text-halo mb-8 max-w-2xl">
-            Building software with visceral feel, mechanical precision, and aesthetic integrity.
+        {/* Section title & Long Bio */}
+        <div className="mb-14">
+          <h1 className="text-3xl sm:text-4xl font-normal tracking-[-0.03em] text-[var(--fg)] text-halo mb-8">
+            {COPY.about.title}
           </h1>
 
-          <div className="space-y-6 text-[17px] sm:text-[18px] leading-[1.7] text-[var(--mut)] max-w-[65ch]">
-            <p className="text-halo">
-              {profile.bio}
-            </p>
-
-            <p className="text-halo">
-              I treat digital interfaces like mechanical hardware. Every interaction deserves weight, momentum, and tactile resistance. When software feels physical, using it becomes a pleasure rather than a chore.
-            </p>
-
-            <p className="text-halo">
-              My work sits at the intersection of systems architecture, frontend craft, and creative computation—shipping production features that run at 60fps on mid-tier mobile hardware while looking stunning on high-DPI displays.
-            </p>
+          <div className="space-y-6 text-[17px] sm:text-[18px] leading-[1.75] text-[var(--mut)] max-w-[65ch]">
+            {COPY.bio.long.map((paragraph, idx) => (
+              <p key={idx} className="text-halo">
+                {paragraph}
+              </p>
+            ))}
           </div>
         </div>
 
-        {/* Technical Pillars / Craft Philosophy */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-8 border-t border-[var(--line)] mb-12">
+        {/* How I Work Section */}
+        <div className="py-8 border-t border-[var(--line)] mb-10">
+          <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-6">
+            {COPY.about.howTitle}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {COPY.about.howItems.map((item, idx) => (
+              <div
+                key={idx}
+                className="p-5 rounded-xl border border-[var(--line)] bg-[var(--bg)]/40 backdrop-blur-sm"
+              >
+                <div className="font-mono text-[10px] text-[var(--mut)] mb-2">
+                  RULE 0{idx + 1}
+                </div>
+                <p className="text-sm text-[var(--fg)] font-normal leading-relaxed">
+                  {item}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Open Source & Mentoring */}
+        <div className="py-8 border-t border-[var(--line)] mb-10">
+          <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-4">
+            {COPY.about.ossTitle}
+          </h2>
+          <p className="text-base text-[var(--mut)] leading-relaxed max-w-[65ch] mb-4">
+            {COPY.about.ossBody}
+          </p>
+          <p className="text-xs font-mono text-[var(--mut)]">
+            {COPY.about.ossProjects}
+          </p>
+        </div>
+
+        {/* Off the clock & Fun Facts */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-8 border-t border-[var(--line)] mb-10">
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--mut)] mb-2">
-              01 / PHYSICALITY
-            </div>
-            <h2 className="text-base font-medium text-[var(--fg)] mb-1">
-              Spring Dynamics
+            <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-3">
+              {COPY.about.offclockTitle}
             </h2>
-            <p className="text-xs text-[var(--mut)] leading-relaxed">
-              Verlet integration, damping, and continuous momentum instead of linear transitions.
+            <p className="text-sm text-[var(--mut)] leading-relaxed">
+              {COPY.about.offclockBody}
             </p>
           </div>
 
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--mut)] mb-2">
-              02 / PERFORMANCE
-            </div>
-            <h2 className="text-base font-medium text-[var(--fg)] mb-1">
-              Frame Budgets
+            <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-3">
+              {COPY.about.funTitle}
             </h2>
-            <p className="text-xs text-[var(--mut)] leading-relaxed">
-              Capped DPR, memory efficiency, and text-aware dimming to preserve readability and speed.
-            </p>
+            <ul className="space-y-2 text-xs font-mono text-[var(--mut)]">
+              {COPY.about.funItems.map((fact, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="text-[var(--fg)] opacity-50">·</span>
+                  <span>{fact}</span>
+                </li>
+              ))}
+            </ul>
           </div>
+        </div>
 
-          <div>
-            <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--mut)] mb-2">
-              03 / REFINEMENT
-            </div>
-            <h2 className="text-base font-medium text-[var(--fg)] mb-1">
-              Minimal Chrome
-            </h2>
-            <p className="text-xs text-[var(--mut)] leading-relaxed">
-              Single high-energy centerpieces surrounded by quiet, editorial monospace hierarchy.
-            </p>
-          </div>
+        {/* Currently */}
+        <div className="py-8 border-t border-[var(--line)] mb-10">
+          <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-2">
+            {COPY.about.nowTitle}
+          </h2>
+          <p className="text-base text-[var(--fg)] font-medium">
+            {COPY.about.nowBody}
+          </p>
         </div>
 
         {/* Channels / Elsewhere Links */}

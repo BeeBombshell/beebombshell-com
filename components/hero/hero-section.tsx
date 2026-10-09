@@ -169,7 +169,7 @@ export function HeroSection({ profile, selectedProjects }: HeroSectionProps) {
           {selectedProjects.slice(0, 4).map((project) => (
             <Link
               key={project.slug}
-              href={`/work`}
+              href={`/work/${project.slug}`}
               className="group block p-6 rounded-2xl border border-[var(--line)] bg-[var(--bg)]/40 backdrop-blur-sm hover:border-[var(--fg)]/30 transition-all duration-300"
             >
               <div className="flex items-center justify-between text-[11px] font-mono text-[var(--mut)] mb-3">

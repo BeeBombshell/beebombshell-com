@@ -48,6 +48,22 @@ body {
   outline-offset: 2px;
 }
 
+/* View Transition: theme glide (lightbulb effect)
+   Suppress the default cross-fade; JS drives the clip-path animation. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Ensure the incoming layer is always on top during theme transition */
+::view-transition-new(root) {
+  z-index: 1;
+}
+::view-transition-old(root) {
+  z-index: 0;
+}
+
 /* Soft halo protection around text for particles */
 .text-halo {
   text-shadow: 0 0 12px var(--bg), 0 0 24px var(--bg);

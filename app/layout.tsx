@@ -28,16 +28,16 @@ export const metadata: Metadata = {
     template: "%s · BeeBombshell",
   },
   description:
-    "Product engineer & builder crafting visceral interfaces, distributed systems, and creative computation. Shipping features and memes in equal measure.",
+    "Bhavya Verma is a product engineer focused on developer experience. Dev tools, open source, writing, and views nobody asked for.",
   keywords: [
     "Bhavya Verma",
     "BeeBombshell",
     "Product Engineer",
-    "Full-Stack Engineer",
+    "Developer Experience",
+    "DX",
     "Frontend Physics",
     "Verlet Integration",
     "Canvas 2D",
-    "Creative Technologist",
     "Next.js",
     "TypeScript",
   ],
@@ -50,14 +50,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://beebombshell.com",
-    title: "BeeBombshell · Bhavya Verma",
-    description: "Shipping features and memes in equal measure.",
+    title: "Bhavya Verma · I make dev tools feel like someone cared",
+    description: "Product engineer, developer experience. Open source, writing, and a lanyard that swings.",
     siteName: "BeeBombshell",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BeeBombshell · Bhavya Verma",
-    description: "Shipping features and memes in equal measure.",
+    title: "Bhavya Verma · I make dev tools feel like someone cared",
+    description: "Product engineer, developer experience. Open source, writing, and a lanyard that swings.",
     creator: "@beebombshell",
   },
   robots: {
@@ -86,14 +86,12 @@ export default async function RootLayout({
     name: profile.name,
     jobTitle: profile.role,
     url: "https://beebombshell.com",
-    description: profile.bio,
-    address: {
-      "@type": "PostalAddress",
-      addressCountry: profile.location,
-    },
+    description:
+      "Product engineer focused on developer experience, open source contributor and mentor.",
     sameAs: profile.socials.map((s) => s.url),
     knowsAbout: [
       "Product Engineering",
+      "Developer Experience",
       "Interactive Canvas Physics",
       "Spring Dynamics",
       "Distributed Systems",
@@ -125,6 +123,16 @@ export default async function RootLayout({
         <JsonLd data={websiteJsonLd} />
       </head>
       <body className="min-h-screen bg-[var(--bg)] text-[var(--fg)] font-sans antialiased selection:bg-[var(--fg)] selection:text-[var(--bg)]">
+        {/* Skip to content link for accessibility */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--fg)] focus:text-[var(--bg)] focus:rounded-md focus:font-mono focus:text-xs"
+        >
+          Skip to content
+        </a>
+
+        {/* You found the source. The lanyard is a verlet rope. Ask me about it. */}
+
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -140,12 +148,13 @@ export default async function RootLayout({
             <NotchNav
               bookingUrl={config.bookingUrl}
               statusText={profile.statusText}
+              enableSpotify={config.featureFlags?.spotifyNowPlaying !== false}
             />
 
             {/* Main page content area */}
-            <div className="pt-14 sm:pt-16 min-h-screen flex flex-col relative z-10">
+            <main id="main-content" className="pt-14 sm:pt-16 min-h-screen flex flex-col relative z-10">
               {children}
-            </div>
+            </main>
           </SmoothScroll>
 
           {/* Global Styled Plain-Text LLMS.TXT Modal */}
@@ -155,3 +164,4 @@ export default async function RootLayout({
     </html>
   );
 }
+

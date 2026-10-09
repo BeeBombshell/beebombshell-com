@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { NotchNav } from "@/components/notch/notch-nav";
+import { ParticleCanvas } from "@/components/particles/particle-canvas";
 import { getConfig, getProfile } from "@/lib/queries";
 import "./globals.css";
 
@@ -42,6 +43,9 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
+          {/* Fixed particle canvas — behind everything (z-index: 0) */}
+          <ParticleCanvas />
+
           {/* Top-docked Notch Navigation */}
           <NotchNav
             bookingUrl={config.bookingUrl}
@@ -49,7 +53,7 @@ export default async function RootLayout({
           />
 
           {/* Main page content area */}
-          <div className="pt-14 sm:pt-16 min-h-screen flex flex-col">
+          <div className="pt-14 sm:pt-16 min-h-screen flex flex-col relative z-10">
             {children}
           </div>
         </ThemeProvider>

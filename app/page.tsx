@@ -5,7 +5,7 @@ export default async function HomePage() {
   const profile = await getProfile();
 
   return (
-    <div className="flex-1 w-full max-w-5xl mx-auto px-5 sm:px-8 py-8 md:py-12 flex flex-col justify-between font-sans selection:bg-[var(--fg)] selection:text-[var(--bg)]">
+    <div id="hero-section" className="flex-1 w-full max-w-5xl mx-auto px-5 sm:px-8 py-8 md:py-12 flex flex-col justify-between font-sans selection:bg-[var(--fg)] selection:text-[var(--bg)]">
       {/* Top Bar with technical coordinates & specimen metadata */}
       <header className="flex items-center justify-between border-b border-[var(--line)] pb-3 text-[11px] font-mono uppercase tracking-wider text-[var(--mut)]">
         <div className="flex items-center gap-4">

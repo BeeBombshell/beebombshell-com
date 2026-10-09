@@ -1,0 +1,24 @@
+{
+  "name": "Bhavya Verma",
+  "role": "Full-Stack Engineer & Builder",
+  "location": "India",
+  "bio": "Building high-craft interfaces, distributed backends, and creative systems. Shipping features and memes in equal measure.",
+  "statusText": "open for chats",
+  "socials": [
+    {
+      "label": "GitHub",
+      "url": "https://github.com/BeeBombshell",
+      "handle": "@BeeBombshell"
+    },
+    {
+      "label": "Twitter / X",
+      "url": "https://x.com/beebombshell",
+      "handle": "@beebombshell"
+    },
+    {
+      "label": "LinkedIn",
+      "url": "https://linkedin.com/in/bhavyaverma",
+      "handle": "bhavyaverma"
+    }
+  ]
+}

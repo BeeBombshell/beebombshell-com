@@ -1,0 +1,10 @@
+{
+  "availability": "open",
+  "bookingUrl": "https://cal.com/bhavya",
+  "bookingProvider": "cal",
+  "featureFlags": {
+    "showBooking": true,
+    "enableLlmsTxt": true,
+    "enableSoundEffects": false
+  }
+}

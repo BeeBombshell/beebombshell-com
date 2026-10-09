@@ -1,0 +1,22 @@
+[
+  {
+    "slug": "craft-in-monochrome",
+    "title": "Craft in Monochrome: Building with Paper, Ink, and Physics",
+    "excerpt": "Why color restraint forces better typography, spatial hierarchy, and tactile feel in interface design.",
+    "body": "When color is reserved solely for interactive particles, every structural choice in UI must stand on its own feet. Paper, ink, and hairline borders create a quiet baseline where motion and typography tell the entire story.",
+    "tags": ["Design", "Engineering", "Typography"],
+    "status": "published",
+    "publishedAt": "2026-03-15T00:00:00.000Z",
+    "updatedAt": "2026-03-15T00:00:00.000Z"
+  },
+  {
+    "slug": "canvas-particles-text-dimming",
+    "title": "Text-Aware Canvas Dimming at 60fps",
+    "excerpt": "How to register DOM bounding boxes and compute proximity field dimming without killing the render loop.",
+    "body": "Particles yield to text. If there is ever a conflict, the text wins. Here is how we balance DOM rect queries with high-throughput 2D canvas loops using throttling and spatial hash lookups.",
+    "tags": ["Canvas", "Performance", "Math"],
+    "status": "published",
+    "publishedAt": "2026-02-02T00:00:00.000Z",
+    "updatedAt": "2026-02-02T00:00:00.000Z"
+  }
+]

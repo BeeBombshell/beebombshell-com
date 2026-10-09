@@ -1,0 +1,45 @@
+[
+  {
+    "slug": "particle-engine",
+    "title": "Particle Physics Engine",
+    "blurb": "Lightweight canvas particle physics with continuous morphing and text repulsion.",
+    "body": "An interactive particle simulation built with raw HTML5 Canvas 2D and Spring dynamics. Designed for buttery smooth 60fps across low-end mobile and high-refresh desktop monitors.",
+    "stack": ["TypeScript", "Canvas 2D", "Spring Dynamics"],
+    "links": {
+      "repo": "https://github.com/BeeBombshell/beebomsbhell-com",
+      "live": "https://beebombshell.com"
+    },
+    "year": 2026,
+    "stars": 42,
+    "order": 1,
+    "featured": true
+  },
+  {
+    "slug": "galaxy-bar",
+    "title": "Galaxy Effort Bar",
+    "blurb": "Pastel spectral progress and workload visualization with fluid gradient transitions.",
+    "body": "A craft-focused progress bar component that samples colors from cool to warm pastels, rendering dynamic effort metrics and state transitions.",
+    "stack": ["React", "CSS Houdini", "Tailwind CSS"],
+    "links": {
+      "repo": "https://github.com/BeeBombshell"
+    },
+    "year": 2025,
+    "stars": 128,
+    "order": 2,
+    "featured": true
+  },
+  {
+    "slug": "notch-navigation",
+    "title": "Adaptive Notch Nav",
+    "blurb": "Dynamic pill navigation inspired by handheld consoles and mechanical hardware.",
+    "body": "A top-docked navigation bar featuring concave SVG shoulders, spring morphing widths, pixel glyph indicators, and keyboard first accessibility.",
+    "stack": ["Next.js", "Framer Motion", "SVG"],
+    "links": {
+      "repo": "https://github.com/BeeBombshell"
+    },
+    "year": 2025,
+    "stars": 74,
+    "order": 3,
+    "featured": true
+  }
+]

@@ -9,6 +9,7 @@ import { NotchLeftShoulder, NotchRightShoulder } from "./notch-shoulders";
 import { PixelGlyph } from "./pixel-glyph";
 import { BookingPopover } from "./booking-popover";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { useBookingStore } from "@/lib/booking-store";
 
 interface NavItem {
   label: string;
@@ -30,7 +31,7 @@ export function NotchNav({
   statusText?: string;
 }) {
   const pathname = usePathname();
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const { isOpen: isBookingOpen, open: openBooking, close: closeBooking, toggle: toggleBooking } = useBookingStore();
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
   // Determine current active item
@@ -108,7 +109,7 @@ export function NotchNav({
               {/* Calendar Booking Button */}
               <button
                 type="button"
-                onClick={() => setIsBookingOpen(!isBookingOpen)}
+                onClick={toggleBooking}
                 className={`p-1.5 rounded-full transition-opacity focus-visible:outline-2 focus-visible:outline-[var(--bg)] ${
                   isBookingOpen ? "opacity-100 bg-[var(--bg)]/20" : "opacity-55 hover:opacity-85"
                 }`}
@@ -194,7 +195,7 @@ export function NotchNav({
           {/* Booking Popover Modal */}
           <BookingPopover
             isOpen={isBookingOpen}
-            onClose={() => setIsBookingOpen(false)}
+            onClose={closeBooking}
             bookingUrl={bookingUrl}
             statusText={statusText}
           />

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { NotchNav } from "@/components/notch/notch-nav";
+import { getConfig, getProfile } from "@/lib/queries";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,11 +22,13 @@ export const metadata: Metadata = {
   description: "Shipping features and memes in equal measure.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [config, profile] = await Promise.all([getConfig(), getProfile()]);
+
   return (
     <html
       lang="en"
@@ -38,7 +42,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          {children}
+          {/* Top-docked Notch Navigation */}
+          <NotchNav
+            bookingUrl={config.bookingUrl}
+            statusText={profile.statusText}
+          />
+
+          {/* Main page content area */}
+          <div className="pt-14 sm:pt-16 min-h-screen flex flex-col">
+            {children}
+          </div>
         </ThemeProvider>
       </body>
     </html>

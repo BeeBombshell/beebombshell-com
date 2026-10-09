@@ -10,6 +10,7 @@ import { PixelGlyph } from "./pixel-glyph";
 import { BookingPopover } from "./booking-popover";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useBookingStore } from "@/lib/booking-store";
+import { useLlmsStore } from "@/lib/llms-store";
 
 interface NavItem {
   label: string;
@@ -31,7 +32,8 @@ export function NotchNav({
   statusText?: string;
 }) {
   const pathname = usePathname();
-  const { isOpen: isBookingOpen, open: openBooking, close: closeBooking, toggle: toggleBooking } = useBookingStore();
+  const { isOpen: isBookingOpen, close: closeBooking, toggle: toggleBooking } = useBookingStore();
+  const { open: openLlms } = useLlmsStore();
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
   // Determine current active item
@@ -120,16 +122,16 @@ export function NotchNav({
                 <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
 
-              {/* llms.txt link */}
-              <Link
-                href="/llms.txt"
-                target="_blank"
-                className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] opacity-55 hover:opacity-85 transition-opacity focus-visible:outline-2 focus-visible:outline-[var(--bg)]"
+              {/* llms.txt toggle */}
+              <button
+                type="button"
+                onClick={() => openLlms("standard")}
+                className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] opacity-55 hover:opacity-85 transition-opacity focus-visible:outline-2 focus-visible:outline-[var(--bg)] cursor-pointer"
                 aria-label="Plain text documentation (llms.txt)"
               >
                 <FileText className="w-3 h-3" aria-hidden="true" />
                 <span>llms.txt</span>
-              </Link>
+              </button>
 
               {/* Theme Toggle configured for Notch inverted palette */}
               <ThemeToggle className="text-[var(--bg)]" />
@@ -181,14 +183,16 @@ export function NotchNav({
                 })}
               </div>
 
-              <Link
-                href="/llms.txt"
-                target="_blank"
-                onClick={() => setIsMobileExpanded(false)}
-                className="text-[11px] opacity-55 hover:opacity-85 pt-1"
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileExpanded(false);
+                  openLlms("standard");
+                }}
+                className="text-[11px] opacity-55 hover:opacity-85 pt-1 cursor-pointer"
               >
-                llms.txt ↗
-              </Link>
+                llms.txt · context
+              </button>
             </motion.div>
           )}
 

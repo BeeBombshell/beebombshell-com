@@ -25,6 +25,7 @@ function slugify(text: string): string {
  * and highlights code blocks using Shiki with dual dark/light themes.
  */
 export async function renderMarkdown(markdown: string): Promise<MarkdownRenderResult> {
+  "use cache";
   const headings: HeadingItem[] = [];
   const renderer = new marked.Renderer();
 

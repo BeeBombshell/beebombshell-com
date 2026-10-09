@@ -1,20 +1,11 @@
 "use client";
 
-import React, { useRef, useId } from "react";
+import React, { useRef } from "react";
 import Link from "next/link";
 import { computeFoilState, generate7LobeBlobPath } from "./foil";
 import { useEyes } from "./use-eyes";
 import { useBookingStore } from "@/lib/booking-store";
-
-// Deterministic pastel palette for the 8x8 back pixel patch
-const PASTEL_PALETTE = [
-  "#9d8df5",
-  "#c58cec",
-  "#f08fc6",
-  "#7fd2e6",
-  "#b5a6ff",
-  "#f7a6d1",
-];
+import { useLlmsStore } from "@/lib/llms-store";
 
 // Pre-generated 8x8 matrix (about half pastel, half dark)
 const PIXEL_PATCH_COLORS: (string | null)[] = [
@@ -55,8 +46,9 @@ export function BadgeCard({
 }: BadgeCardProps) {
   const blobCenterRef = useRef<HTMLDivElement>(null);
   const cardElementRef = useRef<HTMLDivElement>(null);
-  const clipId = useId();
+  const clipId = "badge-foil-blob-clip";
   const { open: openBooking } = useBookingStore();
+  const { open: openLlms } = useLlmsStore();
 
   // Dynamic eye and breathing simulation
   const eyeState = useEyes({
@@ -317,15 +309,17 @@ export function BadgeCard({
               </button>
 
               {/* llms.txt */}
-              <Link
-                href="/llms.txt"
-                target="_blank"
-                onClick={(e) => e.stopPropagation()}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openLlms();
+                }}
                 className="text-white/80 hover:text-white transition-colors hover:underline inline-flex items-center justify-end gap-1.5 focus-visible:outline-white"
               >
                 <span>llms.txt</span>
                 <span className="text-[10px] opacity-60">↗</span>
-              </Link>
+              </button>
 
               {/* Writing */}
               <Link

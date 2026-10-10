@@ -7,6 +7,8 @@ import { Rss } from "lucide-react";
 import type { Post } from "@/lib/schemas";
 import { COPY } from "@/lib/copy";
 
+import { SectionHeader } from "@/components/type/section-header";
+
 interface WritingContentProps {
   posts: Post[];
 }
@@ -23,24 +25,13 @@ export function WritingContent({ posts }: WritingContentProps) {
       className="flex-1 w-full max-w-[72ch] mx-auto px-5 sm:px-8 py-8 md:py-12 flex flex-col justify-between font-sans"
     >
       <div>
-        {/* Caption */}
-        <div className="flex items-center justify-between border-b border-[var(--line)] pb-3 mb-8 text-[11px] font-mono uppercase tracking-wider text-[var(--mut)]">
-          <div className="flex items-center gap-3">
-            <span className="text-[var(--fg)] font-medium">№ 003</span>
-            <span>FIG 0.4 · ESSAYS & ESSENCE</span>
-          </div>
-          <span>{posts.length} POSTS</span>
-        </div>
-
-        {/* Heading */}
-        <div className="mb-10">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.03em] leading-tight text-[var(--fg)] text-halo mb-3">
-            {COPY.writing.title}
-          </h1>
-          <p className="text-[var(--fg)]/85 text-base sm:text-lg leading-relaxed text-halo font-normal">
-            {COPY.writing.intro}
-          </p>
-        </div>
+        <SectionHeader
+          figure="FIG 0.4 · ESSAYS & ESSENCE"
+          number="№ 003"
+          title={COPY.writing.title}
+          intro={COPY.writing.intro}
+          meta={<span>{posts.length} POSTS</span>}
+        />
 
         {/* Posts List with Editorial Hover Interaction */}
         <div className="divide-y divide-[var(--line)] border-b border-[var(--line)]">

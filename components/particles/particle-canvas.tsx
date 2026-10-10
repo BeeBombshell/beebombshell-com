@@ -51,16 +51,62 @@ export function ParticleCanvas() {
       };
       window.addEventListener("touchmove", onTouch, { passive: true });
 
-      // Scroll progress for burst↔lattice morph
+      // Section-aware particle morphing with 45% / 40% hysteresis
+      const SECTIONS: Array<{ id: string; mode: ParticleMode }> = [
+        { id: "hero", mode: "burst" },
+        { id: "work", mode: "lattice" },
+        { id: "about", mode: "contours" },
+        { id: "writing", mode: "writing" },
+        { id: "footer", mode: "footer" },
+      ];
+
+      let activeSectionMode: ParticleMode = "burst";
+
       const onScroll = () => {
-        // Simple scroll progress: hero is the first section
-        const hero = document.getElementById("hero-section");
-        if (!hero) return;
-        const rect = hero.getBoundingClientRect();
-        const s = Math.max(0, Math.min(1, -rect.top / (rect.height * 0.78)));
-        engine.onScroll(s);
+        // Only run multi-section morphing on the home page
+        if (window.location.pathname !== "/") return;
+
+        const windowH = window.innerHeight;
+        const visibilities = SECTIONS.map((sec) => {
+          const el =
+            document.getElementById(sec.id) ||
+            document.querySelector(`[data-section="${sec.id}"]`);
+          if (!el) return { mode: sec.mode, ratio: 0 };
+          const rect = el.getBoundingClientRect();
+          const visibleTop = Math.max(0, rect.top);
+          const visibleBottom = Math.min(windowH, rect.bottom);
+          const visibleH = Math.max(0, visibleBottom - visibleTop);
+          const ratio = visibleH / windowH;
+          return { mode: sec.mode, ratio };
+        });
+
+        const currentActive = visibilities.find((v) => v.mode === activeSectionMode);
+        const currentRatio = currentActive?.ratio ?? 0;
+
+        // If another section has crossed 45% visibility and exceeds current active, switch to it
+        const candidate = visibilities.find(
+          (v) => v.mode !== activeSectionMode && v.ratio >= 0.45 && v.ratio > currentRatio
+        );
+
+        if (candidate) {
+          activeSectionMode = candidate.mode;
+          engine.morphTo(activeSectionMode);
+        } else if (currentRatio < 0.40) {
+          // Current section fell below 40% exit threshold: pick dominant visible section
+          const best = visibilities.reduce(
+            (max, curr) => (curr.ratio > max.ratio ? curr : max),
+            visibilities[0]
+          );
+          if (best.ratio >= 0.25 && best.mode !== activeSectionMode) {
+            activeSectionMode = best.mode;
+            engine.morphTo(activeSectionMode);
+          }
+        }
       };
+
       window.addEventListener("scroll", onScroll, { passive: true });
+      // Trigger initial check
+      onScroll();
 
       return () => {
         window.removeEventListener("mousemove", onMove);

@@ -17,7 +17,7 @@
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ParticleMode = "burst" | "lattice" | "contours" | "writing" | "llms";
+export type ParticleMode = "burst" | "lattice" | "contours" | "writing" | "footer" | "llms";
 export type Theme = "light" | "dark";
 
 interface Particle {
@@ -27,6 +27,8 @@ interface Particle {
   vy: number;
   tx: number; // target x
   ty: number; // target y
+  relTx?: number;
+  relTy?: number;
   size: number;
   colorIdx: number;
   baseOpacity: number;
@@ -84,10 +86,11 @@ export class ParticleEngine {
 
   // Mode center percents
   private modeCenter: Record<ParticleMode, [number, number]> = {
-    burst:    [0.50, 0.50],
+    burst:    [0.50, 0.42],
     lattice:  [0.50, 0.50],
     contours: [0.50, 0.50],
     writing:  [0.50, 0.50],
+    footer:   [0.50, 0.85],
     llms:     [0.50, 0.50],
   };
 
@@ -135,10 +138,10 @@ export class ParticleEngine {
 
     this.ctx.scale(this.dpr, this.dpr);
 
-    // Scale particle count: 1500 at 1920×1080, down to 600 on mobile
+    // Scale particle count: 1800-2400 at 1920×1080, down to 600 on mobile
     const area = W * H;
-    const base = Math.round(1500 * (area / (1920 * 1080)));
-    this.particleCount = Math.max(400, Math.min(1500, base));
+    const base = Math.round(2100 * (area / (1920 * 1080)));
+    this.particleCount = Math.max(600, Math.min(2400, base));
 
     // Rebuild if count changed significantly
     if (Math.abs(this.particles.length - this.particleCount) > 100) {
@@ -162,7 +165,9 @@ export class ParticleEngine {
         vy: 0,
         tx: Math.random() * W,
         ty: Math.random() * H,
-        size: 1.5 + Math.random() * 1.2,
+        relTx: 0,
+        relTy: 0,
+        size: 1.0 + Math.random() * 0.9, // 1.0 to 1.9px per design.md
         colorIdx,
         baseOpacity: this.theme === "light" ? 0.80 + Math.random() * 0.1 : 0.85 + Math.random() * 0.1,
         opacity: 0,
@@ -184,36 +189,46 @@ export class ParticleEngine {
       case "lattice":  this.targetLattice(cx, cy, W, H); break;
       case "contours": this.targetContours(W, H); break;
       case "writing":  this.targetWriting(W, H); break;
+      case "footer":   this.targetFooter(W, H); break;
       case "llms":     this.targetContours(W, H); break; // same as contours, dimmed
     }
   }
 
   private targetBurst(cx: number, cy: number, W: number, H: number) {
     const n = this.particles.length;
-    const coreCount = Math.floor(n * 0.45);
+    const coreCount = Math.floor(n * 0.35); // Dense core
     const rayCount  = n - coreCount;
     const rays = 8;
 
     this.particles.forEach((p, i) => {
       if (i < coreCount) {
-        // Gaussian core, radius ~95px
-        const r = Math.abs(gaussianRandom()) * 95;
+        // Gaussian core, radius ~120px
+        const r = Math.abs(gaussianRandom()) * 110;
         const angle = Math.random() * Math.PI * 2;
-        p.tx = cx + Math.cos(angle) * r;
-        p.ty = cy + Math.sin(angle) * r;
+        p.relTx = Math.cos(angle) * r;
+        p.relTy = Math.sin(angle) * r;
+        p.tx = cx + p.relTx;
+        p.ty = cy + p.relTy;
       } else {
-        // 8 tapered rays, distance 40–320px
+        // 8 tapered rays, distance 60–420px
         const ray = Math.floor(((i - coreCount) / rayCount) * rays);
         const baseAngle = (ray / rays) * Math.PI * 2;
-        const spread = 0.15 * (1 - (i - coreCount) / rayCount); // tapers
+        const spread = 0.14 * (1 - (i - coreCount) / rayCount); // tapers
         const angle = baseAngle + (Math.random() - 0.5) * spread * 2;
-        const dist = 40 + Math.pow(Math.random(), 0.7) * 280;
-        p.tx = cx + Math.cos(angle) * dist;
-        p.ty = cy + Math.sin(angle) * dist;
-        // Clamp to viewport
-        p.tx = Math.max(10, Math.min(W - 10, p.tx));
-        p.ty = Math.max(10, Math.min(H - 10, p.ty));
+        const dist = 60 + Math.pow(Math.random(), 0.75) * 360;
+        p.relTx = Math.cos(angle) * dist;
+        p.relTy = Math.sin(angle) * dist;
+        p.tx = Math.max(10, Math.min(W - 10, cx + p.relTx));
+        p.ty = Math.max(10, Math.min(H - 10, cy + p.relTy));
       }
+    });
+  }
+
+  private targetFooter(W: number, H: number) {
+    // Low density drift in bottom margin
+    this.particles.forEach((p) => {
+      p.tx = Math.random() * W;
+      p.ty = H * 0.5 + Math.random() * (H * 0.5);
     });
   }
 
@@ -320,6 +335,18 @@ export class ParticleEngine {
   /** Set the center for a given mode (percent of viewport). */
   setCenter(mode: ParticleMode, xPct: number, yPct: number) {
     this.modeCenter[mode] = [xPct, yPct];
+    if (this.mode === mode && mode === "burst") {
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      const cx = xPct * W;
+      const cy = yPct * H;
+      this.particles.forEach((p) => {
+        if (p.relTx !== undefined && p.relTy !== undefined) {
+          p.tx = Math.max(10, Math.min(W - 10, cx + p.relTx));
+          p.ty = Math.max(10, Math.min(H - 10, cy + p.relTy));
+        }
+      });
+    }
   }
 
   /** Fire an impulse burst from a point (e.g. badge flip). */
@@ -384,8 +411,21 @@ export class ParticleEngine {
 
     this.ctx.clearRect(0, 0, W, H);
 
-    const isLlms = this.mode === "llms";
     const isWriting = this.mode === "writing";
+
+    // Mode opacity multiplier per design.md & polish prompt:
+    // lattice: visible in margins at 12 to 20% opacity (0.16)
+    // footer: fade to low density (0.14)
+    // writing: 0.40
+    // contours: 0.65
+    // burst: 0.85
+    // llms: 0.35
+    let modeMultiplier = 0.85;
+    if (this.mode === "lattice") modeMultiplier = 0.16;
+    else if (this.mode === "footer") modeMultiplier = 0.14;
+    else if (this.mode === "writing") modeMultiplier = 0.40;
+    else if (this.mode === "contours") modeMultiplier = 0.65;
+    else if (this.mode === "llms") modeMultiplier = 0.35;
 
     this.particles.forEach((p) => {
       if (!this.reducedMotion) {
@@ -426,7 +466,7 @@ export class ParticleEngine {
       }
       // 5% min opacity inside rect, full at 46px away
       const dimFactor = minDist < 46 ? 0.05 + (minDist / 46) * 0.95 : 1;
-      p.opacity = p.baseOpacity * dimFactor * (isLlms ? 0.4 : 1);
+      p.opacity = p.baseOpacity * dimFactor * modeMultiplier;
 
       // Draw
       this.ctx.globalAlpha = p.opacity;

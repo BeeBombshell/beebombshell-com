@@ -5,6 +5,7 @@ import { ExpandableProjectCard } from "@/components/cards/expandable-project-car
 import { useRegisterTextBlock } from "@/components/particles/use-particles";
 import type { Project } from "@/lib/schemas";
 import { COPY } from "@/lib/copy";
+import { SectionHeader } from "@/components/type/section-header";
 
 interface WorkContentProps {
   projects: Project[];
@@ -24,24 +25,13 @@ export function WorkContent({ projects }: WorkContentProps) {
       className="flex-1 w-full max-w-5xl mx-auto px-5 sm:px-8 py-8 md:py-12 flex flex-col justify-between font-sans"
     >
       <div>
-        {/* Technical Caption Header */}
-        <div className="flex items-center justify-between border-b border-[var(--line)] pb-3 mb-8 text-[11px] font-mono uppercase tracking-wider text-[var(--mut)]">
-          <div className="flex items-center gap-3">
-            <span className="text-[var(--fg)] font-medium">№ 002</span>
-            <span>FIG 0.2 · SELECTED WORKS</span>
-          </div>
-          <span>TOTAL: {projects.length} SPECIMENS</span>
-        </div>
-
-        {/* Header statement */}
-        <div ref={headerRef} className="max-w-2xl mb-12">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.03em] leading-tight text-[var(--fg)] text-halo mb-3">
-            {COPY.work.title}
-          </h1>
-          <p className="text-[var(--fg)]/85 text-base sm:text-lg leading-relaxed text-halo font-normal">
-            {COPY.work.intro}
-          </p>
-        </div>
+        <SectionHeader
+          figure="FIG 0.2 · SELECTED WORKS"
+          number="№ 002"
+          title={COPY.work.title}
+          intro={COPY.work.intro}
+          meta={<span>TOTAL: {projects.length} SPECIMENS</span>}
+        />
 
         {/* Expandable Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -29,8 +29,8 @@ export function ExpandableProjectCard({ project, index }: ExpandableProjectCardP
         layout
         className={`group relative flex flex-col justify-between p-6 sm:p-7 rounded-2xl border transition-colors duration-300 h-full ${
           isExpanded
-            ? "border-[var(--fg)]/40 bg-[var(--bg)]/90 shadow-xl"
-            : "border-[var(--line)] bg-[var(--bg)]/50 hover:border-[var(--fg)]/20 hover:bg-[var(--bg)]/70"
+            ? "border-[var(--fg)]/40 bg-[var(--bg)]/95 dark:bg-[#0c0c0e]/95 shadow-2xl"
+            : "border-[var(--line)] bg-[var(--bg)]/85 dark:bg-[#0c0c0e]/85 hover:border-[var(--fg)]/30 hover:bg-[var(--bg)]/90 dark:hover:bg-[#0c0c0e]/90 shadow-sm"
         } backdrop-blur-md`}
       >
       <div>
@@ -54,14 +54,14 @@ export function ExpandableProjectCard({ project, index }: ExpandableProjectCardP
             {project.title}
           </h2>
           {project.featured && (
-            <span className="px-2 py-0.5 rounded text-[9px] font-mono tracking-widest uppercase bg-[var(--fg)] text-[var(--bg)] shrink-0 mt-1">
+            <span className="px-2 py-0.5 rounded text-[9px] font-mono tracking-widest uppercase bg-[var(--fg)] text-[var(--bg)] shrink-0 mt-1 font-medium">
               FEATURED
             </span>
           )}
         </div>
 
         {/* Summary Blurb */}
-        <p className="text-sm text-[var(--mut)] leading-relaxed mb-5">
+        <p className="text-sm text-[var(--fg)]/85 leading-relaxed mb-5">
           {project.blurb}
         </p>
 
@@ -70,7 +70,7 @@ export function ExpandableProjectCard({ project, index }: ExpandableProjectCardP
           {project.stack.map((tech) => (
             <span
               key={tech}
-              className="px-2 py-0.5 rounded text-[10px] font-mono bg-[var(--line)] text-[var(--mut)]"
+              className="px-2 py-0.5 rounded text-[10px] font-mono bg-[var(--line)]/50 text-[var(--fg)]/90"
             >
               {tech}
             </span>

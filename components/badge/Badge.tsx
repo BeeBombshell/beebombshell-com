@@ -117,13 +117,15 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
     let stageWidth = stage.clientWidth || window.innerWidth;
     let stageHeight = stage.clientHeight || window.innerHeight;
     let isMobile = stageWidth < 640;
+    let cardScale = 1;
+    let curBaseY = -50;
     let cardW = card.clientWidth || (isMobile ? 320 : 560);
     let cardH = card.clientHeight || (isMobile ? 440 : 380);
 
     // Physics Simulation state
     let ax = stageWidth / 2;
-    let nodes: RopeNode[] = createRopeNodes(ax, cardH, anchorOffsetRef.current);
-    let cons: Constraint[] = createRopeConstraints(cardH);
+    let nodes: RopeNode[] = createRopeNodes(ax, cardH, anchorOffsetRef.current, cardScale, curBaseY);
+    let cons: Constraint[] = createRopeConstraints(cardH, cardScale);
     let drag = { active: false, target: { x: ax, y: 160 + cardH } };
     let curAnchorOffset = anchorOffsetRef.current;
 
@@ -157,8 +159,19 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       stageWidth = stage.clientWidth || window.innerWidth;
       stageHeight = stage.clientHeight || window.innerHeight;
       isMobile = stageWidth < 640;
-      cardW = card.clientWidth || (isMobile ? 320 : 560);
-      cardH = card.clientHeight || (isMobile ? 440 : 380);
+      if (isMobile) {
+        cardW = Math.min(stageWidth - 36, 320);
+        cardH = 440;
+        cardScale = cardW / 320;
+      } else {
+        cardW = clamp(stageWidth * 0.62, 560, 800);
+        cardH = Math.round(0.68 * cardW);
+        cardScale = cardW / 560;
+      }
+      card.style.setProperty("--card-w", `${cardW}px`);
+      card.style.setProperty("--card-h", `${cardH}px`);
+      card.style.setProperty("--card-scale", `${cardScale}`);
+
       ax = stageWidth / 2;
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -168,9 +181,14 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       canvas.style.height = `${stageHeight}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Rebuild rope from new center
-      nodes = createRopeNodes(ax, cardH, curAnchorOffset);
-      cons = createRopeConstraints(cardH);
+      // Position so card's bottom plus about 56px lands near bottom of the first viewport
+      const desiredBottom = stageHeight - 56;
+      const hangingLength = 210 * cardScale + cardH;
+      curBaseY = Math.min(-30, desiredBottom - hangingLength);
+
+      // Rebuild rope from new center and scale
+      nodes = createRopeNodes(ax, cardH, curAnchorOffset, cardScale, curBaseY);
+      cons = createRopeConstraints(cardH, cardScale);
       prevCx = (nodes[9].x + nodes[10].x) / 2;
     };
 
@@ -438,8 +456,10 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       const targetOffset = anchorOffsetRef.current;
       const dOffset = clamp(targetOffset - curAnchorOffset, -40, 40);
       curAnchorOffset += dOffset;
-      nodes[0].y = -50 + curAnchorOffset;
-      nodes[4].y = -50 + curAnchorOffset;
+      nodes[0].y = curBaseY + curAnchorOffset;
+      nodes[4].y = curBaseY + curAnchorOffset;
+      nodes[0].x = ax - 34 * cardScale;
+      nodes[4].x = ax + 34 * cardScale;
 
       // Decay scroll velocity
       scrollVelocity *= 0.92;

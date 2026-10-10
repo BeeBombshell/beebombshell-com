@@ -71,7 +71,7 @@ export const COPY = {
     statusTooltip: "currently: not sitting still",
   },
   index: {
-    scrollHint: "scroll. awesomeness is contagious!",
+    scrollHint: "scroll. the badge will survive.",
     workIntroLabel: "selected work",
     workIntroTitle: "Things I've shipped",
   },

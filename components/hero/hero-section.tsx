@@ -97,6 +97,12 @@ export function HeroSection({
         data-section="hero"
         className="relative min-h-[100svh] w-full flex flex-col justify-end pb-8"
       >
+        {/* Mood caption top-left per design.md and prompt */}
+        <div className="absolute top-6 sm:top-8 left-5 sm:left-8 z-30 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--mut)] pointer-events-none">
+          <div className="text-[var(--fg)] font-medium">FIG 0.1 · BADGE</div>
+          <div className="text-[var(--mut)] lowercase mt-0.5 tracking-normal">{currentMoodLabel}</div>
+        </div>
+
         {/* Lanyard Rope & Interactive ID Badge Stage (Spans Full First Screen) */}
         <div className="absolute inset-0 z-20 pointer-events-none">
           <HeroBadge />
@@ -105,11 +111,12 @@ export function HeroSection({
         {/* Fading Scroll Hint per copy.md */}
         <div
           ref={scrollHintRef}
-          className="relative z-10 flex justify-center transition-opacity duration-150"
+          className="relative z-10 flex justify-center transition-opacity duration-150 mb-3"
           style={{ opacity: hintOpacity }}
         >
-          <div className="font-mono text-xs text-[var(--mut)] tracking-wide bg-[var(--bg)]/80 px-3 py-1 rounded-full border border-[var(--line)]">
-            {COPY.index.scrollHint} ↓
+          <div className="font-mono text-[11px] text-[var(--mut)] tracking-wide bg-[var(--bg)]/85 backdrop-blur-md px-3 py-1 rounded-full border border-[var(--line)] inline-flex items-center gap-1.5 shadow-sm">
+            <span>{COPY.index.scrollHint}</span>
+            <span className="inline-block animate-bounce text-[10px]">↓</span>
           </div>
         </div>
       </section>

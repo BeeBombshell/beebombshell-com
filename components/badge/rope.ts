@@ -38,39 +38,51 @@ function clamp(val: number, min: number, max: number): number {
  * 9: ax,    160              // clip (top center of the card)
  * 10: ax,   540              // card bottom center (start at ax+60 so the card swings in on mount)
  */
-export function createRopeNodes(ax: number, cardHeight = 380, anchorOffsetY = 0): RopeNode[] {
-  const y0 = -50 + anchorOffsetY;
+export function createRopeNodes(
+  ax: number,
+  cardHeight = 380,
+  anchorOffsetY = 0,
+  scale = 1,
+  baseY = -50
+): RopeNode[] {
+  const y0 = baseY + anchorOffsetY;
+  const strandStep = 40 * scale;
+  const junctionY = y0 + 120 * scale;
+  const stemStep = 30 * scale;
+  const clipY = junctionY + 90 * scale;
+  const bottomY = clipY + cardHeight;
+
   return [
-    { x: ax - 34, y: y0, ox: ax - 34, oy: y0, pin: true },
-    { x: ax - 23, y: -10, ox: ax - 23, oy: -10, pin: false },
-    { x: ax - 11, y: 30, ox: ax - 11, oy: 30, pin: false },
-    { x: ax, y: 70, ox: ax, oy: 70, pin: false },
-    { x: ax + 34, y: y0, ox: ax + 34, oy: y0, pin: true },
-    { x: ax + 23, y: -10, ox: ax + 23, oy: -10, pin: false },
-    { x: ax + 11, y: 30, ox: ax + 11, oy: 30, pin: false },
-    { x: ax, y: 100, ox: ax, oy: 100, pin: false },
-    { x: ax, y: 130, ox: ax, oy: 130, pin: false },
-    { x: ax, y: 160, ox: ax, oy: 160, pin: false },
-    { x: ax + 60, y: 160 + cardHeight, ox: ax + 60, oy: 160 + cardHeight, pin: false },
+    { x: ax - 34 * scale, y: y0, ox: ax - 34 * scale, oy: y0, pin: true },
+    { x: ax - 23 * scale, y: y0 + strandStep, ox: ax - 23 * scale, oy: y0 + strandStep, pin: false },
+    { x: ax - 11 * scale, y: y0 + strandStep * 2, ox: ax - 11 * scale, oy: y0 + strandStep * 2, pin: false },
+    { x: ax, y: junctionY, ox: ax, oy: junctionY, pin: false },
+    { x: ax + 34 * scale, y: y0, ox: ax + 34 * scale, oy: y0, pin: true },
+    { x: ax + 23 * scale, y: y0 + strandStep, ox: ax + 23 * scale, oy: y0 + strandStep, pin: false },
+    { x: ax + 11 * scale, y: y0 + strandStep * 2, ox: ax + 11 * scale, oy: y0 + strandStep * 2, pin: false },
+    { x: ax, y: junctionY + stemStep, ox: ax, oy: junctionY + stemStep, pin: false },
+    { x: ax, y: junctionY + stemStep * 2, ox: ax, oy: junctionY + stemStep * 2, pin: false },
+    { x: ax, y: clipY, ox: ax, oy: clipY, pin: false },
+    { x: ax + 60 * scale, y: bottomY, ox: ax + 60 * scale, oy: bottomY, pin: false },
   ];
 }
 
 /**
  * Constraints: [a, b, length, minOnly?]
  */
-export function createRopeConstraints(cardHeight = 380): Constraint[] {
+export function createRopeConstraints(cardHeight = 380, scale = 1): Constraint[] {
   return [
-    [0, 1, 44],
-    [1, 2, 44],
-    [2, 3, 44],
-    [4, 5, 44],
-    [5, 6, 44],
-    [6, 3, 44],
-    [3, 7, 30],
-    [7, 8, 30],
-    [8, 9, 30],
+    [0, 1, 44 * scale],
+    [1, 2, 44 * scale],
+    [2, 3, 44 * scale],
+    [4, 5, 44 * scale],
+    [5, 6, 44 * scale],
+    [6, 3, 44 * scale],
+    [3, 7, 30 * scale],
+    [7, 8, 30 * scale],
+    [8, 9, 30 * scale],
     [9, 10, cardHeight],
-    [8, 10, cardHeight + 15, true],
+    [8, 10, cardHeight + 15 * scale, true],
   ];
 }
 

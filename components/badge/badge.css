@@ -23,8 +23,9 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 560px;
-  height: 380px;
+  width: var(--card-w, 560px);
+  height: var(--card-h, 380px);
+  --card-scale: calc(var(--card-w, 560px) / 560);
   z-index: 3;
   will-change: transform;
   touch-action: none;
@@ -85,6 +86,10 @@
   box-shadow: 0 30px 50px rgba(0, 0, 0, 0.24);
 }
 
+.dark .badge-flip {
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.65), 0 0 24px rgba(255, 255, 255, 0.04);
+}
+
 /* Card faces: overflow:hidden on faces ONLY */
 .badge-face {
   position: absolute;
@@ -99,6 +104,20 @@
 
 .dark .badge-face {
   border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* 1px inner top highlight so it reads clearly as an object in dark mode */
+.badge-face::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.14) 15%, rgba(255, 255, 255, 0.14) 85%, transparent 100%);
+  pointer-events: none;
+  z-index: 20;
 }
 
 .badge-face.back {
@@ -136,8 +155,8 @@
 /* Front Face Typography & Elements */
 .badge-meta-group {
   position: absolute;
-  left: 24px;
-  top: 20px;
+  left: calc(24px * var(--card-scale, 1));
+  top: calc(20px * var(--card-scale, 1));
   z-index: 5;
 }
 
@@ -158,10 +177,10 @@
 
 .badge-headline {
   position: absolute;
-  left: 24px;
-  top: 82px;
-  width: 350px;
-  font-size: 27px;
+  left: calc(24px * var(--card-scale, 1));
+  top: calc(82px * var(--card-scale, 1));
+  width: calc(350px * var(--card-scale, 1));
+  font-size: calc(27px * var(--card-scale, 1));
   line-height: 1.08;
   letter-spacing: -0.035em;
   color: #ffffff;
@@ -182,10 +201,10 @@
 
 .badge-bio {
   position: absolute;
-  left: 24px;
-  top: 190px;
-  width: 360px;
-  font-size: 13px;
+  left: calc(24px * var(--card-scale, 1));
+  top: calc(190px * var(--card-scale, 1));
+  width: calc(360px * var(--card-scale, 1));
+  font-size: calc(13px * var(--card-scale, 1));
   line-height: 1.6;
   color: #c4c4cb;
   z-index: 5;
@@ -193,8 +212,8 @@
 
 .badge-chips {
   position: absolute;
-  left: 24px;
-  bottom: 20px;
+  left: calc(24px * var(--card-scale, 1));
+  bottom: calc(20px * var(--card-scale, 1));
   display: flex;
   gap: 8px;
   z-index: 5;
@@ -212,8 +231,8 @@
 
 .badge-footer-meta {
   position: absolute;
-  right: 24px;
-  bottom: 24px;
+  right: calc(24px * var(--card-scale, 1));
+  bottom: calc(24px * var(--card-scale, 1));
   font-family: var(--font-geist-mono), monospace;
   font-size: 11px;
   color: #8a8a92;
@@ -225,17 +244,17 @@
 /* Mascot SVG Container */
 .badge-mascot-container {
   position: absolute;
-  right: 24px;
-  top: 24px;
-  width: 134px;
-  height: 134px;
+  right: calc(24px * var(--card-scale, 1));
+  top: calc(24px * var(--card-scale, 1));
+  width: calc(134px * var(--card-scale, 1));
+  height: calc(134px * var(--card-scale, 1));
   z-index: 5;
   pointer-events: none;
 }
 
 .badge-mascot-svg {
-  width: 134px;
-  height: 134px;
+  width: 100%;
+  height: 100%;
   overflow: visible;
 }
 

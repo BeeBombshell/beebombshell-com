@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import { type Take } from "@/lib/schemas";
 import { COPY } from "@/lib/copy";
 import { useRegisterTextBlock } from "@/components/particles/use-particles";
+import { HoloCard } from "@/components/cards/holo-card";
 
 interface ViewsSectionProps {
   takes: Take[];
@@ -54,7 +55,7 @@ export function ViewsSection({ takes }: ViewsSectionProps) {
         {COPY.views.sub}
       </p>
 
-      {/* Grid of Takes with Editorial Stamp & Thermal Tape Hover Effect */}
+      {/* Grid of Takes with Solar Amber Accent HoloCard */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {items.map((item) => {
           const formattedNum = String(item.num).padStart(2, "0");
@@ -63,56 +64,47 @@ export function ViewsSection({ takes }: ViewsSectionProps) {
           )}`;
 
           return (
-            <a
+            <HoloCard
               key={item.id}
-              href={tweetUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group relative p-6 rounded-2xl border border-[var(--line)] bg-[var(--bg)]/85 dark:bg-[#0c0c0e]/85 hover:border-[var(--fg)]/50 transition-all duration-300 flex flex-col justify-between overflow-hidden backdrop-blur-md hover:-translate-y-1 hover:shadow-[0_16px_32px_-12px_rgba(0,0,0,0.35)] cursor-pointer"
+              variant="opinion"
+              hudText={`TAKE // № ${formattedNum}`}
+              className="h-full"
             >
-              {/* Thermal Print Scan Beam (Sweeps down on hover) */}
-              <div className="pointer-events-none absolute inset-x-0 -top-4 h-1.5 bg-gradient-to-r from-transparent via-amber-400/60 dark:via-amber-400/80 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-y-[280px] transition-all duration-700 ease-in-out" />
-
-              {/* Tape Accent Tab at Top Left */}
-              <div className="absolute top-0 left-6 h-[3px] w-10 bg-[var(--line)] group-hover:bg-amber-400/80 dark:group-hover:bg-amber-400/90 transition-colors duration-300" />
-
-              {/* Header Row: Number Badge & Editorial Rubber Stamp */}
-              <div className="flex items-start justify-between gap-3 mb-4">
-                <div className="flex items-center gap-2">
+              <a
+                href={tweetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative p-6 sm:p-7 rounded-2xl border border-[var(--line)] bg-[var(--bg)]/85 dark:bg-[#0c0c0e]/85 hover:border-[var(--fg)]/30 transition-all duration-300 flex flex-col justify-between h-full backdrop-blur-md cursor-pointer shadow-sm"
+              >
+                {/* Header Row: Number Specimen & Minimal Label */}
+                <div className="flex items-center justify-between gap-3 mb-4">
                   <span className="font-mono text-[11px] font-medium text-[var(--mut)] group-hover:text-[var(--fg)] transition-colors">
                     № {formattedNum}
                   </span>
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[9px] uppercase tracking-wider text-amber-500 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
-                    TAKE
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-amber-500/90 dark:text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    UNSOLICITED TAKE
                   </span>
                 </div>
 
-                {/* Angled Editorial Rubber Stamp */}
-                <div className="pointer-events-none transform rotate-[-4deg] scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200">
-                  <span className="font-mono text-[9px] font-semibold tracking-wider uppercase border border-dashed border-red-500/70 dark:border-red-400/70 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded shadow-sm bg-red-500/5">
-                    UNSOLICITED
+                {/* Take Body Quote */}
+                <p className="text-base sm:text-lg font-normal tracking-[-0.015em] text-[var(--fg)] leading-snug my-auto py-2 group-hover:text-halo transition-colors duration-200">
+                  &ldquo;{item.text}&rdquo;
+                </p>
+
+                {/* Footer Status Bar with Clean X Dispatch Link */}
+                <div className="mt-5 pt-3 border-t border-[var(--line)]/50 flex items-center justify-between text-[10px] font-mono text-[var(--mut)]">
+                  <span className="text-[var(--mut)] group-hover:text-[var(--fg)] transition-colors">
+                    OPINION SPECIMEN
+                  </span>
+                  <span className="flex items-center gap-1 text-[var(--mut)] group-hover:text-[var(--fg)] font-medium transition-colors">
+                    <span>DISPATCH TO X</span>
+                    <span className="inline-block group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200">
+                      ↗
+                    </span>
                   </span>
                 </div>
-              </div>
-
-              {/* Take Body Quote (Slides slightly forward on hover) */}
-              <p className="text-base sm:text-lg font-normal tracking-[-0.015em] text-[var(--fg)] leading-snug group-hover:translate-x-1 transition-transform duration-200 my-auto py-2">
-                &ldquo;{item.text}&rdquo;
-              </p>
-
-              {/* Footer Status Bar with X Share Prompt */}
-              <div className="mt-5 pt-3 border-t border-[var(--line)]/50 flex items-center justify-between text-[10px] font-mono text-[var(--mut)]">
-                <span className="group-hover:text-[var(--fg)] transition-colors">
-                  OPINION SPECIMEN
-                </span>
-                <span className="flex items-center gap-1 text-[var(--mut)] group-hover:text-[var(--fg)] font-medium transition-colors">
-                  <span>DISPATCH TO X</span>
-                  <span className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">
-                    ↗
-                  </span>
-                </span>
-              </div>
-            </a>
+              </a>
+            </HoloCard>
           );
         })}
       </div>

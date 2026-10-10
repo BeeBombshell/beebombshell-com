@@ -13,6 +13,7 @@ import { calculateReadingTime } from "@/lib/reading-time";
 import { ViewsSection } from "@/components/character/views-section";
 import { useCharacter } from "@/components/character/use-character";
 import { HoloCard } from "@/components/cards/holo-card";
+import { WritingRow } from "@/components/writing/writing-row";
 import { COPY } from "@/lib/copy";
 
 interface HeroSectionProps {
@@ -147,14 +148,14 @@ export function HeroSection({
             <HoloCard key={project.slug} className="h-full">
               <Link
                 href={`/work/${project.slug}`}
-                className="group block p-6 sm:p-8 rounded-2xl border border-[var(--line)] bg-[var(--bg)]/60 backdrop-blur-sm hover:border-[var(--fg)]/30 transition-all duration-300 h-full flex flex-col justify-between"
+                className="group block p-6 sm:p-8 rounded-2xl border border-[var(--line)] bg-[var(--bg)]/85 dark:bg-[#0c0c0e]/85 backdrop-blur-md hover:border-[var(--fg)]/30 transition-all duration-300 h-full flex flex-col justify-between shadow-sm"
               >
                 <div>
                   <div className="flex items-center justify-between text-[11px] font-mono text-[var(--mut)] mb-3">
                     <span className="uppercase">{project.year}</span>
                     {project.stars !== undefined && (
                       <span className="flex items-center gap-1">
-                        <span>★</span>
+                        <span className="text-amber-400">★</span>
                         <span>{project.stars}</span>
                       </span>
                     )}
@@ -164,7 +165,7 @@ export function HeroSection({
                     {project.title}
                   </h3>
 
-                  <p className="text-sm text-[var(--mut)] leading-relaxed mb-6">
+                  <p className="text-sm text-[var(--fg)]/85 leading-relaxed mb-6">
                     {project.blurb}
                   </p>
                 </div>
@@ -173,7 +174,7 @@ export function HeroSection({
                   {project.stack.map((tech) => (
                     <span
                       key={tech}
-                      className="font-mono text-[10px] px-2 py-0.5 rounded bg-[var(--line)]/40 text-[var(--fg)]"
+                      className="font-mono text-[10px] px-2 py-0.5 rounded bg-[var(--line)]/50 text-[var(--fg)]/90"
                     >
                       {tech}
                     </span>
@@ -217,53 +218,10 @@ export function HeroSection({
             </Link>
           </div>
 
-          <div className="divide-y divide-[var(--line)]">
-            {recentPosts.slice(0, 3).map((post) => {
-              const readingTime = calculateReadingTime(post.body);
-              const formattedDate = new Date(post.publishedAt).toLocaleDateString(
-                "en-US",
-                {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                }
-              );
-
-              return (
-                <article key={post.slug} className="py-8 group">
-                  <Link
-                    href={`/writing/${post.slug}`}
-                    className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fg)] rounded-lg p-2 -m-2"
-                  >
-                    <div className="flex flex-col gap-2">
-                      <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[var(--mut)]">
-                        <time dateTime={post.publishedAt}>{formattedDate}</time>
-                        <span>·</span>
-                        <span>{readingTime.minutes} min read</span>
-                        <div className="hidden sm:flex items-center gap-1.5 ml-2">
-                          {post.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-2 py-0.5 rounded text-[10px] bg-[var(--line)]"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <h3 className="text-xl sm:text-2xl font-normal tracking-[-0.02em] text-[var(--fg)] group-hover:text-halo transition-colors">
-                        {post.title}
-                      </h3>
-
-                      <p className="text-sm sm:text-base text-[var(--mut)] leading-relaxed max-w-3xl">
-                        {post.excerpt}
-                      </p>
-                    </div>
-                  </Link>
-                </article>
-              );
-            })}
+          <div className="divide-y divide-[var(--line)]/60 border-y border-[var(--line)]">
+            {recentPosts.slice(0, 3).map((post, idx) => (
+              <WritingRow key={post.slug} post={post} index={idx} />
+            ))}
           </div>
         </section>
       )}

@@ -40,6 +40,16 @@ export function LlmsModal() {
     };
   }, [isOpen, variant]);
 
+  // Lock body scroll when open
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
   // Handle escape key
   useEffect(() => {
     if (!isOpen) return;
@@ -66,6 +76,7 @@ export function LlmsModal() {
     <AnimatePresence>
       {isOpen && (
         <div
+          data-lenis-prevent
           className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-md pointer-events-auto"
           onClick={(e) => {
             if (e.target === e.currentTarget) close();
@@ -75,15 +86,16 @@ export function LlmsModal() {
           aria-label="Plain text llms.txt viewer"
         >
           <motion.div
+            data-lenis-prevent
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="relative w-full max-w-4xl max-h-[88vh] flex flex-col rounded-2xl bg-[#0c0c0e] text-[#eeece6] border border-white/15 shadow-[0_32px_64px_rgba(0,0,0,0.5)] overflow-hidden font-mono"
+            className="relative w-full max-w-4xl h-[88vh] max-h-[88vh] min-h-0 flex flex-col rounded-2xl bg-[#0c0c0e] text-[#eeece6] border border-white/15 shadow-[0_32px_64px_rgba(0,0,0,0.5)] overflow-hidden font-mono"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header Chrome */}
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 bg-white/[0.03]">
+            <div className="flex-none flex items-center justify-between border-b border-white/10 px-4 py-3 bg-white/[0.03]">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 opacity-60">
                   <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
@@ -167,7 +179,7 @@ export function LlmsModal() {
             </div>
 
             {/* Document Meta Spec Subheader */}
-            <div className="flex items-center justify-between px-5 py-2 text-[10px] text-white/40 border-b border-white/5 bg-black/30">
+            <div className="flex-none flex items-center justify-between px-5 py-2 text-[10px] text-white/40 border-b border-white/5 bg-black/30">
               <div className="flex items-center gap-4">
                 <span>FORMAT: MARKDOWN / PLAIN-TEXT</span>
                 <span>CHARSET: UTF-8</span>
@@ -179,7 +191,11 @@ export function LlmsModal() {
             </div>
 
             {/* Editor Body */}
-            <div className="flex-1 overflow-auto p-4 sm:p-6 text-[12px] sm:text-[13px] leading-relaxed selection:bg-white selection:text-black">
+            <div
+              data-lenis-prevent
+              tabIndex={0}
+              className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 text-[12px] sm:text-[13px] leading-relaxed selection:bg-white selection:text-black focus:outline-none"
+            >
               {loading ? (
                 <div className="flex items-center justify-center py-16 text-white/40">
                   <span className="animate-pulse">Loading context stream...</span>
@@ -202,7 +218,7 @@ export function LlmsModal() {
             </div>
 
             {/* Footer Status Bar */}
-            <div className="flex items-center justify-between px-4 py-2 border-t border-white/10 text-[10px] text-white/40 bg-white/[0.02]">
+            <div className="flex-none flex items-center justify-between px-4 py-2 border-t border-white/10 text-[10px] text-white/40 bg-white/[0.02]">
               <div className="flex items-center gap-2">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <span>INDEXED & SYNCHRONIZED</span>

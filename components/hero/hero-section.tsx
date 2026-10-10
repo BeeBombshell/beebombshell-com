@@ -11,7 +11,7 @@ import { useBookingStore } from "@/lib/booking-store";
 import { useLlmsStore } from "@/lib/llms-store";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { ViewsSection } from "@/components/character/views-section";
-import { useCharacter } from "@/components/character/use-character";
+import { useCharacter, getTimeGreeting } from "@/components/character/use-character";
 import { HoloCard } from "@/components/cards/holo-card";
 import { ExpandingProjectCards } from "@/components/cards/expanding-project-cards";
 import { WritingRow } from "@/components/writing/writing-row";
@@ -23,6 +23,7 @@ interface HeroSectionProps {
   selectedProjects: Project[];
   recentPosts?: Post[];
   takes?: Take[];
+  enableCharacter?: boolean;
 }
 
 export function HeroSection({
@@ -30,6 +31,7 @@ export function HeroSection({
   selectedProjects,
   recentPosts = [],
   takes = [],
+  enableCharacter = true,
 }: HeroSectionProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const scrollHintRef = useRef<HTMLDivElement>(null);
@@ -40,8 +42,9 @@ export function HeroSection({
   const { open: openBooking } = useBookingStore();
   const { open: openLlms } = useLlmsStore();
 
-  // Character engine hook
-  const { mood, idleCaption } = useCharacter(true);
+  // Character engine hook & time greeting
+  const { mood, idleCaption } = useCharacter(enableCharacter);
+  const [greeting, setGreeting] = useState<string>("");
   const [footerLine, setFooterLine] = useState<string>(COPY.footer.lines[0]);
 
   useEffect(() => {
@@ -49,6 +52,9 @@ export function HeroSection({
     const randomLine =
       COPY.footer.lines[Math.floor(Math.random() * COPY.footer.lines.length)];
     setFooterLine(randomLine);
+
+    // Set visitor local time-aware greeting
+    setGreeting(getTimeGreeting());
   }, []);
 
   // Register text blocks for text-aware particle dimming
@@ -105,7 +111,7 @@ export function HeroSection({
       >
         {/* Mood caption top-left per design.md and prompt */}
         <div className="absolute top-6 sm:top-8 left-5 sm:left-8 z-30 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--mut)] pointer-events-none">
-          <div className="text-[var(--fg)] font-medium">FIG 0.1 · BADGE</div>
+          <div className="text-[var(--fg)] font-medium">FIG 0.1 · BADGE{greeting ? ` · ${greeting}` : ""}</div>
           <div className="text-[var(--mut)] lowercase mt-0.5 tracking-normal">{currentMoodLabel}</div>
         </div>
 

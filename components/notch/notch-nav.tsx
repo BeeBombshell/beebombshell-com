@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useBookingStore } from "@/lib/booking-store";
 import { useLlmsStore } from "@/lib/llms-store";
 import { scrollStore } from "@/lib/scroll-store";
+import { SpotifyStrip } from "./spotify-strip";
 import { COPY } from "@/lib/copy";
 
 function subscribeReducedMotion(cb: () => void) {
@@ -346,6 +347,9 @@ export function NotchNav({
               >
                 <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
+
+              {/* Live Spotify Now Playing Strip (controlled by enableSpotify flag) */}
+              {enableSpotify && <SpotifyStrip isPill={isPill} />}
 
               {/* llms.txt toggle (text label collapses in pill mode with bezier transition) */}
               <button

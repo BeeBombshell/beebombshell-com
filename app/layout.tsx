@@ -7,6 +7,7 @@ import { ParticleCanvas } from "@/components/particles/particle-canvas";
 import { LlmsModal } from "@/components/llms/llms-modal";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getConfig, getProfile } from "@/lib/queries";
+import { COPY } from "@/lib/copy";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -131,7 +132,12 @@ export default async function RootLayout({
           Skip to content
         </a>
 
-        {/* You found the source. The lanyard is a verlet rope. Ask me about it. */}
+        {/* DevTools HTML comment easter egg */}
+        <div
+          dangerouslySetInnerHTML={{
+            __html: `<!-- ${COPY.egg.htmlComment} -->`,
+          }}
+        />
 
         <ThemeProvider
           attribute="class"

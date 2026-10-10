@@ -40,7 +40,7 @@ export function ExpandableProjectCard({ project, index }: ExpandableProjectCardP
           <div className="flex items-center gap-3">
             {project.stars !== undefined && (
               <span className="flex items-center gap-1 text-[var(--mut)]">
-                <Star className="w-3 h-3 fill-current text-amber-400" />
+                <Star className="w-3 h-3 fill-current text-[var(--mut)]" />
                 <span>{project.stars}</span>
               </span>
             )}

@@ -277,7 +277,7 @@ export function AdminProjectEditor({
             className="w-4 h-4 rounded text-emerald-500 focus:ring-0 cursor-pointer"
           />
           <label htmlFor="featured-toggle" className="text-xs font-mono text-[var(--fg)] cursor-pointer flex items-center gap-1.5">
-            <Star className={`w-3.5 h-3.5 ${featured ? "text-amber-400 fill-amber-400" : "text-[var(--mut)]"}`} />
+            <Star className={`w-3.5 h-3.5 ${featured ? "text-[var(--fg)] fill-[var(--fg)]" : "text-[var(--mut)]"}`} />
             <span>Feature prominently on homepage and work showcase</span>
           </label>
         </div>

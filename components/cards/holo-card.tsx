@@ -18,41 +18,41 @@ interface HoloCardProps {
 const VARIANT_PALETTES = {
   blueprint: {
     dark: [
-      "rgba(179, 166, 255, 0.9)", // lavender
-      "rgba(213, 176, 245, 0.9)", // orchid
-      "rgba(255, 179, 220, 0.9)", // pink
-      "rgba(166, 230, 242, 0.9)", // cyan
-      "rgba(255, 145, 110, 0.95)", // warm coral / ember
+      "rgba(179, 166, 255, 0.9)", // lavender #b3a6ff
+      "rgba(213, 176, 245, 0.9)", // orchid #d5b0f5
+      "rgba(255, 179, 220, 0.9)", // pink #ffb3dc
+      "rgba(166, 230, 242, 0.9)", // cyan #a6e6f2
+      "rgba(201, 192, 255, 0.9)", // cool lavender
     ],
     light: [
-      "rgba(145, 125, 240, 0.85)",
-      "rgba(185, 125, 230, 0.85)",
-      "rgba(235, 120, 185, 0.85)",
-      "rgba(100, 195, 220, 0.85)",
-      "rgba(220, 85, 55, 0.9)",
+      "rgba(157, 141, 245, 0.85)", // #9d8df5
+      "rgba(197, 140, 236, 0.85)", // #c58cec
+      "rgba(240, 143, 198, 0.85)", // #f08fc6
+      "rgba(127, 210, 230, 0.85)", // #7fd2e6
+      "rgba(181, 166, 255, 0.85)", // #b5a6ff
     ],
     glyphs: ["·", "+", "*", "×", "▪", "▫", "::", "1", "0"],
     corners: ["┌", "┐", "└", "┘"],
-    dotColor: "bg-emerald-400",
+    dotColor: "bg-[#b3a6ff]",
   },
   opinion: {
     dark: [
-      "rgba(251, 191, 36, 0.95)", // amber-400
-      "rgba(245, 158, 11, 0.9)",  // amber-500
-      "rgba(253, 230, 138, 0.95)", // warm gold
-      "rgba(249, 115, 22, 0.9)",  // electric orange
-      "rgba(254, 215, 170, 0.85)", // sand
+      "rgba(213, 176, 245, 0.95)", // orchid #d5b0f5
+      "rgba(179, 166, 255, 0.9)",  // lavender #b3a6ff
+      "rgba(255, 179, 220, 0.9)",  // pink #ffb3dc
+      "rgba(166, 230, 242, 0.9)",  // cyan #a6e6f2
+      "rgba(252, 196, 227, 0.85)", // pastel pink #fcc4e3
     ],
     light: [
-      "rgba(217, 119, 6, 0.9)",   // amber-600
-      "rgba(245, 158, 11, 0.85)",
-      "rgba(180, 83, 9, 0.9)",
-      "rgba(234, 88, 12, 0.85)",
-      "rgba(202, 138, 4, 0.85)",
+      "rgba(197, 140, 236, 0.85)",
+      "rgba(157, 141, 245, 0.85)",
+      "rgba(240, 143, 198, 0.85)",
+      "rgba(127, 210, 230, 0.85)",
+      "rgba(247, 166, 209, 0.85)",
     ],
-    glyphs: ["“", "”", "!", "?", "·", "⚡", "/*", "*/", "—", "№"],
+    glyphs: ["“", "”", "!", "?", "·", "/*", "*/", "—", "№"],
     corners: ["⌜", "⌝", "⌞", "⌟"],
-    dotColor: "bg-amber-400",
+    dotColor: "bg-[#d5b0f5]",
   },
   editorial: {
     dark: [
@@ -271,26 +271,26 @@ export function HoloCard({
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Atmospheric Accent Radial Aura
+      // 1. Atmospheric Accent Radial Aura centered on cursor
       const auraRadius = Math.max(width * 0.68, 250);
       const aura = ctx.createRadialGradient(mx, my, 0, mx, my, auraRadius);
 
       if (variant === "opinion") {
-        // Vibrant solar amber / gold aura
+        // Orchid to lavender pastel aura
         if (isDark) {
-          aura.addColorStop(0, "rgba(251, 191, 36, 0.22)"); // radiant amber
-          aura.addColorStop(0.35, "rgba(245, 158, 11, 0.10)"); // honey gold
-          aura.addColorStop(0.7, "rgba(249, 115, 22, 0.03)"); // warm orange
+          aura.addColorStop(0, "rgba(213, 176, 245, 0.16)"); // orchid
+          aura.addColorStop(0.38, "rgba(179, 166, 255, 0.12)"); // lavender
+          aura.addColorStop(0.72, "rgba(166, 230, 242, 0.04)"); // cyan
           aura.addColorStop(1, "transparent");
         } else {
-          aura.addColorStop(0, "rgba(245, 158, 11, 0.16)");
-          aura.addColorStop(0.4, "rgba(217, 119, 6, 0.07)");
+          aura.addColorStop(0, "rgba(197, 140, 236, 0.15)");
+          aura.addColorStop(0.4, "rgba(157, 141, 245, 0.10)");
           aura.addColorStop(1, "transparent");
         }
       } else if (variant === "editorial") {
         // Electric violet / ice lavender aura
         if (isDark) {
-          aura.addColorStop(0, "rgba(167, 139, 250, 0.22)"); // electric violet
+          aura.addColorStop(0, "rgba(167, 139, 250, 0.18)"); // electric violet
           aura.addColorStop(0.35, "rgba(129, 140, 248, 0.10)"); // indigo
           aura.addColorStop(0.7, "rgba(56, 189, 248, 0.03)"); // ice cyan
           aura.addColorStop(1, "transparent");
@@ -300,15 +300,16 @@ export function HoloCard({
           aura.addColorStop(1, "transparent");
         }
       } else {
-        // Blueprint: Ember core + orchid + cyan
+        // Blueprint: Pastel particle palette (lavender #b3a6ff to pink #ffb3dc at 12-18% opacity, hint of cyan #a6e6f2)
         if (isDark) {
-          aura.addColorStop(0, "rgba(255, 125, 75, 0.22)"); // Warm ember core
-          aura.addColorStop(0.32, "rgba(213, 176, 245, 0.11)"); // Pastel orchid mid
-          aura.addColorStop(0.68, "rgba(166, 230, 242, 0.04)"); // Dusk cyan edge
+          aura.addColorStop(0, "rgba(179, 166, 255, 0.16)"); // lavender #b3a6ff
+          aura.addColorStop(0.36, "rgba(255, 179, 220, 0.14)"); // pink #ffb3dc
+          aura.addColorStop(0.72, "rgba(166, 230, 242, 0.05)"); // hint of cyan #a6e6f2
           aura.addColorStop(1, "transparent");
         } else {
-          aura.addColorStop(0, "rgba(235, 95, 60, 0.15)");
-          aura.addColorStop(0.38, "rgba(180, 100, 160, 0.07)");
+          aura.addColorStop(0, "rgba(157, 141, 245, 0.16)");
+          aura.addColorStop(0.36, "rgba(240, 143, 198, 0.13)");
+          aura.addColorStop(0.72, "rgba(127, 210, 230, 0.05)");
           aura.addColorStop(1, "transparent");
         }
       }
@@ -450,10 +451,10 @@ export function HoloCard({
 
   const borderHighlight =
     variant === "opinion"
-      ? `radial-gradient(circle 320px at ${coords.x}% ${coords.y}%, rgba(251, 191, 36, 0.16), transparent 70%)`
+      ? `radial-gradient(circle 320px at ${coords.x}% ${coords.y}%, rgba(213, 176, 245, 0.15), rgba(179, 166, 255, 0.08) 50%, transparent 70%)`
       : variant === "editorial"
       ? `radial-gradient(circle 320px at ${coords.x}% ${coords.y}%, rgba(167, 139, 250, 0.15), transparent 70%)`
-      : `radial-gradient(circle 320px at ${coords.x}% ${coords.y}%, rgba(255, 145, 110, 0.12), transparent 70%)`;
+      : `radial-gradient(circle 320px at ${coords.x}% ${coords.y}%, rgba(179, 166, 255, 0.16), rgba(255, 179, 220, 0.12) 45%, rgba(166, 230, 242, 0.04) 65%, transparent 70%)`;
 
   return (
     <div
@@ -493,10 +494,10 @@ export function HoloCard({
           opacity: isHovered ? 1 : 0,
           borderColor: isHovered
             ? variant === "opinion"
-              ? "rgba(251, 191, 36, 0.35)"
+              ? "rgba(213, 176, 245, 0.35)"
               : variant === "editorial"
               ? "rgba(167, 139, 250, 0.35)"
-              : "rgba(255, 255, 255, 0.25)"
+              : "rgba(179, 166, 255, 0.3)"
             : "transparent",
           background: isHovered ? borderHighlight : "none",
           boxShadow: isHovered && roundedClassName !== "rounded-none"

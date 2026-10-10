@@ -77,13 +77,10 @@ export function ViewsSection({ takes }: ViewsSectionProps) {
                 rel="noopener noreferrer"
                 className="group relative p-6 sm:p-7 rounded-2xl border border-[var(--line)] bg-[var(--bg)]/85 dark:bg-[#0c0c0e]/85 hover:border-[var(--fg)]/30 transition-all duration-300 flex flex-col justify-between h-full backdrop-blur-md cursor-pointer shadow-sm"
               >
-                {/* Header Row: Number Specimen & Minimal Label */}
+                {/* Header Row: Number Specimen */}
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <span className="font-mono text-[11px] font-medium text-[var(--mut)] group-hover:text-[var(--fg)] transition-colors">
                     № {formattedNum}
-                  </span>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-amber-500/90 dark:text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                    UNSOLICITED TAKE
                   </span>
                 </div>
 
@@ -92,13 +89,10 @@ export function ViewsSection({ takes }: ViewsSectionProps) {
                   &ldquo;{item.text}&rdquo;
                 </p>
 
-                {/* Footer Status Bar with Clean X Dispatch Link */}
-                <div className="mt-5 pt-3 border-t border-[var(--line)]/50 flex items-center justify-between text-[10px] font-mono text-[var(--mut)]">
-                  <span className="text-[var(--mut)] group-hover:text-[var(--fg)] transition-colors">
-                    OPINION SPECIMEN
-                  </span>
-                  <span className="flex items-center gap-1 text-[var(--mut)] group-hover:text-[var(--fg)] font-medium transition-colors">
-                    <span>DISPATCH TO X</span>
+                {/* Footer Action: share ↗ */}
+                <div className="mt-5 pt-3 border-t border-[var(--line)]/50 flex items-center justify-end text-[11px] font-mono text-[var(--mut)]">
+                  <span className="inline-flex items-center gap-1 text-[var(--mut)] group-hover:text-[var(--fg)] font-medium transition-colors">
+                    <span>share</span>
                     <span className="inline-block group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200">
                       ↗
                     </span>

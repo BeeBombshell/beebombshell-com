@@ -373,7 +373,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                           className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider cursor-pointer transition-transform active:scale-95 ${
                             post.status === "published"
                               ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                              : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                              : "bg-[var(--line)] text-[var(--mut)] border border-[var(--line)]"
                           }`}
                           title="Click to toggle status"
                         >
@@ -478,8 +478,8 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         #{proj.order}
                       </span>
                       {proj.featured && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                          <Star className="w-3 h-3 fill-amber-400" />
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono text-[var(--fg)] bg-[var(--line)] px-2 py-0.5 rounded border border-[var(--line)]">
+                          <Star className="w-3 h-3 fill-[var(--fg)]" />
                           <span>FEATURED</span>
                         </span>
                       )}

@@ -87,7 +87,7 @@ export default async function ProjectCaseStudyPage({ params }: PageProps) {
             )}
             {project.stars !== undefined && (
               <span className="inline-flex items-center gap-1 font-mono text-xs text-[var(--mut)]">
-                <Star className="w-3.5 h-3.5 fill-current text-amber-400" />
+                <Star className="w-3.5 h-3.5 fill-current text-[var(--mut)]" />
                 <span>{project.stars} stars</span>
               </span>
             )}

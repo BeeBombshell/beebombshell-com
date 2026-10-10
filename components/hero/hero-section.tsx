@@ -134,6 +134,9 @@ export function HeroSection({
             <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.03em] text-[var(--fg)] text-halo">
               {COPY.index.workIntroTitle}
             </h2>
+            <p className="mt-2 text-sm text-[var(--fg)]/75 font-normal">
+              {COPY.work.intro}
+            </p>
           </div>
           <Link
             href="/work"
@@ -156,8 +159,8 @@ export function HeroSection({
                   <div className="flex items-center justify-between text-[11px] font-mono text-[var(--mut)] mb-3">
                     <span className="uppercase">{project.year}</span>
                     {project.stars !== undefined && (
-                      <span className="flex items-center gap-1">
-                        <span className="text-amber-400">★</span>
+                      <span className="flex items-center gap-1 font-mono text-[var(--mut)]">
+                        <span>★</span>
                         <span>{project.stars}</span>
                       </span>
                     )}
@@ -211,6 +214,9 @@ export function HeroSection({
               <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.03em] text-[var(--fg)] text-halo">
                 {COPY.writing.title}
               </h2>
+              <p className="mt-2 text-sm text-[var(--fg)]/75 font-normal">
+                {COPY.writing.intro}
+              </p>
             </div>
             <Link
               href="/writing"

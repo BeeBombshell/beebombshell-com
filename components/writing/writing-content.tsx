@@ -5,6 +5,7 @@ import { useRegisterTextBlock } from "@/components/particles/use-particles";
 import { WritingRow } from "@/components/writing/writing-row";
 import { Rss } from "lucide-react";
 import type { Post } from "@/lib/schemas";
+import { COPY } from "@/lib/copy";
 
 interface WritingContentProps {
   posts: Post[];
@@ -32,17 +33,17 @@ export function WritingContent({ posts }: WritingContentProps) {
         </div>
 
         {/* Heading */}
-        <div className="mb-12">
+        <div className="mb-10">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.03em] leading-tight text-[var(--fg)] text-halo mb-3">
-            Writing & Reflections
+            {COPY.writing.title}
           </h1>
           <p className="text-[var(--fg)]/85 text-base sm:text-lg leading-relaxed text-halo font-normal">
-            Thoughts on software aesthetics, spatial mathematics, physics engines, and systems architecture.
+            {COPY.writing.intro}
           </p>
         </div>
 
         {/* Posts List with Editorial Hover Interaction */}
-        <div className="divide-y divide-[var(--line)]/60 border-y border-[var(--line)]">
+        <div className="divide-y divide-[var(--line)] border-b border-[var(--line)]">
           {posts.map((post, idx) => (
             <WritingRow key={post.slug} post={post} index={idx} />
           ))}

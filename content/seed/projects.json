@@ -1,45 +1,62 @@
 [
   {
-    "slug": "particle-engine",
-    "title": "Particle Physics Engine",
-    "blurb": "Lightweight canvas particle physics with continuous morphing and text repulsion.",
-    "body": "An interactive particle simulation built with raw HTML5 Canvas 2D and Spring dynamics. Designed for buttery smooth 60fps across low-end mobile and high-refresh desktop monitors.",
-    "stack": ["TypeScript", "Canvas 2D", "Spring Dynamics"],
+    "slug": "brilliant",
+    "title": "brilliant",
+    "blurb": "An AI calendar that sits on top of Google Calendar. Schedule, manage, and reorganize events by just talking to it. Because dragging events around is not a personality.",
+    "body": "An AI calendar that sits on top of Google Calendar. Schedule, manage, and reorganize events by just talking to it.\n\nBecause dragging events around is not a personality.\n\nBuilt with Next.js, Google Calendar API integration, and natural language schedule manipulation.",
+    "stack": ["TypeScript", "Next.js", "Google Calendar API", "AI Agents"],
     "links": {
-      "repo": "https://github.com/BeeBombshell/beebomsbhell-com",
-      "live": "https://beebombshell.com"
+      "repo": "https://github.com/BeeBombshell/brilliant",
+      "live": "https://brilliant.beebombshell.com"
     },
     "year": 2026,
-    "stars": 42,
+    "stars": 24,
     "order": 1,
     "featured": true
   },
   {
-    "slug": "galaxy-bar",
-    "title": "Galaxy Effort Bar",
-    "blurb": "Pastel spectral progress and workload visualization with fluid gradient transitions.",
-    "body": "A craft-focused progress bar component that samples colors from cool to warm pastels, rendering dynamic effort metrics and state transitions.",
-    "stack": ["React", "CSS Houdini", "Tailwind CSS"],
+    "slug": "spotify-now-playing",
+    "title": "spotify-now-playing",
+    "blurb": "A minimalist service that shows what you're listening to on a profile, site, or blog. Yes, it's in the notch. That's the flex.",
+    "body": "A minimalist service that shows what you're listening to on a profile, site, or blog.\n\nYes, it's in the notch. That's the flex.\n\nProvides real-time cached Spotify track data via clean SVG embeds and API endpoints.",
+    "stack": ["TypeScript", "Spotify Web API", "Edge Functions", "SVG"],
     "links": {
-      "repo": "https://github.com/BeeBombshell"
+      "repo": "https://github.com/BeeBombshell/spotify-now-playing",
+      "live": "https://spotify.beebombshell.com"
     },
-    "year": 2025,
-    "stars": 128,
+    "year": 2026,
+    "stars": 4,
     "order": 2,
     "featured": true
   },
   {
-    "slug": "notch-navigation",
-    "title": "Adaptive Notch Nav",
-    "blurb": "Dynamic pill navigation inspired by handheld consoles and mechanical hardware.",
-    "body": "A top-docked navigation bar featuring concave SVG shoulders, spring morphing widths, pixel glyph indicators, and keyboard first accessibility.",
-    "stack": ["Next.js", "Framer Motion", "SVG"],
+    "slug": "stickle",
+    "title": "stickle",
+    "blurb": "Persistent sticky notes on any webpage, with export to Notion. Sticky notes for the internet.",
+    "body": "A browser extension that lets you drop persistent, positioned sticky notes anywhere on any webpage, with full export to Notion.\n\nSticky notes for the internet.",
+    "stack": ["TypeScript", "Chrome Extension", "Notion API", "Tailwind CSS"],
     "links": {
-      "repo": "https://github.com/BeeBombshell"
+      "repo": "https://github.com/BeeBombshell/stickle",
+      "live": "https://stickle.beebombshell.com"
     },
-    "year": 2025,
-    "stars": 74,
+    "year": 2026,
+    "stars": 1,
     "order": 3,
+    "featured": true
+  },
+  {
+    "slug": "beebombshell-com",
+    "title": "This site",
+    "blurb": "A monochrome personal system featuring Verlet lanyard physics, 2D canvas stipple morphing, and liquid glass notch nav.",
+    "body": "Case study for this site's own build: Verlet rope physics for an interactive ID badge, responsive canvas stipple particle engine with text-aware dimming, and an adaptive notch navigation that morphs into a liquid glass pill.",
+    "stack": ["Next.js", "Verlet Physics", "Canvas 2D", "Tailwind CSS"],
+    "links": {
+      "repo": "https://github.com/BeeBombshell/beebomsbhell-oct'26",
+      "live": "https://beebombshell.com"
+    },
+    "year": 2026,
+    "stars": 19,
+    "order": 4,
     "featured": true
   }
 ]

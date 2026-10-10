@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import { ExpandableProjectCard } from "@/components/cards/expandable-project-card";
 import { useRegisterTextBlock } from "@/components/particles/use-particles";
 import type { Project } from "@/lib/schemas";
+import { COPY } from "@/lib/copy";
 
 interface WorkContentProps {
   projects: Project[];
@@ -34,11 +35,11 @@ export function WorkContent({ projects }: WorkContentProps) {
 
         {/* Header statement */}
         <div ref={headerRef} className="max-w-2xl mb-12">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.03em] leading-tight text-[var(--fg)] text-halo mb-4">
-            Engineering tools, expressive interfaces, and interactive systems.
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.03em] leading-tight text-[var(--fg)] text-halo mb-3">
+            {COPY.work.title}
           </h1>
           <p className="text-[var(--fg)]/85 text-base sm:text-lg leading-relaxed text-halo font-normal">
-            A selection of open source software, micro-frameworks, and creative experiments built for speed and mechanical precision.
+            {COPY.work.intro}
           </p>
         </div>
 

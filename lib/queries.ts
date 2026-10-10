@@ -41,12 +41,48 @@ async function fetchProfile(): Promise<Profile> {
   return ProfileSchema.parse(raw);
 }
 
+const cachedGitHubRepoMeta = unstable_cache(
+  async (owner: string, repo: string): Promise<{ stars?: number; year?: number } | null> => {
+    try {
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: {
+          "User-Agent": "BeeBombshell-Portfolio",
+          Accept: "application/vnd.github.v3+json",
+        },
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const year = data.created_at ? new Date(data.created_at).getFullYear() : undefined;
+      const stars = typeof data.stargazers_count === "number" ? data.stargazers_count : undefined;
+      return { stars, year };
+    } catch {
+      return null;
+    }
+  },
+  ["github-repo-meta"],
+  { revalidate: 3600 }
+);
+
+async function fetchGitHubRepoMeta(
+  repoUrl?: string
+): Promise<{ stars?: number; year?: number } | null> {
+  if (!repoUrl) return null;
+  const match = repoUrl.match(/github\.com\/([^/]+)\/([^/#?]+)/i);
+  if (!match) return null;
+  const owner = match[1];
+  const repo = match[2];
+
+  return cachedGitHubRepoMeta(owner, repo);
+}
+
 async function fetchProjects(): Promise<Project[]> {
+  let projects: Project[] = [];
+
   if (firestore) {
     try {
       const snap = await firestore.collection("projects").orderBy("order", "asc").get();
       if (!snap.empty) {
-        return snap.docs.map((d: QueryDocumentSnapshot) =>
+        projects = snap.docs.map((d: QueryDocumentSnapshot) =>
           ProjectSchema.parse({ ...d.data(), slug: d.id })
         );
       }
@@ -55,8 +91,25 @@ async function fetchProjects(): Promise<Project[]> {
     }
   }
 
-  const raw = readSeedFile<unknown[]>("projects.json");
-  return raw.map((item) => ProjectSchema.parse(item));
+  if (projects.length === 0) {
+    const raw = readSeedFile<unknown[]>("projects.json");
+    projects = raw.map((item) => ProjectSchema.parse(item));
+  }
+
+  // Augment with real GitHub star counts and creation year (ISR revalidate: 3600)
+  const augmented = await Promise.all(
+    projects.map(async (project) => {
+      const meta = await fetchGitHubRepoMeta(project.links?.repo);
+      if (!meta) return project;
+      return {
+        ...project,
+        stars: meta.stars !== undefined ? meta.stars : project.stars,
+        year: meta.year !== undefined ? meta.year : project.year,
+      };
+    })
+  );
+
+  return augmented;
 }
 
 async function fetchPosts(): Promise<Post[]> {
@@ -110,7 +163,7 @@ const cachedGetProfile = unstable_cache(
 );
 
 export async function getProfile(): Promise<Profile> {
-  if (process.env.NODE_ENV === "development" || !firestore) {
+  if (process.env.NODE_ENV === "development") {
     return fetchProfile();
   }
   return cachedGetProfile();
@@ -126,7 +179,7 @@ const cachedGetProjects = unstable_cache(
 );
 
 export async function getProjects(): Promise<Project[]> {
-  if (process.env.NODE_ENV === "development" || !firestore) {
+  if (process.env.NODE_ENV === "development") {
     return fetchProjects();
   }
   return cachedGetProjects();
@@ -147,7 +200,7 @@ const cachedGetPosts = unstable_cache(
 );
 
 export async function getPosts(): Promise<Post[]> {
-  if (process.env.NODE_ENV === "development" || !firestore) {
+  if (process.env.NODE_ENV === "development") {
     return fetchPosts();
   }
   return cachedGetPosts();
@@ -168,7 +221,7 @@ const cachedGetConfig = unstable_cache(
 );
 
 export async function getConfig(): Promise<SiteConfig> {
-  if (process.env.NODE_ENV === "development" || !firestore) {
+  if (process.env.NODE_ENV === "development") {
     return fetchConfig();
   }
   return cachedGetConfig();
@@ -202,7 +255,7 @@ const cachedGetTakes = unstable_cache(
 );
 
 export async function getTakes(): Promise<Take[]> {
-  if (process.env.NODE_ENV === "development" || !firestore) {
+  if (process.env.NODE_ENV === "development") {
     return fetchTakes();
   }
   return cachedGetTakes();

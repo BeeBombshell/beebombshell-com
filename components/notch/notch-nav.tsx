@@ -121,7 +121,7 @@ export function NotchNav({
           className={`relative flex flex-col items-center font-mono text-[12px] shadow-lg transition-[background-color,border-color,box-shadow,backdrop-filter] duration-250 ease-out ${
             isPill
               ? "bg-[var(--fg)]/85 text-[var(--bg)] backdrop-blur-[14px] rounded-full px-4 py-[9px] border border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.22)]"
-              : "bg-[var(--fg)] text-[var(--bg)] rounded-b-[22px] px-3 pt-[9px] pb-[11px]"
+              : "bg-[var(--fg)] text-[var(--bg)] rounded-b-[22px] px-4 pt-[9px] pb-[11px] sm:px-4.5"
           }`}
         >
           {/* Main Desktop Bar / Header */}
@@ -129,7 +129,7 @@ export function NotchNav({
             {/* Status Pixel Glyph */}
             <Link
               href="/"
-              className="flex items-center gap-2 pr-1 opacity-80 hover:opacity-100 transition-opacity focus-visible:rounded"
+              className="flex items-center pl-1 pr-1.5 sm:pr-2 opacity-85 hover:opacity-100 transition-opacity focus-visible:rounded"
               aria-label="Home · Bhavya Verma"
             >
               <PixelGlyph title={`Status: ${statusText}`} />

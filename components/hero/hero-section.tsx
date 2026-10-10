@@ -81,7 +81,13 @@ export function HeroSection({
   const workTranslateY = Math.max(0, (1 - s) * 24);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window !== "undefined" && (window as unknown as { __lenis?: { scrollTo: (target: number, opts?: object) => void } }).__lenis) {
+      (window as unknown as { __lenis: { scrollTo: (target: number, opts?: object) => void } }).__lenis.scrollTo(0, {
+        duration: 1.2,
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const currentMoodLabel = idleCaption || `mood: ${mood}`;
@@ -202,44 +208,46 @@ export function HeroSection({
       )}
 
       {/* ======================================================== */}
-      {/* 5. GLOBAL TECHNICAL FOOTER                               */}
+      {/* 5. GLOBAL TECHNICAL FOOTER (REAL ENDING)                 */}
       {/* ======================================================== */}
       <footer
         id="footer"
         ref={colophonRef}
         data-section="footer"
-        className="relative z-10 w-full max-w-6xl mx-auto px-5 sm:px-8 pt-16 pb-24 border-t border-[var(--line)] mt-12 text-xs font-mono text-[var(--mut)]"
+        className="relative z-10 w-full max-w-6xl mx-auto px-5 sm:px-8 pt-20 pb-24 border-t border-[var(--line)] mt-20 text-xs font-mono text-[var(--mut)]"
       >
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">
-          {/* Status & Booking CTA */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-[var(--fg)] font-medium">
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>STATUS: {profile.statusText.toUpperCase()}</span>
-            </div>
-            <p className="text-[11px] max-w-md text-[var(--mut)]">
-              Interested in collaborating, discussing system craft, or trading memes?
-            </p>
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={openBooking}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono bg-[var(--fg)] text-[var(--bg)] hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                <Calendar className="w-3.5 h-3.5" />
-                <span>{COPY.booking.cta}</span>
-              </button>
-            </div>
+        {/* Large closing ending line per item 14 */}
+        <div className="mb-14">
+          <div className="flex items-center gap-2 text-[var(--fg)] font-medium text-xs mb-3">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>STATUS: {profile.statusText.toUpperCase()}</span>
           </div>
 
-          {/* Rotating Footer Line per page load */}
-          <div className="flex flex-col md:items-end gap-1.5 text-[11px]">
-            <div className="text-[var(--fg)] font-medium tracking-wide">
-              {footerLine}
-            </div>
-            <div className="opacity-70">
-              DX · PRODUCT ENGINEERING · VERLET INTEGRATION
-            </div>
+          <h2 className="text-4xl sm:text-5xl md:text-[64px] font-normal tracking-[-0.035em] text-[var(--fg)] text-halo leading-none mb-3">
+            {COPY.booking.title}
+          </h2>
+
+          <p className="text-base sm:text-lg text-[var(--mut)] font-normal mb-8 max-w-xl">
+            {COPY.booking.sub}
+          </p>
+
+          <button
+            type="button"
+            onClick={openBooking}
+            className="inline-flex items-center gap-2.5 h-11 px-6 rounded-full text-xs font-mono font-medium bg-[var(--fg)] text-[var(--bg)] shadow-md hover:scale-[1.03] active:scale-[0.98] transition-transform duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-[var(--fg)] focus-visible:ring-offset-2"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>{COPY.booking.cta}</span>
+          </button>
+        </div>
+
+        {/* Rotating line and skills */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-t border-[var(--line)]/50 pt-8">
+          <div className="text-[var(--fg)] font-medium text-xs tracking-wide">
+            {footerLine}
+          </div>
+          <div className="text-[11px] opacity-75 font-mono">
+            DX · PRODUCT ENGINEERING · OPEN SOURCE
           </div>
         </div>
 
@@ -252,7 +260,7 @@ export function HeroSection({
                 href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[var(--fg)] transition-colors inline-flex items-center gap-1"
+                className="hover:text-[var(--fg)] transition-colors inline-flex items-center gap-1 focus-visible:outline-2 focus-visible:outline-[var(--fg)] rounded px-1"
               >
                 <span>{s.label}</span>
                 <span className="text-[9px] opacity-60">↗</span>
@@ -261,7 +269,7 @@ export function HeroSection({
             <button
               type="button"
               onClick={() => openLlms("standard")}
-              className="hover:text-[var(--fg)] transition-colors inline-flex items-center gap-1 cursor-pointer"
+              className="hover:text-[var(--fg)] transition-colors inline-flex items-center gap-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--fg)] rounded px-1"
             >
               <span>{COPY.llms.toggle}</span>
               <span className="text-[9px] opacity-60">↗</span>
@@ -273,11 +281,10 @@ export function HeroSection({
             <button
               type="button"
               onClick={scrollToTop}
-              className="p-1 rounded hover:text-[var(--fg)] transition-colors inline-flex items-center gap-1 cursor-pointer"
+              className="p-1.5 rounded hover:text-[var(--fg)] transition-colors inline-flex items-center gap-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--fg)]"
               aria-label={COPY.footer.backToTop}
             >
-              <span>{COPY.footer.backToTop}</span>
-              <ArrowUp className="w-3 h-3" />
+              <span>{COPY.footer.backToTop} ↑</span>
             </button>
           </div>
         </div>

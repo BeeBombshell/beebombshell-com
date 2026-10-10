@@ -24,12 +24,13 @@ export function WritingRow({ post, index }: WritingRowProps) {
       variant="editorial"
       hudText={`DISPATCH // ${readingTime.text.toUpperCase()}`}
       enableTilt={false}
-      className="my-1.5"
+      roundedClassName="rounded-none"
+      className="w-full"
     >
-      <article className="group relative transition-all duration-300 rounded-2xl">
+      <article className="group relative w-full transition-all duration-300">
         <Link
           href={`/writing/${post.slug}`}
-          className="block px-5 sm:px-7 py-6 sm:py-7 rounded-2xl transition-all duration-300 bg-transparent group-focus-visible:outline-2 group-focus-visible:outline-[var(--fg)]"
+          className="block w-full px-4 sm:px-6 py-7 transition-all duration-300 bg-transparent group-focus-visible:outline-2 group-focus-visible:outline-[var(--fg)]"
         >
           <div className="flex flex-col gap-2.5">
             {/* Metadata Row: Index, Date, Reading Time, Tags */}

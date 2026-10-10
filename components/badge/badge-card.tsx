@@ -6,6 +6,7 @@ import { computeFoilState, generate7LobeBlobPath } from "./foil";
 import { useEyes } from "./use-eyes";
 import { useBookingStore } from "@/lib/booking-store";
 import { useLlmsStore } from "@/lib/llms-store";
+import { RotateCw } from "lucide-react";
 import { COPY } from "@/lib/copy";
 
 // Pre-generated 8x8 matrix (about half pastel, half dark)
@@ -306,8 +307,9 @@ export function BadgeCard({
 
           {/* Hint & SPEC tag Bottom-Right: (24px, 24px) */}
           <div className="absolute right-[24px] bottom-[20px] sm:bottom-[24px] flex items-center gap-3 font-mono text-[10px] z-20">
-            <span className="text-white/40 tracking-wider hidden sm:inline">
-              {COPY.card.hint}
+            <span className="text-white/40 tracking-wider hidden sm:inline-flex items-center gap-1.5">
+              <span>{COPY.card.hint}</span>
+              <RotateCw className="w-3 h-3 text-white/50" aria-hidden="true" />
             </span>
             <span className="text-white/30 tracking-widest">
               {COPY.card.spec}

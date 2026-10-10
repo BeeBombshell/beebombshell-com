@@ -23,8 +23,9 @@ export function ViewsSection({ takes }: ViewsSectionProps) {
 
   return (
     <section
-      id="views-nobody-asked-for"
+      id="about"
       ref={containerRef}
+      data-section="views"
       className="relative z-10 w-full max-w-6xl mx-auto px-5 sm:px-8 py-20 border-t border-[var(--line)]"
     >
       {/* Header */}

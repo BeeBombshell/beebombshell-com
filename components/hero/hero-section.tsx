@@ -90,8 +90,9 @@ export function HeroSection({
       {/* 1. FIRST SCREEN: SIGNATURE FULL-PAGE BADGE CARD           */}
       {/* ======================================================== */}
       <section
-        id="hero-section"
+        id="hero"
         ref={heroRef}
+        data-section="hero"
         className="relative min-h-[100svh] w-full flex flex-col justify-end pb-8"
       >
         {/* Lanyard Rope & Interactive ID Badge Stage (Spans Full First Screen) */}
@@ -112,11 +113,12 @@ export function HeroSection({
       </section>
 
       {/* ======================================================== */}
-      {/* 2. SELECTED WORK (FIG 0.2 · ISOMETRIC LATTICE)           */}
+      {/* 2. SELECTED WORK            */}
       {/* ======================================================== */}
       <section
-        id="selected-work"
+        id="work"
         ref={selectedWorkRef}
+        data-section="work"
         className="relative z-10 w-full max-w-6xl mx-auto px-5 sm:px-8 py-20 transition-all duration-100"
         style={{
           opacity: workOpacity,
@@ -196,11 +198,12 @@ export function HeroSection({
       {/* ======================================================== */}
       {recentPosts.length > 0 && (
         <section
-          id="recent-writing"
+          id="writing"
           ref={writingRef}
+          data-section="writing"
           className="relative z-10 w-full max-w-6xl mx-auto px-5 sm:px-8 py-20 border-t border-[var(--line)]"
         >
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between border-b border-[var(--line)] pb-4 mb-12">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between border-b border-[var(--line)] pb-4">
             <div>
               <div className="font-mono text-xs uppercase tracking-widest text-[var(--mut)] mb-2">
                 {COPY.writing.caption}
@@ -218,7 +221,7 @@ export function HeroSection({
             </Link>
           </div>
 
-          <div className="divide-y divide-[var(--line)]/60 border-y border-[var(--line)]">
+          <div className="divide-y divide-[var(--line)] border-b border-[var(--line)]">
             {recentPosts.slice(0, 3).map((post, idx) => (
               <WritingRow key={post.slug} post={post} index={idx} />
             ))}
@@ -230,8 +233,9 @@ export function HeroSection({
       {/* 5. GLOBAL TECHNICAL FOOTER                               */}
       {/* ======================================================== */}
       <footer
-        id="colophon"
+        id="footer"
         ref={colophonRef}
+        data-section="footer"
         className="relative z-10 w-full max-w-6xl mx-auto px-5 sm:px-8 pt-16 pb-24 border-t border-[var(--line)] mt-12 text-xs font-mono text-[var(--mut)]"
       >
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">

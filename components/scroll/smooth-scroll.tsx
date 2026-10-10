@@ -8,6 +8,12 @@ interface SmoothScrollProps {
   children: React.ReactNode;
 }
 
+declare global {
+  interface Window {
+    __lenis?: Lenis;
+  }
+}
+
 export function SmoothScroll({ children }: SmoothScrollProps) {
   const lenisRef = useRef<Lenis | null>(null);
 
@@ -28,6 +34,7 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
     });
 
     lenisRef.current = lenis;
+    window.__lenis = lenis;
 
     let rafId: number;
     function raf(time: number) {
@@ -42,6 +49,7 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
       cancelAnimationFrame(rafId);
       lenis.destroy();
       lenisRef.current = null;
+      window.__lenis = undefined;
     };
   }, []);
 

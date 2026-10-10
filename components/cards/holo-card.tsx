@@ -11,6 +11,7 @@ interface HoloCardProps {
   enableTilt?: boolean;
   variant?: HoloVariant;
   hudText?: string;
+  roundedClassName?: string;
 }
 
 // Particle color tokens per variant
@@ -105,6 +106,7 @@ export function HoloCard({
   enableTilt = true,
   variant = "blueprint",
   hudText,
+  roundedClassName = "rounded-2xl",
 }: HoloCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -459,7 +461,7 @@ export function HoloCard({
       onPointerMove={handlePointerMove}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
-      className={`group relative rounded-2xl transition-all duration-300 will-change-transform ${className}`}
+      className={`group relative ${roundedClassName} transition-all duration-300 will-change-transform ${className}`}
       style={{
         ...style,
         perspective: "1000px",
@@ -478,7 +480,7 @@ export function HoloCard({
       <canvas
         ref={canvasRef}
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-20 w-full h-full rounded-2xl transition-opacity duration-300"
+        className={`pointer-events-none absolute inset-0 z-20 w-full h-full ${roundedClassName} transition-opacity duration-300`}
         style={{
           opacity: isHovered ? 1 : 0,
         }}
@@ -486,7 +488,7 @@ export function HoloCard({
 
       {/* Dynamic Specular Border Glow following pointer */}
       <div
-        className="pointer-events-none absolute inset-0 z-30 rounded-2xl transition-opacity duration-300 border"
+        className={`pointer-events-none absolute inset-0 z-30 ${roundedClassName} transition-opacity duration-300 border`}
         style={{
           opacity: isHovered ? 1 : 0,
           borderColor: isHovered
@@ -497,7 +499,7 @@ export function HoloCard({
               : "rgba(255, 255, 255, 0.25)"
             : "transparent",
           background: isHovered ? borderHighlight : "none",
-          boxShadow: isHovered
+          boxShadow: isHovered && roundedClassName !== "rounded-none"
             ? "0 20px 44px -14px rgba(0, 0, 0, 0.4), inset 0 0 14px rgba(255, 255, 255, 0.06)"
             : "none",
         }}

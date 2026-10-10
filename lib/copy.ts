@@ -71,12 +71,12 @@ export const COPY = {
     statusTooltip: "currently: not sitting still",
   },
   index: {
-    scrollHint: "scroll. the badge will survive.",
+    scrollHint: "scroll. awesomeness is contagious!",
     workIntroLabel: "selected work",
     workIntroTitle: "Things I've shipped",
   },
   about: {
-    caption: "FIG 0.3 · CONTOURS",
+    caption: "",
     title: "About",
     howTitle: "How I work",
     howItems: [
@@ -104,7 +104,7 @@ export const COPY = {
     nowBody: "Shipping features and memes in equal measure.",
   },
   work: {
-    caption: "FIG 0.2 · ISOMETRIC LATTICE",
+    caption: "",
     title: "Work",
     intro: "Selected work. Some of it even has a README.",
     cardHint: "click to open",
@@ -112,7 +112,7 @@ export const COPY = {
     stars: "{n} stars",
   },
   writing: {
-    caption: "FIG 0.4 · DASHES, DRIFTING",
+    caption: "",
     title: "Writing",
     intro: "Mostly things I wish I'd read sooner.",
     empty: "First post loading. Opinions are being formed.",
@@ -123,7 +123,7 @@ export const COPY = {
     draftBanner: "Draft. You weren't supposed to see this. (Hi.)",
   },
   views: {
-    caption: "FIG 0.5 · UNSOLICITED TAKES",
+    caption: "",
     title: "Views nobody asked for",
     sub: "Unsolicited, unreviewed, occasionally correct.",
     counter: "0 requests · {n} takes",

@@ -11,6 +11,7 @@ import {
 import { catmull, drawRibbon, metal, RIBBON_THEMES, type V } from "./ribbon";
 import { BLOB_POINTS } from "./blob";
 import realGitHubData from "@/content/seed/github-contributions.json";
+import { RotateCw } from "lucide-react";
 import "./badge.css";
 
 export type BadgeProps = {
@@ -777,7 +778,10 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
 
               {/* Footer Meta Bottom-Right */}
               <div className="badge-footer-meta">
-                <span>{copy.hint}</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span>{copy.hint}</span>
+                  <RotateCw className="w-3 h-3 text-white/50" aria-hidden="true" />
+                </span>
                 <span>{copy.spec}</span>
               </div>
 

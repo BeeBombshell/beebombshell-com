@@ -20,6 +20,14 @@ function subscribeReducedMotion(cb: () => void) {
   return () => q.removeEventListener("change", cb);
 }
 
+export const SECTION_TO_NAV = {
+  hero: "index",
+  work: "work",
+  views: "about",
+  writing: "writing",
+  footer: "none",
+} as const;
+
 interface NavItem {
   label: string;
   href: string;
@@ -46,6 +54,7 @@ export function NotchNav({
   const { open: openLlms } = useLlmsStore();
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [isPill, setIsPill] = useState(false);
+  const [activeSectionNav, setActiveSectionNav] = useState<string>("index");
 
   const reducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
@@ -72,10 +81,136 @@ export function NotchNav({
     };
   }, []);
 
-  // Determine current active item
-  const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
-    return pathname.startsWith(href);
+  // Section observer on home page to keep active nav item synchronized
+  useEffect(() => {
+    if (pathname !== "/") return;
+
+    const sectionDefs = [
+      { id: "hero", nav: SECTION_TO_NAV.hero, fallback: "hero-section" },
+      { id: "work", nav: SECTION_TO_NAV.work, fallback: "selected-work" },
+      { id: "about", nav: SECTION_TO_NAV.views, fallback: "views-nobody-asked-for" },
+      { id: "writing", nav: SECTION_TO_NAV.writing, fallback: "recent-writing" },
+      { id: "footer", nav: SECTION_TO_NAV.footer, fallback: "colophon" },
+    ];
+
+    const getElements = () =>
+      sectionDefs
+        .map((s) => ({
+          ...s,
+          el: document.getElementById(s.id) || document.getElementById(s.fallback),
+        }))
+        .filter((s): s is typeof s & { el: HTMLElement } => s.el !== null);
+
+    const updateActiveSection = () => {
+      const items = getElements();
+      if (!items.length) return;
+
+      // Check footer bottom proximity
+      const scrollBottom = window.innerHeight + window.scrollY;
+      const docHeight = document.documentElement.scrollHeight;
+      if (docHeight - scrollBottom < 100) {
+        setActiveSectionNav(SECTION_TO_NAV.footer);
+        return;
+      }
+
+      // Check which section is crossing mid-viewport
+      const triggerY = window.innerHeight * 0.38;
+      let matchedNav: string = SECTION_TO_NAV.hero;
+
+      for (const item of items) {
+        const rect = item.el.getBoundingClientRect();
+        if (rect.top <= triggerY && rect.bottom >= triggerY * 0.3) {
+          matchedNav = item.nav;
+        }
+      }
+
+      setActiveSectionNav(matchedNav);
+    };
+
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, [pathname]);
+
+  // Handle URL hash on initial load
+  useEffect(() => {
+    if (pathname !== "/" || typeof window === "undefined") return;
+    const hash = window.location.hash.replace("#", "");
+    if (!hash) return;
+    const targetId =
+      hash === "index" || hash === "hero" ? "hero" :
+      hash === "work" ? "work" :
+      hash === "about" || hash === "views" ? "about" :
+      hash === "writing" ? "writing" : "";
+    if (targetId) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(targetId) ||
+          document.getElementById(
+            targetId === "hero" ? "hero-section" :
+            targetId === "work" ? "selected-work" :
+            targetId === "about" ? "views-nobody-asked-for" :
+            targetId === "writing" ? "recent-writing" : ""
+          );
+        if (el) {
+          if (window.__lenis) {
+            window.__lenis.scrollTo(el, { offset: targetId === "hero" ? 0 : -20, duration: 0.85 });
+          } else {
+            el.scrollIntoView({ behavior: "smooth" });
+          }
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [pathname]);
+
+  // Determine current active state
+  const isActive = (item: NavItem) => {
+    if (pathname === "/") {
+      if (activeSectionNav === "none") return false;
+      return activeSectionNav === item.label;
+    }
+    if (item.href === "/") return pathname === "/";
+    return pathname.startsWith(item.href);
+  };
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, item: NavItem) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      const targetMap: Record<string, string> = {
+        "/": "hero",
+        "/work": "work",
+        "/about": "about",
+        "/writing": "writing",
+      };
+      const sectionId = targetMap[item.href];
+      if (sectionId) {
+        const el = document.getElementById(sectionId) ||
+          document.getElementById(
+            sectionId === "hero" ? "hero-section" :
+            sectionId === "work" ? "selected-work" :
+            sectionId === "about" ? "views-nobody-asked-for" :
+            sectionId === "writing" ? "recent-writing" : ""
+          );
+        if (el) {
+          const hash = item.label;
+          if (window.__lenis) {
+            window.__lenis.scrollTo(el, { offset: sectionId === "hero" ? 0 : -20, duration: 0.85 });
+          } else {
+            el.scrollIntoView({ behavior: "smooth" });
+          }
+          if (window.history.pushState) {
+            window.history.pushState(null, "", `#${hash}`);
+          } else {
+            window.location.hash = hash;
+          }
+        }
+      }
+    }
   };
 
   return (
@@ -120,7 +255,7 @@ export function NotchNav({
           }
           className={`relative flex flex-col items-center font-mono text-[12px] shadow-lg transition-[background-color,border-color,box-shadow,backdrop-filter] duration-250 ease-out ${
             isPill
-              ? "bg-[var(--fg)]/85 text-[var(--bg)] backdrop-blur-[14px] rounded-full px-4 py-[9px] border border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.22)]"
+              ? "bg-[#f6f5f1]/90 dark:bg-[#0d0d0c]/90 text-[#121212] dark:text-[#eeece6] backdrop-blur-[14px] rounded-full px-4 py-[9px] border border-black/10 dark:border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
               : "bg-[var(--fg)] text-[var(--bg)] rounded-b-[22px] px-4 pt-[9px] pb-[11px] sm:px-4.5"
           }`}
         >
@@ -129,7 +264,10 @@ export function NotchNav({
             {/* Status Pixel Glyph */}
             <Link
               href="/"
-              className="flex items-center pl-1 pr-1.5 sm:pr-2 opacity-85 hover:opacity-100 transition-opacity focus-visible:rounded"
+              onClick={(e) => handleNavClick(e, NAV_ITEMS[0])}
+              className={`flex items-center pl-1 pr-1.5 sm:pr-2 transition-opacity focus-visible:rounded ${
+                isPill ? "hover:opacity-100" : "opacity-85 hover:opacity-100"
+              }`}
               aria-label="Home · Bhavya Verma"
             >
               <PixelGlyph title={`Status: ${statusText}`} />
@@ -139,16 +277,21 @@ export function NotchNav({
             <LayoutGroup id="notch-nav">
               <div className="hidden sm:flex items-center gap-1">
                 {NAV_ITEMS.map((item) => {
-                  const active = isActive(item.href);
+                  const active = isActive(item);
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
+                      onClick={(e) => handleNavClick(e, item)}
                       aria-current={active ? "page" : undefined}
-                      className={`relative px-2.5 py-1 rounded-full transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[var(--bg)] ${
-                        active
-                          ? "opacity-100 font-medium"
-                          : "opacity-55 hover:opacity-85"
+                      className={`relative px-2.5 py-1 rounded-full transition-all duration-200 focus-visible:outline-2 focus-visible:outline-current ${
+                        isPill
+                          ? active
+                            ? "text-[#121212] dark:text-[#eeece6] font-medium"
+                            : "text-[rgba(18,18,18,0.64)] dark:text-[rgba(238,236,230,0.64)] hover:text-[#121212] dark:hover:text-[#eeece6]"
+                          : active
+                          ? "text-[var(--bg)] font-medium"
+                          : "text-[var(--bg)]/65 hover:text-[var(--bg)]"
                       }`}
                     >
                       {active && (
@@ -159,7 +302,11 @@ export function NotchNav({
                             stiffness: 300,
                             damping: 30,
                           }}
-                          className="absolute inset-0 rounded-full bg-[var(--bg)]/15 -z-10"
+                          className={`absolute inset-0 rounded-full -z-10 ${
+                            isPill
+                              ? "bg-black/[0.08] dark:bg-white/[0.12]"
+                              : "bg-[var(--bg)]/18"
+                          }`}
                         />
                       )}
                       <span>{item.label}</span>
@@ -171,7 +318,9 @@ export function NotchNav({
 
             {/* Divider */}
             <div
-              className="hidden sm:block w-px h-3 bg-[var(--bg)]/20 my-auto"
+              className={`hidden sm:block w-px h-3 my-auto ${
+                isPill ? "bg-black/10 dark:bg-white/15" : "bg-[var(--bg)]/20"
+              }`}
               aria-hidden="true"
             />
 
@@ -181,8 +330,14 @@ export function NotchNav({
               <button
                 type="button"
                 onClick={toggleBooking}
-                className={`p-1.5 rounded-full transition-opacity focus-visible:outline-2 focus-visible:outline-[var(--bg)] cursor-pointer ${
-                  isBookingOpen ? "opacity-100 bg-[var(--bg)]/20" : "opacity-55 hover:opacity-85"
+                className={`p-1.5 rounded-full transition-all focus-visible:outline-2 focus-visible:outline-current cursor-pointer ${
+                  isPill
+                    ? isBookingOpen
+                      ? "text-current bg-black/[0.08] dark:bg-white/[0.12]"
+                      : "text-[rgba(18,18,18,0.64)] dark:text-[rgba(238,236,230,0.64)] hover:text-current"
+                    : isBookingOpen
+                    ? "text-[var(--bg)] bg-[var(--bg)]/20"
+                    : "text-[var(--bg)]/65 hover:text-[var(--bg)]"
                 }`}
                 aria-label={COPY.nav.calendarTooltip}
                 aria-haspopup="dialog"
@@ -196,7 +351,11 @@ export function NotchNav({
               <button
                 type="button"
                 onClick={() => openLlms("standard")}
-                className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] opacity-55 hover:opacity-85 transition-opacity focus-visible:outline-2 focus-visible:outline-[var(--bg)] cursor-pointer"
+                className={`hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] transition-all focus-visible:outline-2 focus-visible:outline-current cursor-pointer ${
+                  isPill
+                    ? "text-[rgba(18,18,18,0.64)] dark:text-[rgba(238,236,230,0.64)] hover:text-current"
+                    : "text-[var(--bg)]/65 hover:text-[var(--bg)]"
+                }`}
                 aria-label={COPY.nav.llmsTooltip}
                 title={COPY.nav.llmsTooltip}
               >
@@ -213,14 +372,24 @@ export function NotchNav({
                 </span>
               </button>
 
-              {/* Theme Toggle configured for Notch inverted palette */}
-              <ThemeToggle className="text-[var(--bg)]" />
+              {/* Theme Toggle configured for Notch inverted palette / Pill palette */}
+              <ThemeToggle
+                className={
+                  isPill
+                    ? "text-[rgba(18,18,18,0.64)] dark:text-[rgba(238,236,230,0.64)] hover:text-current"
+                    : "text-[var(--bg)]/65 hover:text-[var(--bg)]"
+                }
+              />
 
               {/* Mobile Menu Hamburger / Toggle */}
               <button
                 type="button"
                 onClick={() => setIsMobileExpanded(!isMobileExpanded)}
-                className="sm:hidden p-1.5 rounded-full opacity-70 hover:opacity-100 transition-opacity focus-visible:outline-2 focus-visible:outline-[var(--bg)]"
+                className={`sm:hidden p-1.5 rounded-full transition-opacity focus-visible:outline-2 focus-visible:outline-current ${
+                  isPill
+                    ? "text-[rgba(18,18,18,0.7)] dark:text-[rgba(238,236,230,0.7)] hover:text-current"
+                    : "text-[var(--bg)]/70 hover:text-[var(--bg)]"
+                }`}
                 aria-label={isMobileExpanded ? "Close navigation menu" : "Open navigation menu"}
                 aria-expanded={isMobileExpanded}
               >
@@ -240,21 +409,32 @@ export function NotchNav({
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="sm:hidden flex flex-col items-center gap-2 pt-3 mt-2 border-t border-[var(--bg)]/15 w-full"
+              className={`sm:hidden flex flex-col items-center gap-2 pt-3 mt-2 border-t w-full ${
+                isPill
+                  ? "border-black/10 dark:border-white/10"
+                  : "border-[var(--bg)]/15"
+              }`}
             >
               <div className="flex flex-wrap justify-center gap-1 w-full">
                 {NAV_ITEMS.map((item) => {
-                  const active = isActive(item.href);
+                  const active = isActive(item);
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={() => setIsMobileExpanded(false)}
+                      onClick={(e) => {
+                        setIsMobileExpanded(false);
+                        handleNavClick(e, item);
+                      }}
                       aria-current={active ? "page" : undefined}
                       className={`px-3 py-1 rounded-full text-center ${
                         active
-                          ? "bg-[var(--bg)]/20 opacity-100 font-medium"
-                          : "opacity-60 hover:opacity-90"
+                          ? isPill
+                            ? "bg-black/[0.08] dark:bg-white/[0.12] font-medium"
+                            : "bg-[var(--bg)]/20 font-medium"
+                          : isPill
+                          ? "text-[rgba(18,18,18,0.64)] dark:text-[rgba(238,236,230,0.64)]"
+                          : "opacity-65 hover:opacity-90"
                       }`}
                     >
                       {item.label}

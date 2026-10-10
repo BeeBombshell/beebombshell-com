@@ -2,33 +2,77 @@
 
 import React, { useRef, useState, useCallback, useEffect, ReactNode } from "react";
 
+export type HoloVariant = "blueprint" | "opinion" | "editorial";
+
 interface HoloCardProps {
   children: ReactNode;
   className?: string;
   style?: React.CSSProperties;
   enableTilt?: boolean;
+  variant?: HoloVariant;
+  hudText?: string;
 }
 
-// Particle color tokens sampled from design.md (pastel palette)
-const PASTEL_PALETTE = {
-  dark: [
-    "rgba(179, 166, 255, 0.9)", // #b3a6ff lavender
-    "rgba(213, 176, 245, 0.9)", // #d5b0f5 orchid
-    "rgba(255, 179, 220, 0.9)", // #ffb3dc pink
-    "rgba(166, 230, 242, 0.9)", // #a6e6f2 cyan
-    "rgba(255, 145, 110, 0.95)", // warm coral / ember
-  ],
-  light: [
-    "rgba(145, 125, 240, 0.85)",
-    "rgba(185, 125, 230, 0.85)",
-    "rgba(235, 120, 185, 0.85)",
-    "rgba(100, 195, 220, 0.85)",
-    "rgba(220, 85, 55, 0.9)",
-  ],
+// Particle color tokens per variant
+const VARIANT_PALETTES = {
+  blueprint: {
+    dark: [
+      "rgba(179, 166, 255, 0.9)", // lavender
+      "rgba(213, 176, 245, 0.9)", // orchid
+      "rgba(255, 179, 220, 0.9)", // pink
+      "rgba(166, 230, 242, 0.9)", // cyan
+      "rgba(255, 145, 110, 0.95)", // warm coral / ember
+    ],
+    light: [
+      "rgba(145, 125, 240, 0.85)",
+      "rgba(185, 125, 230, 0.85)",
+      "rgba(235, 120, 185, 0.85)",
+      "rgba(100, 195, 220, 0.85)",
+      "rgba(220, 85, 55, 0.9)",
+    ],
+    glyphs: ["·", "+", "*", "×", "▪", "▫", "::", "1", "0"],
+    corners: ["┌", "┐", "└", "┘"],
+    dotColor: "bg-emerald-400",
+  },
+  opinion: {
+    dark: [
+      "rgba(251, 191, 36, 0.95)", // amber-400
+      "rgba(245, 158, 11, 0.9)",  // amber-500
+      "rgba(253, 230, 138, 0.95)", // warm gold
+      "rgba(249, 115, 22, 0.9)",  // electric orange
+      "rgba(254, 215, 170, 0.85)", // sand
+    ],
+    light: [
+      "rgba(217, 119, 6, 0.9)",   // amber-600
+      "rgba(245, 158, 11, 0.85)",
+      "rgba(180, 83, 9, 0.9)",
+      "rgba(234, 88, 12, 0.85)",
+      "rgba(202, 138, 4, 0.85)",
+    ],
+    glyphs: ["“", "”", "!", "?", "·", "⚡", "/*", "*/", "—", "№"],
+    corners: ["⌜", "⌝", "⌞", "⌟"],
+    dotColor: "bg-amber-400",
+  },
+  editorial: {
+    dark: [
+      "rgba(167, 139, 250, 0.95)", // violet-400
+      "rgba(129, 140, 248, 0.9)",  // indigo-400
+      "rgba(56, 189, 248, 0.9)",   // sky-400
+      "rgba(244, 114, 182, 0.9)",  // pink-400
+      "rgba(224, 231, 255, 0.85)", // ice indigo
+    ],
+    light: [
+      "rgba(124, 58, 237, 0.85)",  // violet-600
+      "rgba(99, 102, 241, 0.85)",  // indigo-500
+      "rgba(14, 165, 233, 0.85)",  // sky-500
+      "rgba(219, 39, 119, 0.85)",  // pink-600
+      "rgba(79, 70, 229, 0.85)",
+    ],
+    glyphs: ["—", "~", "::", "¶", "§", "·", "//", ">", "»"],
+    corners: ["⸢", "⸣", "⸤", "⸥"],
+    dotColor: "bg-indigo-400",
+  },
 };
-
-// Technical ASCII micro-glyphs for stipple particle swarm
-const GLYPHS = ["·", "+", "*", "×", "▪", "▫", "::", "1", "0"];
 
 interface Particle {
   x: number;
@@ -46,31 +90,28 @@ interface Particle {
 }
 
 /**
- * HoloCard / BlueprintParticleCard
+ * HoloCard
  *
  * Implements an interactive technical blueprint stipple particle & ASCII micro-glyph
- * interaction designed to harmonize with the portfolio's precision drawing aesthetic (design.md).
- *
- * Features:
- * - 48 interactive spring particles: mix of 1.5px stipple square dots and ASCII technical glyphs
- * - Magnetic orbit swarm following the pointer with momentum physics
- * - Subtle isometric lattice points that illuminate near the cursor
- * - Dashed blueprint crosshair guides tracking cursor coordinates
- * - Four corner registration brackets (┌ ┐ └ ┘)
- * - Live coordinate HUD in the margin (• X 000 / Y 000)
- * - Dynamic specular border glow rotating with cursor direction
- * - Smooth 3D spring tilt with zero idle CPU overhead
+ * interaction with section-specific major accents:
+ * - "blueprint" (Work): Ember / Dusk Cyan / Isometric lattice / Coordinate HUD
+ * - "opinion" (Views): Radiant Amber / Gold / Quote & sentiment glyphs / Take HUD
+ * - "editorial" (Writing): Electric Violet / Lavender Ice / Typographic dashes / Dispatch HUD
  */
 export function HoloCard({
   children,
   className = "",
   style = {},
   enableTilt = true,
+  variant = "blueprint",
+  hudText,
 }: HoloCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [coords, setCoords] = useState({ x: 50, y: 50, pxX: 0, pxY: 0, tiltX: 0, tiltY: 0 });
+
+  const config = VARIANT_PALETTES[variant] || VARIANT_PALETTES.blueprint;
 
   // Physics simulation state
   const simRef = useRef<{
@@ -112,8 +153,8 @@ export function HoloCard({
     // 3D tilt
     const nx = (x / rect.width - 0.5) * 2;
     const ny = (y / rect.height - 0.5) * 2;
-    const tiltX = -ny * 4.2;
-    const tiltY = nx * 4.5;
+    const tiltX = -ny * 3.5;
+    const tiltY = nx * 3.8;
 
     setCoords({
       x: Math.round(pctX * 10) / 10,
@@ -167,23 +208,25 @@ export function HoloCard({
 
       // Initialize swarm particles
       if (simRef.current.particles.length === 0 && rect.width > 0) {
-        const count = 62;
+        const count = variant === "editorial" ? 36 : 52;
         const particles: Particle[] = [];
+        const glyphList = config.glyphs;
+
         for (let i = 0; i < count; i++) {
           const isGlyph = i % 3 === 0;
           particles.push({
             x: Math.random() * rect.width,
             y: Math.random() * rect.height,
-            vx: (Math.random() - 0.5) * 1.6,
-            vy: (Math.random() - 0.5) * 1.6,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: (Math.random() - 0.5) * 1.5,
             size: isGlyph ? 9 : Math.random() > 0.5 ? 2.0 : 1.4,
-            glyph: GLYPHS[i % GLYPHS.length],
+            glyph: glyphList[i % glyphList.length],
             isGlyph,
             colorIdx: i % 5,
-            orbitRadius: 20 + Math.random() * 110,
+            orbitRadius: 18 + Math.random() * 105,
             orbitAngle: Math.random() * Math.PI * 2,
             orbitSpeed: (0.016 + Math.random() * 0.032) * (Math.random() > 0.5 ? 1 : -1),
-            alpha: 0.45 + Math.random() * 0.5,
+            alpha: 0.5 + Math.random() * 0.45,
           });
         }
         simRef.current.particles = particles;
@@ -215,7 +258,7 @@ export function HoloCard({
       if (width <= 0 || height <= 0) return;
 
       const isDark = document.documentElement.classList.contains("dark");
-      const palette = isDark ? PASTEL_PALETTE.dark : PASTEL_PALETTE.light;
+      const palette = isDark ? config.dark : config.light;
 
       // Smooth pointer lerp
       simRef.current.currMouseX += (simRef.current.mouseX - simRef.current.currMouseX) * 0.16;
@@ -226,69 +269,124 @@ export function HoloCard({
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Atmospheric Dusk & Ember Radial Aura
+      // 1. Atmospheric Accent Radial Aura
       const auraRadius = Math.max(width * 0.68, 250);
       const aura = ctx.createRadialGradient(mx, my, 0, mx, my, auraRadius);
-      if (isDark) {
-        aura.addColorStop(0, "rgba(255, 125, 75, 0.22)"); // Warm ember core
-        aura.addColorStop(0.32, "rgba(213, 176, 245, 0.11)"); // Pastel orchid mid
-        aura.addColorStop(0.68, "rgba(166, 230, 242, 0.04)"); // Dusk cyan edge
-        aura.addColorStop(1, "transparent");
-      } else {
-        aura.addColorStop(0, "rgba(235, 95, 60, 0.15)");
-        aura.addColorStop(0.38, "rgba(180, 100, 160, 0.07)");
-        aura.addColorStop(1, "transparent");
-      }
-      ctx.fillStyle = aura;
-      ctx.fillRect(0, 0, width, height);
 
-      // 2. Subtle Isometric Lattice Points (design.md spec: 34 x 19)
-      const latticeStepX = 34;
-      const latticeStepY = 19;
-      for (let lx = latticeStepX / 2; lx < width; lx += latticeStepX) {
-        for (let ly = latticeStepY / 2; ly < height; ly += latticeStepY) {
-          const dist = Math.hypot(lx - mx, ly - my);
-          if (dist < 150) {
-            const glowFactor = Math.pow(1 - dist / 150, 2);
-            ctx.fillStyle = isDark
-              ? `rgba(166, 230, 242, ${0.12 + glowFactor * 0.45})`
-              : `rgba(127, 210, 230, ${0.1 + glowFactor * 0.4})`;
-            ctx.fillRect(lx - 0.75, ly - 0.75, 1.5, 1.5);
-          }
+      if (variant === "opinion") {
+        // Vibrant solar amber / gold aura
+        if (isDark) {
+          aura.addColorStop(0, "rgba(251, 191, 36, 0.22)"); // radiant amber
+          aura.addColorStop(0.35, "rgba(245, 158, 11, 0.10)"); // honey gold
+          aura.addColorStop(0.7, "rgba(249, 115, 22, 0.03)"); // warm orange
+          aura.addColorStop(1, "transparent");
+        } else {
+          aura.addColorStop(0, "rgba(245, 158, 11, 0.16)");
+          aura.addColorStop(0.4, "rgba(217, 119, 6, 0.07)");
+          aura.addColorStop(1, "transparent");
+        }
+      } else if (variant === "editorial") {
+        // Electric violet / ice lavender aura
+        if (isDark) {
+          aura.addColorStop(0, "rgba(167, 139, 250, 0.22)"); // electric violet
+          aura.addColorStop(0.35, "rgba(129, 140, 248, 0.10)"); // indigo
+          aura.addColorStop(0.7, "rgba(56, 189, 248, 0.03)"); // ice cyan
+          aura.addColorStop(1, "transparent");
+        } else {
+          aura.addColorStop(0, "rgba(124, 58, 237, 0.15)");
+          aura.addColorStop(0.4, "rgba(99, 102, 241, 0.06)");
+          aura.addColorStop(1, "transparent");
+        }
+      } else {
+        // Blueprint: Ember core + orchid + cyan
+        if (isDark) {
+          aura.addColorStop(0, "rgba(255, 125, 75, 0.22)"); // Warm ember core
+          aura.addColorStop(0.32, "rgba(213, 176, 245, 0.11)"); // Pastel orchid mid
+          aura.addColorStop(0.68, "rgba(166, 230, 242, 0.04)"); // Dusk cyan edge
+          aura.addColorStop(1, "transparent");
+        } else {
+          aura.addColorStop(0, "rgba(235, 95, 60, 0.15)");
+          aura.addColorStop(0.38, "rgba(180, 100, 160, 0.07)");
+          aura.addColorStop(1, "transparent");
         }
       }
 
-      // 3. Precision Pointer Crosshair Guides (Dashed technical hairline)
-      ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.07)";
-      ctx.lineWidth = 0.75;
-      ctx.setLineDash([3, 4]);
+      ctx.fillStyle = aura;
+      ctx.fillRect(0, 0, width, height);
 
-      // Horizontal crosshair
-      ctx.beginPath();
-      ctx.moveTo(14, my);
-      ctx.lineTo(width - 14, my);
-      ctx.stroke();
+      // 2. Specialized Geometry Guide Lines per Variant
+      if (variant === "blueprint") {
+        // Subtle Isometric Lattice Points (design.md spec: 34 x 19)
+        const latticeStepX = 34;
+        const latticeStepY = 19;
+        for (let lx = latticeStepX / 2; lx < width; lx += latticeStepX) {
+          for (let ly = latticeStepY / 2; ly < height; ly += latticeStepY) {
+            const dist = Math.hypot(lx - mx, ly - my);
+            if (dist < 150) {
+              const glowFactor = Math.pow(1 - dist / 150, 2);
+              ctx.fillStyle = isDark
+                ? `rgba(166, 230, 242, ${0.12 + glowFactor * 0.45})`
+                : `rgba(127, 210, 230, ${0.1 + glowFactor * 0.4})`;
+              ctx.fillRect(lx - 0.75, ly - 0.75, 1.5, 1.5);
+            }
+          }
+        }
 
-      // Vertical crosshair
-      ctx.beginPath();
-      ctx.moveTo(mx, 14);
-      ctx.lineTo(mx, height - 14);
-      ctx.stroke();
-      ctx.setLineDash([]); // Reset dash
+        // Pointer Crosshair Guides (Dashed technical hairline)
+        ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.07)";
+        ctx.lineWidth = 0.75;
+        ctx.setLineDash([3, 4]);
 
-      // 4. Interactive Physics Swarm (Spring + Orbit around cursor)
+        ctx.beginPath();
+        ctx.moveTo(14, my);
+        ctx.lineTo(width - 14, my);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(mx, 14);
+        ctx.lineTo(mx, height - 14);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else if (variant === "opinion") {
+        // Concentric Opinion Radar rings near pointer
+        ctx.strokeStyle = isDark ? "rgba(251, 191, 36, 0.09)" : "rgba(217, 119, 6, 0.08)";
+        ctx.lineWidth = 0.75;
+        ctx.setLineDash([2, 5]);
+
+        [45, 90, 135].forEach((radius) => {
+          ctx.beginPath();
+          ctx.arc(mx, my, radius, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+        ctx.setLineDash([]);
+      } else if (variant === "editorial") {
+        // Manuscript horizontal baseline rules near pointer
+        ctx.strokeStyle = isDark ? "rgba(167, 139, 250, 0.08)" : "rgba(124, 58, 237, 0.07)";
+        ctx.lineWidth = 0.75;
+        ctx.setLineDash([4, 6]);
+
+        for (let ly = 16; ly < height; ly += 24) {
+          if (Math.abs(ly - my) < 90) {
+            ctx.beginPath();
+            ctx.moveTo(16, ly);
+            ctx.lineTo(width - 16, ly);
+            ctx.stroke();
+          }
+        }
+        ctx.setLineDash([]);
+      }
+
+      // 3. Interactive Physics Swarm (Spring + Orbit around cursor)
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
 
-        // Orbit calculation
         p.orbitAngle += p.orbitSpeed;
         const targetX = mx + Math.cos(p.orbitAngle) * p.orbitRadius;
         const targetY = my + Math.sin(p.orbitAngle) * p.orbitRadius;
 
-        // Spring physics toward target position
         const ax = (targetX - p.x) * 0.048;
         const ay = (targetY - p.y) * 0.048;
 
@@ -301,12 +399,10 @@ export function HoloCard({
         const color = palette[p.colorIdx];
 
         if (p.isGlyph) {
-          // Technical micro-glyph in mono font
           ctx.font = '600 9px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
           ctx.fillStyle = color;
           ctx.fillText(p.glyph, Math.round(p.x), Math.round(p.y));
         } else {
-          // Stipple square dot
           ctx.fillStyle = color;
           ctx.fillRect(
             Math.round(p.x - p.size / 2),
@@ -317,15 +413,16 @@ export function HoloCard({
         }
       }
 
-      // 5. Corner Technical Registration Brackets
+      // 4. Corner Technical Registration Brackets
       ctx.font = '500 11px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
       ctx.fillStyle = isDark ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.28)";
 
       const margin = 12;
-      ctx.fillText("┌", margin, margin);
-      ctx.fillText("┐", width - margin, margin);
-      ctx.fillText("└", margin, height - margin);
-      ctx.fillText("┘", width - margin, height - margin);
+      const [tl, tr, bl, br] = config.corners;
+      ctx.fillText(tl, margin, margin);
+      ctx.fillText(tr, width - margin, margin);
+      ctx.fillText(bl, margin, height - margin);
+      ctx.fillText(br, width - margin, height - margin);
 
       if (!prefersReducedMotion && isHovered) {
         simRef.current.rafId = requestAnimationFrame(render);
@@ -338,7 +435,23 @@ export function HoloCard({
       cancelAnimationFrame(simRef.current.rafId);
       resizeObserver.disconnect();
     };
-  }, [isHovered]);
+  }, [isHovered, variant, config]);
+
+  // Derived HUD text and dynamic rim gradient
+  const displayHud =
+    hudText ||
+    (variant === "blueprint"
+      ? `X ${String(coords.pxX).padStart(3, "0")} / Y ${String(coords.pxY).padStart(3, "0")}`
+      : variant === "opinion"
+      ? "OPINION SPECIMEN"
+      : "DISPATCH // READ");
+
+  const borderHighlight =
+    variant === "opinion"
+      ? `radial-gradient(circle 320px at ${coords.x}% ${coords.y}%, rgba(251, 191, 36, 0.16), transparent 70%)`
+      : variant === "editorial"
+      ? `radial-gradient(circle 320px at ${coords.x}% ${coords.y}%, rgba(167, 139, 250, 0.15), transparent 70%)`
+      : `radial-gradient(circle 320px at ${coords.x}% ${coords.y}%, rgba(255, 145, 110, 0.12), transparent 70%)`;
 
   return (
     <div
@@ -377,28 +490,28 @@ export function HoloCard({
         style={{
           opacity: isHovered ? 1 : 0,
           borderColor: isHovered
-            ? "rgba(255, 255, 255, 0.25)"
+            ? variant === "opinion"
+              ? "rgba(251, 191, 36, 0.35)"
+              : variant === "editorial"
+              ? "rgba(167, 139, 250, 0.35)"
+              : "rgba(255, 255, 255, 0.25)"
             : "transparent",
-          background: isHovered
-            ? `radial-gradient(circle 320px at ${coords.x}% ${coords.y}%, rgba(255, 145, 110, 0.12), transparent 70%)`
-            : "none",
+          background: isHovered ? borderHighlight : "none",
           boxShadow: isHovered
             ? "0 20px 44px -14px rgba(0, 0, 0, 0.4), inset 0 0 14px rgba(255, 255, 255, 0.06)"
             : "none",
         }}
       />
 
-      {/* Blueprint Live Coordinate Readout (FIG Caption per design.md) */}
+      {/* Live Technical HUD */}
       <div
-        className="pointer-events-none absolute bottom-2.5 right-4 z-30 flex items-center gap-2 text-[9px] font-mono tracking-wider transition-opacity duration-300 text-[var(--mut)] select-none bg-[var(--bg)]/80 px-2 py-0.5 rounded backdrop-blur-sm border border-[var(--line)]/40"
+        className="pointer-events-none absolute bottom-2.5 right-4 z-30 flex items-center gap-2 text-[9px] font-mono tracking-wider transition-opacity duration-300 text-[var(--mut)] select-none bg-[var(--bg)]/85 px-2 py-0.5 rounded backdrop-blur-sm border border-[var(--line)]/50"
         style={{
           opacity: isHovered ? 1 : 0,
         }}
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        <span>
-          X {String(coords.pxX).padStart(3, "0")} / Y {String(coords.pxY).padStart(3, "0")}
-        </span>
+        <span className={`w-1.5 h-1.5 rounded-full ${config.dotColor} animate-pulse`} />
+        <span>{displayHud}</span>
       </div>
     </div>
   );

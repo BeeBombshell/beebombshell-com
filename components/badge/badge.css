@@ -490,60 +490,113 @@
 /* Mobile responsive adaptations (< 640px) */
 @media (max-width: 639px) {
   .badge-card {
-    width: 300px;
-    height: 420px;
+    width: 320px;
+    height: 440px;
   }
-  .badge-headline {
-    width: 252px;
-    font-size: 21px;
-    top: 70px;
+
+  /* Front Face Mobile: Hierarchical vertical rhythm with zero collisions */
+  .badge-meta-group {
+    left: 20px;
+    top: 22px;
+    max-width: 180px;
   }
-  .badge-bio {
-    width: 252px;
-    font-size: 11px;
-    top: 154px;
-    max-height: 150px;
-    overflow-y: auto;
+  .badge-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
+  .badge-meta {
+    font-size: 10px;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Mascot stamp positioned in top-right without intruding on headline */
   .badge-mascot-container {
-    right: 12px;
-    top: 16px;
-    width: 100px;
-    height: 100px;
+    right: 16px;
+    top: 18px;
+    width: 76px;
+    height: 76px;
   }
   .badge-mascot-svg {
-    width: 100px;
-    height: 100px;
+    width: 76px;
+    height: 76px;
   }
+
+  /* Headline starts safely below the mascot (y=106px vs mascot bottom y=94px) */
+  .badge-headline {
+    left: 20px;
+    top: 106px;
+    width: 280px;
+    font-size: 20px;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+
+  /* Bio text with spacious line-height */
+  .badge-bio {
+    left: 20px;
+    top: 196px;
+    width: 280px;
+    font-size: 11.5px;
+    line-height: 1.55;
+    max-height: unset;
+    overflow-y: visible;
+  }
+
+  /* Chips on their own row above footer meta */
   .badge-chips {
-    bottom: 16px;
-    gap: 4px;
+    left: 20px;
+    right: 20px;
+    bottom: 50px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
   }
   .badge-chip {
-    font-size: 9px;
-    padding: 2px 6px;
+    font-size: 9.5px;
+    padding: 3px 8px;
+  }
+
+  /* Footer meta on its own row at the bottom */
+  .badge-footer-meta {
+    left: 20px;
+    right: 20px;
+    bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 8px;
+    font-size: 9.5px;
   }
 
   /* Back Face Mobile Adaptations */
   .badge-face.back {
-    padding: 14px 14px 10px;
+    padding: 20px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    box-sizing: border-box;
   }
   .badge-back-header {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
   .badge-back-label {
     font-size: 10px;
   }
   .badge-back-sub {
-    font-size: 8.5px;
+    font-size: 9px;
   }
   .badge-contrib-wrap {
-    padding: 6px 8px;
-    margin-bottom: 8px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
   }
   .badge-contrib-cell {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
     border-radius: 1px;
   }
   .badge-contrib-grid,
@@ -551,40 +604,138 @@
     gap: 2px;
   }
   .badge-back-socials {
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 16px;
   }
   .badge-social-pill {
-    font-size: 10px;
-    padding: 2.5px 7px;
-    gap: 4px;
+    font-size: 10.5px;
+    padding: 4px 10px;
+    gap: 5px;
   }
   .badge-back-bottom {
+    flex: 1;
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
-    justify-content: space-around;
-    gap: 8px;
-    margin-bottom: 6px;
+    justify-content: center;
+    margin-bottom: 14px;
+    min-height: 0;
+  }
+  /* Remove Spotify embed on mobile for clean breathing room */
+  .badge-back-spotify {
+    display: none !important;
   }
   .badge-back-actions {
-    font-size: 11px;
-    line-height: 1.6;
-    min-width: unset;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 4px 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 10px;
+    width: 100%;
   }
   .badge-back-action {
-    font-size: 10.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background 0.15s ease, border-color 0.15s ease;
   }
-  .badge-back-spotify {
-    justify-content: center;
-  }
-  .badge-spotify-link {
-    max-width: 250px;
+  .badge-back-action:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
   }
   .badge-back-footer {
-    font-size: 8.5px;
-    padding-top: 4px;
+    font-size: 9.5px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+  }
+}
+
+/* Desktop enlargement (>= 1024px) */
+@media (min-width: 1024px) {
+  .badge-card {
+    width: 640px;
+    height: 430px;
+  }
+  .badge-headline {
+    width: 420px;
+    font-size: 31px;
+    top: 90px;
+  }
+  .badge-bio {
+    width: 430px;
+    font-size: 13.5px;
+    top: 200px;
+  }
+  .badge-chips {
+    bottom: 24px;
+    left: 28px;
+  }
+  .badge-footer-meta {
+    right: 28px;
+    bottom: 24px;
+  }
+  .badge-mascot-container {
+    width: 145px;
+    height: 145px;
+    right: 28px;
+    top: 26px;
+  }
+  .badge-mascot-svg {
+    width: 145px;
+    height: 145px;
+  }
+  .badge-face.back {
+    padding: 24px 28px 18px;
+  }
+  .badge-contrib-wrap {
+    padding: 10px 14px;
+    margin-bottom: 14px;
+  }
+  .badge-contrib-cell {
+    width: 7.5px;
+    height: 7.5px;
+  }
+  .badge-back-socials {
+    margin-bottom: 14px;
+  }
+  .badge-back-actions {
+    font-size: 13px;
+    line-height: 2.1;
+  }
+  .badge-spotify-link {
+    max-width: 320px;
+  }
+}
+
+/* Extra Large Screens (>= 1440px) */
+@media (min-width: 1440px) {
+  .badge-card {
+    width: 680px;
+    height: 450px;
+  }
+  .badge-headline {
+    width: 450px;
+    font-size: 33px;
+    top: 94px;
+  }
+  .badge-bio {
+    width: 460px;
+    font-size: 14px;
+    top: 212px;
+  }
+  .badge-mascot-container {
+    width: 154px;
+    height: 154px;
+  }
+  .badge-mascot-svg {
+    width: 154px;
+    height: 154px;
+  }
+  .badge-contrib-cell {
+    width: 8px;
+    height: 8px;
   }
 }

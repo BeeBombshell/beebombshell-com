@@ -402,7 +402,7 @@ export function BadgeCard({
 
               {/* Unsolicited views on X */}
               <a
-                href="https://x.com/beebombshell"
+                href="https://x.com/Bee_Bombshell"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}

@@ -116,8 +116,8 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
     let stageWidth = stage.clientWidth || window.innerWidth;
     let stageHeight = stage.clientHeight || window.innerHeight;
     let isMobile = stageWidth < 640;
-    let cardW = card.clientWidth || (isMobile ? 300 : 560);
-    let cardH = card.clientHeight || (isMobile ? 420 : 380);
+    let cardW = card.clientWidth || (isMobile ? 320 : 560);
+    let cardH = card.clientHeight || (isMobile ? 440 : 380);
 
     // Physics Simulation state
     let ax = stageWidth / 2;
@@ -156,8 +156,8 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       stageWidth = stage.clientWidth || window.innerWidth;
       stageHeight = stage.clientHeight || window.innerHeight;
       isMobile = stageWidth < 640;
-      cardW = card.clientWidth || (isMobile ? 300 : 560);
-      cardH = card.clientHeight || (isMobile ? 420 : 380);
+      cardW = card.clientWidth || (isMobile ? 320 : 560);
+      cardH = card.clientHeight || (isMobile ? 440 : 380);
       ax = stageWidth / 2;
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -511,10 +511,15 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
         glossEl.setAttribute("cy", `${(38 + deg * 0.5).toFixed(1)}`);
       }
 
-      // Eyes tracking & Expression
-      // Mascot center relative to card center: (189, -99) for 560x380 card
-      const lx0 = isMobile ? 189 * (300 / 560) : 189;
-      const ly0 = isMobile ? -99 * (420 / 380) : -99;
+      // Mascot center relative to card center
+      let lx0 = 189 * (cardW / 560);
+      let ly0 = -99 * (cardH / 380);
+      if (mascotEl) {
+        const mx = mascotEl.offsetLeft + mascotEl.offsetWidth / 2;
+        const my = mascotEl.offsetTop + mascotEl.offsetHeight / 2;
+        lx0 = mx - cardW / 2;
+        ly0 = my - cardH / 2;
+      }
       const cosT = Math.cos(theta);
       const sinT = Math.sin(theta);
       const bx = cx + lx0 * cosT - ly0 * sinT;

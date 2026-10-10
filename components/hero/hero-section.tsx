@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import Link from "next/link";
 import { ArrowUp, Calendar } from "lucide-react";
 import { type Profile, type Project, type Post, type Take } from "@/lib/schemas";
-import { CoordinateReadout } from "@/components/type/coordinate-readout";
 import { HeroBadge } from "@/components/badge/hero-badge";
 import { scrollStore } from "@/lib/scroll-store";
 import { useRegisterTextBlock } from "@/components/particles/use-particles";
@@ -12,7 +11,8 @@ import { useBookingStore } from "@/lib/booking-store";
 import { useLlmsStore } from "@/lib/llms-store";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { ViewsSection } from "@/components/character/views-section";
-import { useCharacter, getTimeGreeting } from "@/components/character/use-character";
+import { useCharacter } from "@/components/character/use-character";
+import { HoloCard } from "@/components/cards/holo-card";
 import { COPY } from "@/lib/copy";
 
 interface HeroSectionProps {
@@ -39,11 +39,9 @@ export function HeroSection({
 
   // Character engine hook
   const { mood, idleCaption } = useCharacter(true);
-  const [greeting, setGreeting] = useState<string>("Morning.");
   const [footerLine, setFooterLine] = useState<string>(COPY.footer.lines[0]);
 
   useEffect(() => {
-    setGreeting(getTimeGreeting());
     // Pick random rotating footer line on mount
     const randomLine =
       COPY.footer.lines[Math.floor(Math.random() * COPY.footer.lines.length)];
@@ -93,59 +91,22 @@ export function HeroSection({
       <section
         id="hero-section"
         ref={heroRef}
-        className="relative min-h-[100svh] w-full max-w-6xl mx-auto px-5 sm:px-8 pt-4 pb-8 flex flex-col justify-between"
+        className="relative min-h-[100svh] w-full flex flex-col justify-end pb-8"
       >
-        {/* Top Header Bar */}
-        <header className="relative z-10 flex items-center justify-between border-b border-[var(--line)] pb-3 text-[11px] font-mono uppercase tracking-wider text-[var(--mut)]">
-          <div className="flex items-center gap-4">
-            <span className="text-[var(--fg)] font-medium">№ 001</span>
-            <span>FIG 0.1 · CORE SPECIMEN</span>
-            <span className="hidden md:inline font-normal lowercase tracking-normal text-[var(--fg)]/80">
-              ({currentMoodLabel})
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <CoordinateReadout className="hidden sm:inline-block" />
-            <span className="text-[11px] tracking-normal capitalize font-medium text-[var(--fg)]">
-              {greeting}
-            </span>
-          </div>
-        </header>
-
         {/* Lanyard Rope & Interactive ID Badge Stage (Spans Full First Screen) */}
         <div className="absolute inset-0 z-20 pointer-events-none">
           <HeroBadge />
         </div>
 
-        {/* Vertical spacer to balance first screen layout */}
-        <div className="flex-1 min-h-[500px] pointer-events-none" />
-
-        {/* Bottom Hero Controls & Scroll Hint */}
-        <div className="relative z-10 flex flex-col gap-3">
-          {/* Fading Scroll Hint per copy.md */}
-          <div
-            ref={scrollHintRef}
-            className="flex justify-center transition-opacity duration-150"
-            style={{ opacity: hintOpacity }}
-          >
-            <div className="font-mono text-xs text-[var(--mut)] tracking-wide bg-[var(--bg)]/80 px-3 py-1 rounded-full border border-[var(--line)]">
-              {COPY.index.scrollHint} ↓
-            </div>
+        {/* Fading Scroll Hint per copy.md */}
+        <div
+          ref={scrollHintRef}
+          className="relative z-10 flex justify-center transition-opacity duration-150"
+          style={{ opacity: hintOpacity }}
+        >
+          <div className="font-mono text-xs text-[var(--mut)] tracking-wide bg-[var(--bg)]/80 px-3 py-1 rounded-full border border-[var(--line)]">
+            {COPY.index.scrollHint} ↓
           </div>
-
-          {/* Hero Specs Footer */}
-          <footer className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-[var(--line)] pt-3 text-[11px] font-mono text-[var(--mut)] gap-2">
-            <div>
-              <span>BEEBOMBSHELL.COM</span>
-              <span className="mx-2 opacity-30">/</span>
-              <span>SYSTEM CHROME v1.0</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span>SPRING PHYSICS ACTIVE</span>
-              <span className="opacity-40">●</span>
-              <span>11-NODE VERLET ROPE</span>
-            </div>
-          </footer>
         </div>
       </section>
 
@@ -183,40 +144,43 @@ export function HeroSection({
         {/* Selected Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {selectedProjects.slice(0, 4).map((project) => (
-            <Link
-              key={project.slug}
-              href={`/work/${project.slug}`}
-              className="group block p-6 sm:p-8 rounded-2xl border border-[var(--line)] bg-[var(--bg)]/60 backdrop-blur-sm hover:border-[var(--fg)]/30 transition-all duration-300"
-            >
-              <div className="flex items-center justify-between text-[11px] font-mono text-[var(--mut)] mb-3">
-                <span className="uppercase">{project.year}</span>
-                {project.stars !== undefined && (
-                  <span className="flex items-center gap-1">
-                    <span>★</span>
-                    <span>{project.stars}</span>
-                  </span>
-                )}
-              </div>
+            <HoloCard key={project.slug} className="h-full">
+              <Link
+                href={`/work/${project.slug}`}
+                className="group block p-6 sm:p-8 rounded-2xl border border-[var(--line)] bg-[var(--bg)]/60 backdrop-blur-sm hover:border-[var(--fg)]/30 transition-all duration-300 h-full flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between text-[11px] font-mono text-[var(--mut)] mb-3">
+                    <span className="uppercase">{project.year}</span>
+                    {project.stars !== undefined && (
+                      <span className="flex items-center gap-1">
+                        <span>★</span>
+                        <span>{project.stars}</span>
+                      </span>
+                    )}
+                  </div>
 
-              <h3 className="text-2xl font-normal tracking-[-0.02em] text-[var(--fg)] mb-3 group-hover:text-halo transition-colors">
-                {project.title}
-              </h3>
+                  <h3 className="text-2xl font-normal tracking-[-0.02em] text-[var(--fg)] mb-3 group-hover:text-halo transition-colors">
+                    {project.title}
+                  </h3>
 
-              <p className="text-sm text-[var(--mut)] leading-relaxed mb-6">
-                {project.blurb}
-              </p>
+                  <p className="text-sm text-[var(--mut)] leading-relaxed mb-6">
+                    {project.blurb}
+                  </p>
+                </div>
 
-              <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-[var(--line)]/50">
-                {project.stack.map((tech) => (
-                  <span
-                    key={tech}
-                    className="font-mono text-[10px] px-2 py-0.5 rounded bg-[var(--line)]/40 text-[var(--fg)]"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </Link>
+                <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-[var(--line)]/50">
+                  {project.stack.map((tech) => (
+                    <span
+                      key={tech}
+                      className="font-mono text-[10px] px-2 py-0.5 rounded bg-[var(--line)]/40 text-[var(--fg)]"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </Link>
+            </HoloCard>
           ))}
         </div>
       </section>

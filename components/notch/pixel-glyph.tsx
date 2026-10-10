@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { COPY } from "@/lib/copy";
+import { PARTICLE_PALETTE } from "@/lib/tokens";
 
 interface PixelGlyphProps {
   status?: "open" | "closed";
@@ -14,23 +17,41 @@ interface PixelGlyphProps {
  * PixelGlyph
  *
  * Authentic 8x8 Galaxy Brain pixel matrix according to design.md & plan.md:
- * - 8x8 crisp monochrome pixel brain representation with distinct cranial hemispheres and sulci
+ * - 8x8 crisp pixel brain representation with distinct cranial hemispheres and sulci
+ * - Random particle palette tint every time (page load, route change, or easter egg click)
+ *   sampled from design.md particle tokens (#9d8df5, #c58cec, #f08fc6, #7fd2e6, #b5a6ff, #f7a6d1)
  * - Core synaptic nodes with calm breathing pulse ("open for chats" / thinking idle)
  * - Luminous Galaxy Brain bloom and hyper-active synapse flicker on hover
  * - Easter egg: clicking triggers the "ouch." blink reaction (egg.logoClick per copy.md)
- * - Strict adherence to design.md monochrome palette (using currentColor / var(--bg) inverted fill)
  */
 export function PixelGlyph({
   status = "open",
   className = "",
   title = "Status: Open for chats",
 }: PixelGlyphProps) {
+  const pathname = usePathname();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [paletteIndex, setPaletteIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isBlinking, setIsBlinking] = useState(false);
 
-  // Easter egg click trigger
+  // Pick a random particle color on mount and on route transitions
+  useEffect(() => {
+    setMounted(true);
+    const randomIndex = Math.floor(Math.random() * PARTICLE_PALETTE.light.length);
+    setPaletteIndex(randomIndex);
+  }, [pathname]);
+
+  // Easter egg click trigger: blinks and picks another random color
   const handleClick = () => {
     setIsBlinking(true);
+    setPaletteIndex((prev) => {
+      const next =
+        (prev + 1 + Math.floor(Math.random() * (PARTICLE_PALETTE.light.length - 1))) %
+        PARTICLE_PALETTE.light.length;
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -40,6 +61,12 @@ export function PixelGlyph({
     }, 1300);
     return () => clearTimeout(timer);
   }, [isBlinking]);
+
+  // Determine current active color based on resolved theme
+  const isDark = mounted && resolvedTheme === "dark";
+  const activeColor = isDark
+    ? PARTICLE_PALETTE.dark[paletteIndex]
+    : PARTICLE_PALETTE.light[paletteIndex];
 
   return (
     <span
@@ -57,13 +84,17 @@ export function PixelGlyph({
         height="13"
         viewBox="0 0 8 8"
         className={`block transition-all duration-300 ${
-          isHovered
-            ? "scale-110 drop-shadow-[0_0_3.5px_rgba(255,255,255,0.7)]"
-            : "opacity-85"
+          isHovered ? "scale-110" : "opacity-90"
         } ${isBlinking ? "animate-pulse" : ""}`}
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
-        style={{ shapeRendering: "crispEdges" }}
+        style={{
+          shapeRendering: "crispEdges",
+          color: activeColor,
+          filter: isHovered
+            ? `drop-shadow(0 0 4.5px ${activeColor})`
+            : `drop-shadow(0 0 1.5px ${activeColor}55)`,
+        }}
       >
         {isBlinking ? (
           /* Ouch / Wince Blinking State: Eyes squeeze shut, horizontal synaptic fissure */
@@ -164,9 +195,14 @@ export function PixelGlyph({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -2, scale: 0.85 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2.5 z-50 px-1.5 py-0.5 rounded bg-[var(--fg)] text-[var(--bg)] border border-[var(--bg)]/30 text-[9px] font-mono tracking-wider shadow-lg select-none whitespace-nowrap"
+            style={{ borderColor: `${activeColor}80` }}
+            className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2.5 z-50 px-1.5 py-0.5 rounded bg-[var(--fg)] text-[var(--bg)] border text-[9px] font-mono tracking-wider shadow-lg select-none whitespace-nowrap flex items-center gap-1"
           >
-            {COPY.egg.logoClick}
+            <span
+              className="inline-block w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: activeColor }}
+            />
+            <span>{COPY.egg.logoClick}</span>
           </motion.span>
         )}
       </AnimatePresence>

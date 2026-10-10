@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { ArrowUpRight, ChevronDown, Star, ExternalLink, Code2, ArrowRight } from "lucide-react";
 import type { Project } from "@/lib/schemas";
 import { useRegisterTextBlock } from "@/components/particles/use-particles";
+import { HoloCard } from "./holo-card";
 
 interface ExpandableProjectCardProps {
   project: Project;
@@ -22,15 +23,16 @@ export function ExpandableProjectCard({ project, index }: ExpandableProjectCardP
   const formattedIdx = String(index + 1).padStart(2, "0");
 
   return (
-    <motion.article
-      ref={cardRef}
-      layout
-      className={`group relative flex flex-col justify-between p-6 sm:p-7 rounded-2xl border transition-colors duration-300 ${
-        isExpanded
-          ? "border-[var(--fg)]/40 bg-[var(--bg)]/90 shadow-xl"
-          : "border-[var(--line)] bg-[var(--bg)]/50 hover:border-[var(--fg)]/20 hover:bg-[var(--bg)]/70"
-      } backdrop-blur-md`}
-    >
+    <HoloCard className="h-full">
+      <motion.article
+        ref={cardRef}
+        layout
+        className={`group relative flex flex-col justify-between p-6 sm:p-7 rounded-2xl border transition-colors duration-300 h-full ${
+          isExpanded
+            ? "border-[var(--fg)]/40 bg-[var(--bg)]/90 shadow-xl"
+            : "border-[var(--line)] bg-[var(--bg)]/50 hover:border-[var(--fg)]/20 hover:bg-[var(--bg)]/70"
+        } backdrop-blur-md`}
+      >
       <div>
         {/* Specimen Header Metadata */}
         <div className="flex items-center justify-between text-[11px] font-mono text-[var(--mut)] mb-4 pb-2 border-b border-[var(--line)]/50">
@@ -153,5 +155,6 @@ export function ExpandableProjectCard({ project, index }: ExpandableProjectCardP
         </div>
       </div>
     </motion.article>
-  );
+  </HoloCard>
+);
 }

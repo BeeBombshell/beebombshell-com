@@ -40,7 +40,7 @@ export function ViewsSection({ takes }: ViewsSectionProps) {
           <span>{counterText}</span>
           <span>·</span>
           <a
-            href="https://x.com/beebombshell"
+            href="https://x.com/Bee_Bombshell"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-[var(--fg)] transition-colors underline underline-offset-4 decoration-[var(--line)] hover:decoration-[var(--fg)]"

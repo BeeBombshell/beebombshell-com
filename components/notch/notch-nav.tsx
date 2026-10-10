@@ -7,7 +7,6 @@ import { motion, LayoutGroup } from "motion/react";
 import { Calendar, FileText, Menu, X } from "lucide-react";
 import { NotchLeftShoulder, NotchRightShoulder } from "./notch-shoulders";
 import { PixelGlyph } from "./pixel-glyph";
-import { SpotifyStrip } from "./spotify-strip";
 import { BookingPopover } from "./booking-popover";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useBookingStore } from "@/lib/booking-store";
@@ -93,25 +92,35 @@ export function NotchNav({
         className="relative flex items-start pointer-events-auto"
       >
         {/* Left concave fillet shoulder (collapses in pill mode) */}
-        <div
-          className="transition-all duration-400 overflow-hidden shrink-0"
-          style={{
-            width: isPill ? "0px" : "16px",
+        <motion.div
+          initial={false}
+          animate={{
+            width: isPill ? 0 : 16,
             opacity: isPill ? 0 : 1,
-            pointerEvents: isPill ? "none" : "auto",
           }}
+          transition={
+            reducedMotion
+              ? { duration: 0.15 }
+              : { type: "spring", stiffness: 280, damping: 26 }
+          }
+          className="overflow-hidden shrink-0"
+          style={{ pointerEvents: isPill ? "none" : "auto" }}
         >
           <NotchLeftShoulder />
-        </div>
+        </motion.div>
 
         {/* Notch / Floating Pill Body */}
         <motion.nav
           aria-label={COPY.a11y.notchLabel}
           layout
-          transition={{ type: "spring", stiffness: 260, damping: 28 }}
-          className={`relative flex flex-col items-center font-mono text-[12px] shadow-lg transition-all duration-500 ${
+          transition={
+            reducedMotion
+              ? { duration: 0.15 }
+              : { type: "spring", stiffness: 280, damping: 26 }
+          }
+          className={`relative flex flex-col items-center font-mono text-[12px] shadow-lg transition-[background-color,border-color,box-shadow,backdrop-filter] duration-250 ease-out ${
             isPill
-              ? "bg-[var(--fg)]/80 text-[var(--bg)] backdrop-blur-[14px] rounded-full px-4 py-[9px] border border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.22)]"
+              ? "bg-[var(--fg)]/85 text-[var(--bg)] backdrop-blur-[14px] rounded-full px-4 py-[9px] border border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.22)]"
               : "bg-[var(--fg)] text-[var(--bg)] rounded-b-[22px] px-3 pt-[9px] pb-[11px]"
           }`}
         >
@@ -182,9 +191,6 @@ export function NotchNav({
               >
                 <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
-
-              {/* Spotify Strip (Equalizer bars + Marquee) */}
-              {enableSpotify && <SpotifyStrip isPill={isPill} />}
 
               {/* llms.txt toggle (text label collapses in pill mode with bezier transition) */}
               <button
@@ -281,16 +287,22 @@ export function NotchNav({
         </motion.nav>
 
         {/* Right concave fillet shoulder (collapses in pill mode) */}
-        <div
-          className="transition-all duration-400 overflow-hidden shrink-0"
-          style={{
-            width: isPill ? "0px" : "16px",
+        <motion.div
+          initial={false}
+          animate={{
+            width: isPill ? 0 : 16,
             opacity: isPill ? 0 : 1,
-            pointerEvents: isPill ? "none" : "auto",
           }}
+          transition={
+            reducedMotion
+              ? { duration: 0.15 }
+              : { type: "spring", stiffness: 280, damping: 26 }
+          }
+          className="overflow-hidden shrink-0"
+          style={{ pointerEvents: isPill ? "none" : "auto" }}
         >
           <NotchRightShoulder />
-        </div>
+        </motion.div>
       </motion.div>
     </header>
   );

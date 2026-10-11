@@ -161,10 +161,13 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       isMobile = stageWidth < 640;
       if (isMobile) {
         cardW = Math.min(stageWidth - 36, 320);
-        cardH = 440;
+        cardH = Math.min(Math.max(340, stageHeight - 220), 420);
         cardScale = cardW / 320;
       } else {
-        cardW = clamp(stageWidth * 0.62, 560, 800);
+        // Fit card comfortably within viewport height: leave generous headroom and breathing space below
+        const maxHByScreen = Math.max(340, stageHeight - 340);
+        const maxWFromH = maxHByScreen / 0.68;
+        cardW = clamp(Math.min(stageWidth * 0.50, maxWFromH), 480, 580);
         cardH = Math.round(0.68 * cardW);
         cardScale = cardW / 560;
       }
@@ -183,10 +186,8 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       canvas.style.height = `${stageHeight}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Position so card's bottom plus about 56px lands near bottom of the first viewport
-      const desiredBottom = stageHeight - 56;
-      const hangingLength = 210 * cardScale + cardH;
-      curBaseY = Math.min(-30, desiredBottom - hangingLength);
+      // Anchors are pinned at baseY (-40px), behind the top notch nav
+      curBaseY = -40;
 
       // Rebuild rope from new center and scale
       nodes = createRopeNodes(ax, cardH, curAnchorOffset, cardScale, curBaseY);
@@ -460,14 +461,14 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       curAnchorOffset += dOffset;
       nodes[0].y = curBaseY + curAnchorOffset;
       nodes[4].y = curBaseY + curAnchorOffset;
-      nodes[0].x = ax - 34 * cardScale;
-      nodes[4].x = ax + 34 * cardScale;
+      nodes[0].x = ax - 30 * cardScale;
+      nodes[4].x = ax + 30 * cardScale;
 
       // Decay scroll velocity
       scrollVelocity *= 0.92;
 
       // 2. Physics Step
-      const iterations = isMobile ? 10 : 18;
+      const iterations = isMobile ? 8 : 12;
       step(nodes, cons, drag, iterations);
 
       // 3. Card transform calculations

@@ -139,6 +139,18 @@ export function drawRibbon(
     }
   }
 
+const CHAR_WIDTH_CACHE = new Map<string, number>();
+
+function getCharWidth(ctx: CanvasRenderingContext2D, ch: string, font: string): number {
+  const key = `${font}_${ch}`;
+  let w = CHAR_WIDTH_CACHE.get(key);
+  if (w === undefined) {
+    w = ctx.measureText(ch).width + 1.4;
+    CHAR_WIDTH_CACHE.set(key, w);
+  }
+  return w;
+}
+
   // Text printed along the strap by arc length
   if (o.print) {
     ctx.font = o.print.font;
@@ -149,7 +161,7 @@ export function drawRibbon(
 
     while (d < total - 8) {
       const ch = T[k % T.length];
-      const w = ctx.measureText(ch).width + 1.4;
+      const w = getCharWidth(ctx, ch, o.print.font);
       let j = 0;
       while (j < n - 2 && s[j + 1] < d) j++;
       const f = (d - s[j]) / (s[j + 1] - s[j] || 1);

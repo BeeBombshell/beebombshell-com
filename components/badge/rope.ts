@@ -43,27 +43,27 @@ export function createRopeNodes(
   cardHeight = 380,
   anchorOffsetY = 0,
   scale = 1,
-  baseY = -50
+  baseY = -40
 ): RopeNode[] {
   const y0 = baseY + anchorOffsetY;
-  const strandStep = 40 * scale;
-  const junctionY = y0 + 120 * scale;
-  const stemStep = 30 * scale;
-  const clipY = junctionY + 90 * scale;
+  const strandStep = 32 * scale;
+  const junctionY = y0 + 96 * scale;
+  const stemStep = 24 * scale;
+  const clipY = junctionY + 72 * scale;
   const bottomY = clipY + cardHeight;
 
   return [
-    { x: ax - 34 * scale, y: y0, ox: ax - 34 * scale, oy: y0, pin: true },
-    { x: ax - 23 * scale, y: y0 + strandStep, ox: ax - 23 * scale, oy: y0 + strandStep, pin: false },
-    { x: ax - 11 * scale, y: y0 + strandStep * 2, ox: ax - 11 * scale, oy: y0 + strandStep * 2, pin: false },
+    { x: ax - 30 * scale, y: y0, ox: ax - 30 * scale, oy: y0, pin: true },
+    { x: ax - 20 * scale, y: y0 + strandStep, ox: ax - 20 * scale, oy: y0 + strandStep, pin: false },
+    { x: ax - 10 * scale, y: y0 + strandStep * 2, ox: ax - 10 * scale, oy: y0 + strandStep * 2, pin: false },
     { x: ax, y: junctionY, ox: ax, oy: junctionY, pin: false },
-    { x: ax + 34 * scale, y: y0, ox: ax + 34 * scale, oy: y0, pin: true },
-    { x: ax + 23 * scale, y: y0 + strandStep, ox: ax + 23 * scale, oy: y0 + strandStep, pin: false },
-    { x: ax + 11 * scale, y: y0 + strandStep * 2, ox: ax + 11 * scale, oy: y0 + strandStep * 2, pin: false },
+    { x: ax + 30 * scale, y: y0, ox: ax + 30 * scale, oy: y0, pin: true },
+    { x: ax + 20 * scale, y: y0 + strandStep, ox: ax + 20 * scale, oy: y0 + strandStep, pin: false },
+    { x: ax + 10 * scale, y: y0 + strandStep * 2, ox: ax + 10 * scale, oy: y0 + strandStep * 2, pin: false },
     { x: ax, y: junctionY + stemStep, ox: ax, oy: junctionY + stemStep, pin: false },
     { x: ax, y: junctionY + stemStep * 2, ox: ax, oy: junctionY + stemStep * 2, pin: false },
     { x: ax, y: clipY, ox: ax, oy: clipY, pin: false },
-    { x: ax + 60 * scale, y: bottomY, ox: ax + 60 * scale, oy: bottomY, pin: false },
+    { x: ax + 50 * scale, y: bottomY, ox: ax + 50 * scale, oy: bottomY, pin: false },
   ];
 }
 
@@ -72,17 +72,17 @@ export function createRopeNodes(
  */
 export function createRopeConstraints(cardHeight = 380, scale = 1): Constraint[] {
   return [
-    [0, 1, 44 * scale],
-    [1, 2, 44 * scale],
-    [2, 3, 44 * scale],
-    [4, 5, 44 * scale],
-    [5, 6, 44 * scale],
-    [6, 3, 44 * scale],
-    [3, 7, 30 * scale],
-    [7, 8, 30 * scale],
-    [8, 9, 30 * scale],
+    [0, 1, 35 * scale],
+    [1, 2, 35 * scale],
+    [2, 3, 35 * scale],
+    [4, 5, 35 * scale],
+    [5, 6, 35 * scale],
+    [6, 3, 35 * scale],
+    [3, 7, 24 * scale],
+    [7, 8, 24 * scale],
+    [8, 9, 24 * scale],
     [9, 10, cardHeight],
-    [8, 10, cardHeight + 15 * scale, true],
+    [8, 10, cardHeight + 12 * scale, true],
   ];
 }
 
@@ -93,7 +93,7 @@ export function step(
   nodes: RopeNode[],
   cons: Constraint[],
   drag: { active: boolean; target: { x: number; y: number } },
-  iterations = 18
+  iterations = 12
 ) {
   // 1. Verlet integration for free nodes
   for (const p of nodes) {

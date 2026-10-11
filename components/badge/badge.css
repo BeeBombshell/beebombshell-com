@@ -672,14 +672,16 @@
 /* Desktop enlargement (>= 1024px) */
 @media (min-width: 1024px) {
   .badge-headline {
-    width: 420px;
-    font-size: 31px;
-    top: 90px;
+    width: 350px;
+    max-width: calc(100% - 175px);
+    font-size: 26.5px;
+    top: 86px;
   }
   .badge-bio {
-    width: 430px;
-    font-size: 13.5px;
-    top: 200px;
+    width: 370px;
+    max-width: calc(100% - 175px);
+    font-size: 13px;
+    top: 195px;
   }
   .badge-chips {
     bottom: 24px;

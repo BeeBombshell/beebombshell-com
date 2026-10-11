@@ -81,11 +81,15 @@ export function ExpandingProjectCards({ projects }: ExpandingProjectCardsProps) 
                 <div className="flex items-center justify-between text-[11px] font-mono text-[var(--mut)] pb-3 border-b border-[var(--line)]/50 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="text-[var(--fg)] font-medium">№ {formattedIdx}</span>
-                    <span className="hidden sm:inline">·</span>
-                    <span className="hidden sm:inline uppercase">{project.year}</span>
+                    {isExpanded && (
+                      <>
+                        <span className="hidden sm:inline">·</span>
+                        <span className="hidden sm:inline uppercase">{project.year}</span>
+                      </>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
                     {project.stars !== undefined && (
                       <span className="flex items-center gap-1 font-mono text-[var(--mut)]">
                         <span>★</span>
@@ -93,7 +97,11 @@ export function ExpandingProjectCards({ projects }: ExpandingProjectCardsProps) 
                       </span>
                     )}
                     {project.featured && (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] uppercase font-mono tracking-wider bg-[var(--fg)] text-[var(--bg)] font-medium">
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-[9px] uppercase font-mono tracking-wider bg-[var(--fg)] text-[var(--bg)] font-medium ${
+                          !isExpanded && project.stars !== undefined ? "hidden xl:inline-block" : ""
+                        }`}
+                      >
                         FEATURED
                       </span>
                     )}
@@ -113,17 +121,17 @@ export function ExpandingProjectCards({ projects }: ExpandingProjectCardsProps) 
                     {project.title}
                   </h3>
 
-                  {/* Rest state stack summary (shown when compressed on desktop) */}
+                  {/* Rest state stack summary: clean, non-wrapping pills */}
                   {!isExpanded && (
-                    <div className="hidden md:flex flex-wrap gap-1 mt-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                      {project.stack.slice(0, 2).map((tech) => (
-                        <span
-                          key={tech}
-                          className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-[var(--line)]/60 text-[var(--fg)]/90"
-                        >
-                          {tech}
+                    <div className="hidden md:flex items-center gap-1.5 mt-2 opacity-65 group-hover:opacity-100 transition-opacity">
+                      <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-[var(--line)]/60 text-[var(--fg)]/90 truncate max-w-[110px]">
+                        {project.stack[0]}
+                      </span>
+                      {project.stack.length > 1 && (
+                        <span className="font-mono text-[9px] text-[var(--mut)]">
+                          +{project.stack.length - 1}
                         </span>
-                      ))}
+                      )}
                     </div>
                   )}
 
@@ -198,18 +206,31 @@ export function ExpandingProjectCards({ projects }: ExpandingProjectCardsProps) 
 
                 {/* ── CARD BOTTOM: Actions ─────────────────────────── */}
                 <div className="pt-3 border-t border-[var(--line)]/50 flex items-center justify-between text-xs font-mono shrink-0">
-                  <span className="text-[10px] text-[var(--mut)] uppercase tracking-wide">
-                    {isExpanded ? "CLICK TO COLLAPSE" : "CLICK TO EXPAND"}
-                  </span>
+                  {isExpanded ? (
+                    <>
+                      <span className="text-[10px] text-[var(--mut)] uppercase tracking-wider">
+                        COLLAPSE
+                      </span>
 
-                  <Link
-                    href={`/work/${project.slug}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1.5 text-[var(--fg)] font-medium hover:underline group/cta"
-                  >
-                    <span>case study</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover/cta:translate-x-1 transition-transform" />
-                  </Link>
+                      <Link
+                        href={`/work/${project.slug}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1.5 text-[var(--fg)] font-medium hover:underline group/cta"
+                      >
+                        <span>case study</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover/cta:translate-x-1 transition-transform" />
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-[10px] text-[var(--mut)] group-hover:text-[var(--fg)] uppercase tracking-wider transition-colors">
+                        EXPAND
+                      </span>
+                      <span className="text-xs text-[var(--mut)] group-hover:text-[var(--fg)] group-hover:translate-x-0.5 transition-all">
+                        +
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </HoloCard>

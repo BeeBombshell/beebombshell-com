@@ -138,13 +138,13 @@ export class ParticleEngine {
 
     this.ctx.scale(this.dpr, this.dpr);
 
-    // Scale particle count: 1800-2400 at 1920×1080, down to 600 on mobile
+    // Scale particle count: ~1000-1250 at 1920×1080, down to 450 on mobile for fluid 60-120fps on all systems
     const area = W * H;
-    const base = Math.round(2100 * (area / (1920 * 1080)));
-    this.particleCount = Math.max(600, Math.min(2400, base));
+    const base = Math.round(1150 * (area / (1920 * 1080)));
+    this.particleCount = Math.max(450, Math.min(1250, base));
 
     // Rebuild if count changed significantly
-    if (Math.abs(this.particles.length - this.particleCount) > 100) {
+    if (Math.abs(this.particles.length - this.particleCount) > 80) {
       this.buildParticles();
       this.retarget(this.mode);
     }
@@ -175,6 +175,8 @@ export class ParticleEngine {
         dashAngle: Math.random() * Math.PI * 2,
       };
     });
+    // Sort by colorIdx so canvas fillStyle switches are minimized to at most 6 per frame
+    this.particles.sort((a, b) => a.colorIdx - b.colorIdx);
   }
 
   // ── Targeting ───────────────────────────────────────────────────────────────
@@ -415,7 +417,12 @@ export class ParticleEngine {
     else if (this.mode === "contours") modeMultiplier = 0.65;
     else if (this.mode === "llms") modeMultiplier = 0.35;
 
-    this.particles.forEach((p) => {
+    let lastColorIdx = -1;
+    let lastAlpha = -1;
+
+    for (let i = 0; i < this.particles.length; i++) {
+      const p = this.particles[i];
+
       if (!this.reducedMotion) {
         // Spring toward target
         const dx = p.tx - p.x;
@@ -441,24 +448,32 @@ export class ParticleEngine {
         p.y += p.vy;
       }
 
-      // Text-aware dimming
-      let minDist = Infinity;
-      for (const r of this.rects) {
-        if (!r.cached) continue;
-        const rc = r.cached;
-        // Distance from point to rect
-        const dx = Math.max(rc.left - p.x, 0, p.x - rc.right);
-        const dy = Math.max(rc.top  - p.y, 0, p.y - rc.bottom);
-        const d  = Math.sqrt(dx * dx + dy * dy);
+      // Fast text-aware dimming: skip hypot if dx or dy >= 46
+      let minDist = 46;
+      for (let rIdx = 0; rIdx < this.rects.length; rIdx++) {
+        const rc = this.rects[rIdx].cached;
+        if (!rc) continue;
+        const rdx = p.x < rc.left ? rc.left - p.x : p.x > rc.right ? p.x - rc.right : 0;
+        if (rdx >= 46) continue;
+        const rdy = p.y < rc.top ? rc.top - p.y : p.y > rc.bottom ? p.y - rc.bottom : 0;
+        if (rdy >= 46) continue;
+        const d = Math.hypot(rdx, rdy);
         if (d < minDist) minDist = d;
       }
-      // 5% min opacity inside rect, full at 46px away
       const dimFactor = minDist < 46 ? 0.05 + (minDist / 46) * 0.95 : 1;
       p.opacity = p.baseOpacity * dimFactor * modeMultiplier;
 
-      // Draw
-      this.ctx.globalAlpha = p.opacity;
-      this.ctx.fillStyle = palette[p.colorIdx];
+      // Batch fillStyle and globalAlpha updates
+      if (p.colorIdx !== lastColorIdx) {
+        this.ctx.fillStyle = palette[p.colorIdx];
+        lastColorIdx = p.colorIdx;
+      }
+      // Round opacity slightly to avoid redundant alpha context switches
+      const quantAlpha = Math.round(p.opacity * 50) / 50;
+      if (quantAlpha !== lastAlpha) {
+        this.ctx.globalAlpha = quantAlpha;
+        lastAlpha = quantAlpha;
+      }
 
       if (isWriting) {
         // Dashes for writing mode
@@ -471,7 +486,7 @@ export class ParticleEngine {
         // Square dots (design.md §Particle properties)
         this.ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
       }
-    });
+    }
 
     this.ctx.globalAlpha = 1;
   }

@@ -55,8 +55,8 @@ export function ParticleCanvas() {
       const SECTIONS: Array<{ id: string; mode: ParticleMode }> = [
         { id: "hero", mode: "burst" },
         { id: "work", mode: "lattice" },
-        { id: "about", mode: "contours" },
         { id: "writing", mode: "writing" },
+        { id: "about", mode: "contours" },
         { id: "footer", mode: "footer" },
       ];
 

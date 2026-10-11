@@ -88,8 +88,8 @@ export function NotchNav({
     const sectionDefs = [
       { id: "hero", nav: SECTION_TO_NAV.hero, fallback: "hero-section" },
       { id: "work", nav: SECTION_TO_NAV.work, fallback: "selected-work" },
-      { id: "about", nav: SECTION_TO_NAV.views, fallback: "views-nobody-asked-for" },
       { id: "writing", nav: SECTION_TO_NAV.writing, fallback: "recent-writing" },
+      { id: "about", nav: SECTION_TO_NAV.views, fallback: "views-nobody-asked-for" },
       { id: "footer", nav: SECTION_TO_NAV.footer, fallback: "colophon" },
     ];
 

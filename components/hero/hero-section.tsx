@@ -169,12 +169,7 @@ export function HeroSection({
 
 
       {/* ======================================================== */}
-      {/* 3. VIEWS NOBODY ASKED FOR (FIG 0.3 · UNSOLICITED TAKES)  */}
-      {/* ======================================================== */}
-      <ViewsSection takes={takes} />
-
-      {/* ======================================================== */}
-      {/* 4. RECENT WRITING (FIG 0.4 · DASHES, DRIFTING)           */}
+      {/* 3. RECENT WRITING (FIG 0.3 · DASHES, DRIFTING)           */}
       {/* ======================================================== */}
       {recentPosts.length > 0 && (
         <section
@@ -184,8 +179,8 @@ export function HeroSection({
           className="relative z-10 w-full max-w-6xl mx-auto px-5 sm:px-8 py-[clamp(96px,14vh,160px)] border-t border-[var(--line)]"
         >
           <SectionHeader
-            figure={COPY.writing.caption}
-            number="№ 004"
+            figure={COPY.writing.caption || "FIG 0.3 · DASHES, DRIFTING"}
+            number="№ 003"
             title={COPY.writing.title}
             intro={COPY.writing.intro}
             meta={
@@ -206,6 +201,11 @@ export function HeroSection({
           </div>
         </section>
       )}
+
+      {/* ======================================================== */}
+      {/* 4. VIEWS NOBODY ASKED FOR (FIG 0.4 · UNSOLICITED TAKES)  */}
+      {/* ======================================================== */}
+      <ViewsSection takes={takes} />
 
       {/* ======================================================== */}
       {/* 5. GLOBAL TECHNICAL FOOTER (REAL ENDING)                 */}

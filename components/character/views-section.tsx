@@ -51,8 +51,8 @@ export function ViewsSection({ takes }: ViewsSectionProps) {
     >
       {/* Unified Section Header */}
       <SectionHeader
-        figure="FIG 0.3 · UNSOLICITED TAKES"
-        number="№ 003"
+        figure="FIG 0.4 · UNSOLICITED TAKES"
+        number="№ 004"
         title={COPY.views.title}
         intro={COPY.views.sub}
         meta={

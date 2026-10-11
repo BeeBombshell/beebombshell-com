@@ -335,18 +335,6 @@ export class ParticleEngine {
   /** Set the center for a given mode (percent of viewport). */
   setCenter(mode: ParticleMode, xPct: number, yPct: number) {
     this.modeCenter[mode] = [xPct, yPct];
-    if (this.mode === mode && mode === "burst") {
-      const W = window.innerWidth;
-      const H = window.innerHeight;
-      const cx = xPct * W;
-      const cy = yPct * H;
-      this.particles.forEach((p) => {
-        if (p.relTx !== undefined && p.relTy !== undefined) {
-          p.tx = Math.max(10, Math.min(W - 10, cx + p.relTx));
-          p.ty = Math.max(10, Math.min(H - 10, cy + p.relTy));
-        }
-      });
-    }
   }
 
   /** Fire an impulse burst from a point (e.g. badge flip). */

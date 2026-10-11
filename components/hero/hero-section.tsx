@@ -167,12 +167,6 @@ export function HeroSection({
         <ExpandingProjectCards projects={selectedProjects.slice(0, 4)} />
       </section>
 
-      {/* Typographic Rhythm Moment */}
-      <div className="w-full max-w-6xl mx-auto px-5 sm:px-8 overflow-hidden select-none py-4 border-y border-[var(--line)]/30 text-center">
-        <p className="font-mono text-[clamp(22px,4.5vw,56px)] tracking-[-0.04em] uppercase text-[var(--fg)]/10 font-bold whitespace-nowrap">
-          HONEST CODE · TACTILE PHYSICS · ZERO AMBER
-        </p>
-      </div>
 
       {/* ======================================================== */}
       {/* 3. VIEWS NOBODY ASKED FOR (FIG 0.3 · UNSOLICITED TAKES)  */}

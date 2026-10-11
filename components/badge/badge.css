@@ -27,6 +27,7 @@
   height: var(--card-h, 380px);
   --card-scale: calc(var(--card-w, 560px) / 560);
   z-index: 3;
+  transform-origin: center center;
   will-change: transform;
   touch-action: none;
   cursor: grab;
@@ -508,10 +509,6 @@
 
 /* Mobile responsive adaptations (< 640px) */
 @media (max-width: 639px) {
-  .badge-card {
-    width: 320px;
-    height: 440px;
-  }
 
   /* Front Face Mobile: Hierarchical vertical rhythm with zero collisions */
   .badge-meta-group {
@@ -674,10 +671,6 @@
 
 /* Desktop enlargement (>= 1024px) */
 @media (min-width: 1024px) {
-  .badge-card {
-    width: 640px;
-    height: 430px;
-  }
   .badge-headline {
     width: 420px;
     font-size: 31px;
@@ -731,10 +724,6 @@
 
 /* Extra Large Screens (>= 1440px) */
 @media (min-width: 1440px) {
-  .badge-card {
-    width: 680px;
-    height: 450px;
-  }
   .badge-headline {
     width: 450px;
     font-size: 33px;

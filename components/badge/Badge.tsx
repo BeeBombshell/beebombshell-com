@@ -168,6 +168,8 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
         cardH = Math.round(0.68 * cardW);
         cardScale = cardW / 560;
       }
+      card.style.width = `${cardW}px`;
+      card.style.height = `${cardH}px`;
       card.style.setProperty("--card-w", `${cardW}px`);
       card.style.setProperty("--card-h", `${cardH}px`);
       card.style.setProperty("--card-scale", `${cardScale}`);
@@ -493,9 +495,6 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
         frontFace.style.pointerEvents = isShowingBack ? "none" : "auto";
         backFace.style.pointerEvents = isShowingBack ? "auto" : "none";
       }
-
-      // Card center notification for particle burst
-      onCenterRef.current?.({ x: cx, y: cy });
 
       // Holographic text, glare, and dot overlay direct updates
       if (dotsEl) {

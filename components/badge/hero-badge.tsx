@@ -27,16 +27,6 @@ export function HeroBadge({ className = "" }: { className?: string }) {
     impulse(x, y, 360, 11);
   };
 
-  const handleCenter = ({ x, y }: { x: number; y: number }) => {
-    if (typeof window !== "undefined" && window.__particleEngine) {
-      window.__particleEngine.setCenter(
-        "burst",
-        x / window.innerWidth,
-        y / window.innerHeight
-      );
-    }
-  };
-
   const badgeCopy = {
     label: COPY.card.label,
     meta: COPY.card.meta,
@@ -83,7 +73,6 @@ export function HeroBadge({ className = "" }: { className?: string }) {
         copy={badgeCopy}
         anchorOffset={anchorOffset}
         onFlip={handleFlip}
-        onCenter={handleCenter}
       />
     </div>
   );

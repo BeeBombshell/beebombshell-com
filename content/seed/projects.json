@@ -17,8 +17,8 @@
   {
     "slug": "spotify-now-playing",
     "title": "spotify-now-playing",
-    "blurb": "A minimalist service that shows what you're listening to on a profile, site, or blog. Yes, it's in the notch. That's the flex.",
-    "body": "A minimalist service that shows what you're listening to on a profile, site, or blog.\n\nYes, it's in the notch. That's the flex.\n\nProvides real-time cached Spotify track data via clean SVG embeds and API endpoints.",
+    "blurb": "A minimalist service that shows what you're listening to on a profile, site, or blog. Yes, it's on the lanyard card. That's the flex.",
+    "body": "A minimalist service that shows what you're listening to on a profile, site, or blog.\n\nYes, it's on the lanyard card. That's the flex.\n\nProvides real-time cached Spotify track data via clean SVG embeds and API endpoints.",
     "stack": ["TypeScript", "Spotify Web API", "Edge Functions", "SVG"],
     "links": {
       "repo": "https://github.com/BeeBombshell/spotify-now-playing",

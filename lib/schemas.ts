@@ -15,10 +15,27 @@ export const ProfileSchema = z.object({
   statusText: z.string().default("open for chats"),
 });
 
+export function normalizeTweetUrl(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  const clean = url.split("?")[0].trim();
+  const match = clean.match(/^https?:\/\/(?:x|twitter)\.com\/bee_bombshell\/status\/(\d+)$/i);
+  if (!match) {
+    const msg = `Invalid tweet URL: "${url}". Must match https://x.com/bee_bombshell/status/<id>`;
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`[Views] ${msg}`);
+      return undefined;
+    }
+    throw new Error(msg);
+  }
+  return `https://x.com/bee_bombshell/status/${match[1]}`;
+}
+
 export const TakeSchema = z.object({
   id: z.string(),
   text: z.string(),
-  order: z.number().int().default(0),
+  url: z.string().optional().transform((val) => normalizeTweetUrl(val)),
+  date: z.string().optional(),
+  order: z.number().int().optional().default(0),
 });
 
 

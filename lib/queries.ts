@@ -228,6 +228,21 @@ export async function getConfig(): Promise<SiteConfig> {
 }
 
 async function fetchTakes(): Promise<Take[]> {
+  const viewsPath = path.join(process.cwd(), "content", "views.json");
+  if (fs.existsSync(viewsPath)) {
+    try {
+      const raw = JSON.parse(fs.readFileSync(viewsPath, "utf-8"));
+      return raw.map((item: unknown, idx: number) =>
+        TakeSchema.parse({
+          order: idx + 1,
+          ...(typeof item === "object" && item !== null ? item : {}),
+        })
+      );
+    } catch (err) {
+      console.warn("Failed to load content/views.json:", err);
+    }
+  }
+
   if (firestore) {
     try {
       const snap = await firestore.collection("takes").orderBy("order", "asc").get();
@@ -242,7 +257,12 @@ async function fetchTakes(): Promise<Take[]> {
   }
 
   const raw = readSeedFile<unknown[]>("takes.json");
-  return raw.map((item) => TakeSchema.parse(item));
+  return raw.map((item, idx) =>
+    TakeSchema.parse({
+      order: idx + 1,
+      ...(typeof item === "object" && item !== null ? item : {}),
+    })
+  );
 }
 
 const cachedGetTakes = unstable_cache(

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "001",
+    "text": "A good README is the cheapest feature you'll ever ship.",
+    "date": "2026-03-12"
+  },
+  {
+    "id": "002",
+    "text": "If your error message doesn't say what to do next, it's not an error message. It's a vibe.",
+    "date": "2026-02-28"
+  },
+  {
+    "id": "003",
+    "text": "Developer experience is just empathy with a changelog.",
+    "date": "2026-02-14"
+  },
+  {
+    "id": "004",
+    "text": "Low-code is still code. It's just somewhere else, and someone is on call for it.",
+    "date": "2026-01-30"
+  },
+  {
+    "id": "005",
+    "text": "Mentoring is the only open source contribution with compounding returns.",
+    "date": "2026-01-15"
+  },
+  {
+    "id": "006",
+    "text": "Memes are documentation for people who skipped the docs.",
+    "date": "2026-01-02"
+  }
+]

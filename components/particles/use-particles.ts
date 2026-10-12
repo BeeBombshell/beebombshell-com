@@ -44,10 +44,35 @@ export function useParticleEngine() {
   );
 
   const setTheme = useCallback((theme: Theme) => {
-    engineRef.current?.setTheme(theme);
+    (engineRef.current || window.__particleEngine)?.setTheme(theme);
   }, []);
 
-  return { morphTo, registerRect, impulse, setTheme };
+  const shearTakes = useCallback((vx: number) => {
+    (engineRef.current || window.__particleEngine)?.shearTakes(vx);
+  }, []);
+
+  const slideImpulse = useCallback((direction: 1 | -1) => {
+    (engineRef.current || window.__particleEngine)?.slideImpulse(direction);
+  }, []);
+
+  const setAccentTarget = useCallback((point: { x: number; y: number } | null) => {
+    (engineRef.current || window.__particleEngine)?.setAccentTarget(point);
+  }, []);
+
+  const setGlyphTarget = useCallback((rect: DOMRect | null) => {
+    (engineRef.current || window.__particleEngine)?.setGlyphTarget(rect);
+  }, []);
+
+  return {
+    morphTo,
+    registerRect,
+    impulse,
+    setTheme,
+    shearTakes,
+    slideImpulse,
+    setAccentTarget,
+    setGlyphTarget,
+  };
 }
 
 /**

@@ -56,7 +56,7 @@ export function ParticleCanvas() {
         { id: "hero", mode: "burst" },
         { id: "work", mode: "lattice" },
         { id: "writing", mode: "writing" },
-        { id: "about", mode: "contours" },
+        { id: "views", mode: "takes" },
         { id: "footer", mode: "footer" },
       ];
 

@@ -17,7 +17,7 @@
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ParticleMode = "burst" | "lattice" | "contours" | "writing" | "footer" | "llms";
+export type ParticleMode = "burst" | "lattice" | "contours" | "writing" | "footer" | "llms" | "takes";
 export type Theme = "light" | "dark";
 
 interface Particle {
@@ -92,10 +92,16 @@ export class ParticleEngine {
     writing:  [0.50, 0.50],
     footer:   [0.50, 0.85],
     llms:     [0.50, 0.50],
+    takes:    [0.50, 0.50],
   };
 
   private particleCount = 0;
   private dpr = 1;
+
+  // Takes mode physics & interactive states
+  private takesDriftVx = 0;
+  private accentPoint: { x: number; y: number } | null = null;
+  private glyphActive = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -193,6 +199,7 @@ export class ParticleEngine {
       case "writing":  this.targetWriting(W, H); break;
       case "footer":   this.targetFooter(W, H); break;
       case "llms":     this.targetContours(W, H); break; // same as contours, dimmed
+      case "takes":    this.targetTakes(W, H); break;
     }
   }
 
@@ -302,6 +309,29 @@ export class ParticleEngine {
     });
   }
 
+  private targetTakes(W: number, H: number) {
+    // Editorial field: quiet vertical guide columns with slight contour drift,
+    // leaving the middle clear so the selected take feels anchored.
+    const columns = [0.14, 0.26, 0.38, 0.64, 0.76, 0.88];
+    const groupCount = columns.length;
+    const pointsPerGroup = Math.ceil(this.particles.length / groupCount);
+
+    this.particles.forEach((p, i) => {
+      const group = i % groupCount;
+      const positionInGroup = Math.floor(i / groupCount);
+      const yBase = ((positionInGroup + 0.5) / pointsPerGroup) * H;
+      const xBase = columns[group] * W;
+      const wave = Math.sin((yBase / H) * Math.PI * 2.8 + group * 0.9) * 24;
+      const xJitter = gaussianRandom() * 14;
+      const yJitter = gaussianRandom() * 12;
+
+      p.tx = Math.max(10, Math.min(W - 10, xBase + wave + xJitter));
+      p.ty = Math.max(10, Math.min(H - 10, yBase + yJitter));
+      p.relTx = p.tx;
+      p.relTy = p.ty;
+    });
+  }
+
   // ── Public API ──────────────────────────────────────────────────────────────
 
   /** Switch particle mode. The particles will spring to new targets. */
@@ -364,6 +394,70 @@ export class ParticleEngine {
     this.applyBurst(x, y, CLICK_R, CLICK_F);
   }
 
+  /** Dragging carousel shears field by drag velocity scaled down (~0.15). */
+  shearTakes(vx: number) {
+    if (this.reducedMotion || this.mode !== "takes") return;
+    const shear = vx * 0.15;
+    for (let i = 0; i < this.particles.length; i++) {
+      this.particles[i].vx += shear;
+    }
+  }
+
+  /** One-off impulse on slide change (6 to 10 in direction of travel, decaying via 0.86 damping). */
+  slideImpulse(direction: 1 | -1) {
+    if (this.reducedMotion || this.mode !== "takes") return;
+    const force = direction * 8;
+    this.takesDriftVx = direction * 0.8;
+    for (let i = 0; i < this.particles.length; i++) {
+      this.particles[i].vx += force;
+    }
+  }
+
+  /** Accent target for hovered or focused UI within takes mode. */
+  setAccentTarget(point: { x: number; y: number } | null) {
+    this.accentPoint = point;
+  }
+
+  /** Retarget ~100-150 particles to ↗ arrow glyph on link hover/focus. */
+  setGlyphTarget(rect: DOMRect | null) {
+    if (!rect) {
+      if (this.glyphActive) {
+        this.glyphActive = false;
+        if (this.mode === "takes") {
+          this.targetTakes(window.innerWidth, window.innerHeight);
+        }
+      }
+      return;
+    }
+
+    this.glyphActive = true;
+    const gx = rect.right + 10;
+    const gy = rect.top + rect.height / 2;
+    const size = 14;
+    const count = Math.min(120, this.particles.length);
+
+    for (let i = 0; i < count; i++) {
+      const p = this.particles[i];
+      const frac = i / count;
+      if (frac < 0.45) {
+        // Main diagonal arrow stem
+        const s = frac / 0.45;
+        p.tx = gx - size / 2 + s * size + (Math.random() - 0.5) * 1.5;
+        p.ty = gy + size / 2 - s * size + (Math.random() - 0.5) * 1.5;
+      } else if (frac < 0.72) {
+        // Horizontal top bar
+        const s = (frac - 0.45) / 0.27;
+        p.tx = gx + size / 2 - s * (size * 0.55) + (Math.random() - 0.5) * 1.5;
+        p.ty = gy - size / 2 + (Math.random() - 0.5) * 1.5;
+      } else {
+        // Vertical right bar
+        const s = (frac - 0.72) / 0.28;
+        p.tx = gx + size / 2 + (Math.random() - 0.5) * 1.5;
+        p.ty = gy - size / 2 + s * (size * 0.55) + (Math.random() - 0.5) * 1.5;
+      }
+    }
+  }
+
   destroy() {
     cancelAnimationFrame(this.rafId);
     this.rafId = 0;
@@ -416,6 +510,16 @@ export class ParticleEngine {
     else if (this.mode === "writing") modeMultiplier = 0.40;
     else if (this.mode === "contours") modeMultiplier = 0.65;
     else if (this.mode === "llms") modeMultiplier = 0.35;
+    else if (this.mode === "takes") {
+      modeMultiplier = this.theme === "dark" ? 0.38 : 0.44;
+      if (!this.reducedMotion && Math.abs(this.takesDriftVx) > 0.001) {
+        for (let i = 0; i < this.particles.length; i++) {
+          const p = this.particles[i];
+          p.tx = (p.tx + this.takesDriftVx + W) % W;
+        }
+        this.takesDriftVx *= 0.96;
+      }
+    }
 
     let lastColorIdx = -1;
     let lastAlpha = -1;
@@ -463,13 +567,28 @@ export class ParticleEngine {
       const dimFactor = minDist < 46 ? 0.05 + (minDist / 46) * 0.95 : 1;
       p.opacity = p.baseOpacity * dimFactor * modeMultiplier;
 
+      let accentBoost = 1;
+
+      // Accent target: around hovered/focused UI, push one palette step and brighten.
+      let effColorIdx = p.colorIdx;
+      if (this.accentPoint) {
+        const tdx = p.x - this.accentPoint.x;
+        const tdy = p.y - this.accentPoint.y;
+        if (tdx * tdx + tdy * tdy < 160 * 160) {
+          effColorIdx = (effColorIdx + 1) % 6;
+          accentBoost = 1.55;
+        }
+      }
+
+      p.opacity *= accentBoost;
+
       // Batch fillStyle and globalAlpha updates
-      if (p.colorIdx !== lastColorIdx) {
-        this.ctx.fillStyle = palette[p.colorIdx];
-        lastColorIdx = p.colorIdx;
+      if (effColorIdx !== lastColorIdx) {
+        this.ctx.fillStyle = palette[effColorIdx];
+        lastColorIdx = effColorIdx;
       }
       // Round opacity slightly to avoid redundant alpha context switches
-      const quantAlpha = Math.round(p.opacity * 50) / 50;
+      const quantAlpha = Math.min(1, Math.round(p.opacity * 50) / 50);
       if (quantAlpha !== lastAlpha) {
         this.ctx.globalAlpha = quantAlpha;
         lastAlpha = quantAlpha;
@@ -484,7 +603,13 @@ export class ParticleEngine {
         this.ctx.restore();
       } else {
         // Square dots (design.md §Particle properties)
-        this.ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+        const drawSize = this.mode === "takes" ? p.size * 1.35 * accentBoost : p.size;
+        this.ctx.fillRect(
+          p.x - drawSize / 2,
+          p.y - drawSize / 2,
+          drawSize,
+          drawSize
+        );
       }
     }
 

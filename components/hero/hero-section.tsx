@@ -205,7 +205,7 @@ export function HeroSection({
       {/* ======================================================== */}
       {/* 4. VIEWS NOBODY ASKED FOR (FIG 0.4 · UNSOLICITED TAKES)  */}
       {/* ======================================================== */}
-      <ViewsSection takes={takes} />
+      <ViewsSection takes={takes} enableCharacter={enableCharacter} />
 
       {/* ======================================================== */}
       {/* 5. GLOBAL TECHNICAL FOOTER (REAL ENDING)                 */}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import { Badge } from "./Badge";
 import { COPY } from "@/lib/copy";
 import { useBookingStore } from "@/lib/booking-store";
@@ -10,6 +11,7 @@ import { scrollStore } from "@/lib/scroll-store";
 import { ArrowUpRight, ArrowRight, Calendar, FileText } from "lucide-react";
 
 export function HeroBadge({ className = "" }: { className?: string }) {
+  const router = useRouter();
   const { open: openBooking } = useBookingStore();
   const { open: openLlms } = useLlmsStore();
   const { impulse } = useParticleEngine();
@@ -34,7 +36,6 @@ export function HeroBadge({ className = "" }: { className?: string }) {
     accent: COPY.card.headlineAccent,
     bio: COPY.card.bio,
     chips: [...COPY.card.chips],
-    spec: COPY.card.spec,
     hint: COPY.card.hint,
     back: {
       label: COPY.card.back.label,
@@ -48,7 +49,7 @@ export function HeroBadge({ className = "" }: { className?: string }) {
           icon: <ArrowRight className="w-3.5 h-3.5" />,
           text: COPY.card.back.writing,
           onClick: () => {
-            window.location.href = "/work";
+            router.push("/writing");
           },
         },
         {

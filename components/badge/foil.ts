@@ -47,9 +47,10 @@ export function generate7LobeBlobPath(size = 134, points = 80): string {
   const pathParts: string[] = [];
 
   for (let i = 0; i <= points; i++) {
-    const angle = (i / points) * Math.PI * 2;
-    // 7 lobes
-    const r = size * (0.34 + 0.07 * Math.cos(7 * angle));
+    const t = (i / points) * Math.PI * 2;
+    // 7 lobes oriented upright
+    const r = size * (0.34 + 0.07 * Math.cos(7 * t));
+    const angle = t - Math.PI / 2;
     const x = center + r * Math.cos(angle);
     const y = center + r * Math.sin(angle);
 

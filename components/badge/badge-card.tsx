@@ -305,14 +305,11 @@ export function BadgeCard({
             ))}
           </div>
 
-          {/* Hint & SPEC tag Bottom-Right: (24px, 24px) */}
+          {/* Flip hint Bottom-Right */}
           <div className="absolute right-[24px] bottom-[20px] sm:bottom-[24px] flex items-center gap-3 font-mono text-[10px] z-20">
             <span className="text-white/40 tracking-wider hidden sm:inline-flex items-center gap-1.5">
               <span>{COPY.card.hint}</span>
               <RotateCw className="w-3 h-3 text-white/50" aria-hidden="true" />
-            </span>
-            <span className="text-white/30 tracking-widest">
-              {COPY.card.spec}
             </span>
           </div>
         </div>
@@ -347,7 +344,7 @@ export function BadgeCard({
 
           {/* Center Body: Pixel Patch Matrix + Actions List */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 my-auto">
-            {/* 8x8 Pixel Patch Specimen */}
+            {/* 8x8 Pixel Patch */}
             <div
               className="grid grid-cols-8 gap-[3px] p-2 rounded-xl bg-[#141416] border border-white/10"
               style={{ width: "fit-content" }}
@@ -417,8 +414,7 @@ export function BadgeCard({
 
           {/* Footer note */}
           <div className="flex items-center justify-between border-t border-white/10 pt-3 text-[10px] font-mono text-white/40">
-            <span>BEEBOMBSHELL IDENTITY CARD</span>
-            <span>{COPY.card.spec}</span>
+            <span>Bhavya Verma</span>
           </div>
         </div>
       </div>

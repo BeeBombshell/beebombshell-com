@@ -23,16 +23,54 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: var(--card-w, 560px);
-  height: var(--card-h, 380px);
+  /*
+   * Match the dimensions and resting position calculated by Badge.tsx before
+   * hydration. Without this first-paint geometry the server-rendered card
+   * starts at 0,0 at 560x380, then jumps into place when the physics loop
+   * starts. The headline is normally the page's LCP candidate, so that jump
+   * can push LCP out until after JavaScript has loaded and run.
+   */
+  --initial-card-w: max(
+    280px,
+    min(
+      max(500px, calc(50vw + 20px)),
+      820px,
+      calc((100svh - max(56px, 8svh) + 40px) / 0.98)
+    )
+  );
+  --card-w: var(--initial-card-w);
+  --card-h: calc(var(--card-w) * 0.68);
+  width: var(--card-w);
+  height: var(--card-h);
   --card-scale: calc(var(--card-w, 560px) / 560);
   z-index: 3;
+  transform: translate(
+    calc((100vw - var(--card-w)) / 2),
+    calc(-40px + var(--card-w) * 0.3)
+  );
   transform-origin: center center;
   will-change: transform;
   touch-action: none;
   cursor: grab;
   outline: none;
   pointer-events: auto;
+}
+
+@media (max-width: 639px) {
+  .badge-card {
+    --initial-card-w: min(calc(100vw - 28px), 344px);
+    --initial-card-h: min(max(340px, calc(100svh - 220px)), 420px);
+    --card-w: var(--initial-card-w);
+    --card-h: var(--initial-card-h);
+    --card-scale: min(
+      calc(var(--card-w) / 320),
+      calc(var(--card-h) / 420)
+    );
+    transform: translate(
+      calc((100vw - var(--card-w)) / 2),
+      calc(-40px + 168px * var(--card-scale))
+    );
+  }
 }
 
 .badge-card.is-dragging {
@@ -47,25 +85,25 @@
 /* Hardware slot & ring */
 .badge-slot {
   position: absolute;
-  width: 44px;
-  height: 7px;
-  border-radius: 4px;
+  width: calc(44px * var(--card-scale, 1));
+  height: calc(7px * var(--card-scale, 1));
+  border-radius: calc(4px * var(--card-scale, 1));
   left: 50%;
-  margin-left: -22px;
-  top: -6px;
+  transform: translateX(-50%);
+  top: calc(-6px * var(--card-scale, 1));
   background: #0b0b0c;
   z-index: 4;
 }
 
 .badge-ring {
   position: absolute;
-  width: 13px;
-  height: 21px;
-  border: 2.5px solid #c4c4cb;
-  border-radius: 8px;
+  width: calc(13px * var(--card-scale, 1));
+  height: calc(21px * var(--card-scale, 1));
+  border: calc(2.5px * var(--card-scale, 1)) solid #c4c4cb;
+  border-radius: calc(8px * var(--card-scale, 1));
   left: 50%;
-  margin-left: -6.5px;
-  top: -17px;
+  transform: translateX(-50%);
+  top: calc(-17px * var(--card-scale, 1));
   box-sizing: border-box;
   pointer-events: none;
   z-index: 4;
@@ -88,7 +126,9 @@
 }
 
 .dark .badge-flip {
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.65), 0 0 24px rgba(255, 255, 255, 0.04);
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.65),
+    0 0 24px rgba(255, 255, 255, 0.04);
 }
 
 /* Card faces: overflow:hidden on faces ONLY */
@@ -105,7 +145,9 @@
 
 .dark .badge-face {
   border-color: rgba(255, 255, 255, 0.24);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 12px 32px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
 /* 1px inner top highlight so it reads clearly as an object in dark mode */
@@ -116,7 +158,13 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.14) 15%, rgba(255, 255, 255, 0.14) 85%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.14) 15%,
+    rgba(255, 255, 255, 0.14) 85%,
+    transparent 100%
+  );
   pointer-events: none;
   z-index: 20;
 }
@@ -129,7 +177,10 @@
 .badge-dots {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1.3px);
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.14) 1px,
+    transparent 1.3px
+  );
   background-size: 7px 7px;
   mix-blend-mode: screen;
   opacity: 0.5;
@@ -163,7 +214,7 @@
 
 .badge-label {
   font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
+  font-size: calc(11px * var(--card-scale, 1));
   color: #ffffff;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -171,9 +222,9 @@
 
 .badge-meta {
   font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
+  font-size: calc(11px * var(--card-scale, 1));
   color: #a3a3aa;
-  margin-top: 4px;
+  margin-top: calc(4px * var(--card-scale, 1));
 }
 
 .badge-headline {
@@ -181,6 +232,7 @@
   left: calc(24px * var(--card-scale, 1));
   top: calc(82px * var(--card-scale, 1));
   width: calc(350px * var(--card-scale, 1));
+  max-width: calc(100% - 195px * var(--card-scale, 1));
   font-size: calc(27px * var(--card-scale, 1));
   line-height: 1.08;
   letter-spacing: -0.035em;
@@ -205,6 +257,7 @@
   left: calc(24px * var(--card-scale, 1));
   top: calc(190px * var(--card-scale, 1));
   width: calc(360px * var(--card-scale, 1));
+  max-width: calc(100% - 170px * var(--card-scale, 1));
   font-size: calc(13px * var(--card-scale, 1));
   line-height: 1.6;
   color: #c4c4cb;
@@ -216,17 +269,17 @@
   left: calc(24px * var(--card-scale, 1));
   bottom: calc(20px * var(--card-scale, 1));
   display: flex;
-  gap: 8px;
+  gap: calc(8px * var(--card-scale, 1));
   z-index: 5;
 }
 
 .badge-chip {
   font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
+  font-size: calc(11px * var(--card-scale, 1));
   color: #d9d9de;
   border: 0.5px solid rgba(255, 255, 255, 0.28);
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: calc(4px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
   background: rgba(255, 255, 255, 0.04);
 }
 
@@ -235,10 +288,10 @@
   right: calc(24px * var(--card-scale, 1));
   bottom: calc(24px * var(--card-scale, 1));
   font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
+  font-size: calc(11px * var(--card-scale, 1));
   color: #8a8a92;
   display: flex;
-  gap: 12px;
+  gap: calc(12px * var(--card-scale, 1));
   z-index: 5;
 }
 
@@ -257,42 +310,45 @@
   width: 100%;
   height: 100%;
   overflow: visible;
+  transform-origin: center center;
 }
 
 /* Eyes */
 .badge-eyes-wrap {
   position: absolute;
   left: 50%;
-  top: 36%;
+  top: 38%;
   width: 0;
   height: 0;
   pointer-events: none;
+  transform-origin: center center;
 }
 
 .badge-eye-bar {
   position: absolute;
-  width: 9px;
-  height: 34px;
-  border-radius: 5px;
+  width: calc(9px * var(--card-scale, 1));
+  height: calc(34px * var(--card-scale, 1));
+  border-radius: calc(5px * var(--card-scale, 1));
   background: #ffffff;
   opacity: 0.96;
-  top: -17px;
+  top: calc(-17px * var(--card-scale, 1));
   transform-origin: center center;
 }
 
 .badge-eye-bar.left {
-  left: -15px;
+  left: calc(-15px * var(--card-scale, 1));
 }
 
 .badge-eye-bar.right {
-  left: 6px;
+  left: calc(6px * var(--card-scale, 1));
 }
 
 .badge-face.back {
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
-  padding: 18px 24px 14px;
+  padding: calc(18px * var(--card-scale, 1)) calc(24px * var(--card-scale, 1))
+    calc(14px * var(--card-scale, 1));
   box-sizing: border-box;
 }
 
@@ -301,14 +357,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: calc(10px * var(--card-scale, 1));
   z-index: 5;
   flex-shrink: 0;
 }
 
 .badge-back-label {
   font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
+  font-size: calc(11px * var(--card-scale, 1));
   color: #a3a3aa;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -316,7 +372,7 @@
 
 .badge-back-sub {
   font-family: var(--font-geist-mono), monospace;
-  font-size: 10px;
+  font-size: calc(10px * var(--card-scale, 1));
   color: #8a8a92;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -325,12 +381,12 @@
 /* GitHub Contributions Chart */
 .badge-contrib-wrap {
   z-index: 5;
-  padding: 8px 10px;
+  padding: calc(8px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: calc(12px * var(--card-scale, 1));
   box-sizing: border-box;
-  margin-bottom: 12px;
+  margin-bottom: calc(12px * var(--card-scale, 1));
   flex-shrink: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -343,21 +399,23 @@
 
 .badge-contrib-grid {
   display: flex;
-  gap: 3px;
+  gap: calc(3px * var(--card-scale, 1));
   justify-content: space-between;
 }
 
 .badge-contrib-col {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: calc(3px * var(--card-scale, 1));
 }
 
 .badge-contrib-cell {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  transition: transform 0.15s ease, filter 0.15s ease;
+  width: calc(8px * var(--card-scale, 1));
+  height: calc(8px * var(--card-scale, 1));
+  border-radius: calc(2px * var(--card-scale, 1));
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
 }
 
 .badge-contrib-cell:hover {
@@ -367,25 +425,47 @@
 }
 
 /* Palette matching design.md */
-.badge-contrib-cell[data-level="0"] { background: rgba(255, 255, 255, 0.06); }
-.badge-contrib-cell[data-level="1"] { background: #7fd2e6; }
-.badge-contrib-cell[data-level="2"] { background: #9d8df5; }
-.badge-contrib-cell[data-level="3"] { background: #c58cec; }
-.badge-contrib-cell[data-level="4"] { background: #f08fc6; }
-.badge-contrib-cell[data-level="5"] { background: #f7a6d1; }
+.badge-contrib-cell[data-level="0"] {
+  background: rgba(255, 255, 255, 0.06);
+}
+.badge-contrib-cell[data-level="1"] {
+  background: #7fd2e6;
+}
+.badge-contrib-cell[data-level="2"] {
+  background: #9d8df5;
+}
+.badge-contrib-cell[data-level="3"] {
+  background: #c58cec;
+}
+.badge-contrib-cell[data-level="4"] {
+  background: #f08fc6;
+}
+.badge-contrib-cell[data-level="5"] {
+  background: #f7a6d1;
+}
 
-.dark .badge-contrib-cell[data-level="1"] { background: #a6e6f2; }
-.dark .badge-contrib-cell[data-level="2"] { background: #b3a6ff; }
-.dark .badge-contrib-cell[data-level="3"] { background: #d5b0f5; }
-.dark .badge-contrib-cell[data-level="4"] { background: #ffb3dc; }
-.dark .badge-contrib-cell[data-level="5"] { background: #fcc4e3; }
+.dark .badge-contrib-cell[data-level="1"] {
+  background: #a6e6f2;
+}
+.dark .badge-contrib-cell[data-level="2"] {
+  background: #b3a6ff;
+}
+.dark .badge-contrib-cell[data-level="3"] {
+  background: #d5b0f5;
+}
+.dark .badge-contrib-cell[data-level="4"] {
+  background: #ffb3dc;
+}
+.dark .badge-contrib-cell[data-level="5"] {
+  background: #fcc4e3;
+}
 
 /* Socials Row: below chart & above links */
 .badge-back-socials {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: calc(8px * var(--card-scale, 1));
+  margin-bottom: calc(14px * var(--card-scale, 1));
   z-index: 5;
   flex-shrink: 0;
   flex-wrap: wrap;
@@ -394,16 +474,20 @@
 .badge-social-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
+  gap: calc(6px * var(--card-scale, 1));
+  padding: calc(3px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
   border-radius: 999px;
   font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
+  font-size: calc(11px * var(--card-scale, 1));
   color: rgba(255, 255, 255, 0.85);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -416,8 +500,13 @@
 }
 
 .badge-social-arrow {
-  font-size: 9px;
+  font-size: calc(9px * var(--card-scale, 1));
   opacity: 0.6;
+}
+
+.badge-social-pill > svg {
+  width: calc(12px * var(--card-scale, 1));
+  height: calc(12px * var(--card-scale, 1));
 }
 
 /* Bottom Row: Links (left) + Spotify Widget (right) */
@@ -426,8 +515,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 10px;
+  gap: calc(16px * var(--card-scale, 1));
+  margin-bottom: calc(10px * var(--card-scale, 1));
   z-index: 5;
   min-height: 0;
 }
@@ -435,25 +524,32 @@
 .badge-back-actions {
   display: flex;
   flex-direction: column;
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--card-scale, 1));
   line-height: 1.95;
   color: #ffffff;
-  min-width: 155px;
+  min-width: calc(155px * var(--card-scale, 1));
 }
 
 .badge-back-action {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: calc(8px * var(--card-scale, 1));
   color: #ffffff;
   opacity: 0.88;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
   cursor: pointer;
   background: none;
   border: none;
   padding: 0;
   text-align: left;
   font: inherit;
+}
+
+.badge-back-action > svg {
+  width: calc(14px * var(--card-scale, 1));
+  height: calc(14px * var(--card-scale, 1));
 }
 
 .badge-back-action:hover {
@@ -470,14 +566,17 @@
 
 .badge-spotify-link {
   display: block;
-  max-width: 310px;
+  max-width: calc(310px * var(--card-scale, 1));
   width: 100%;
-  border-radius: 12px;
+  border-radius: calc(12px * var(--card-scale, 1));
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(18, 18, 20, 0.8);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   cursor: pointer;
 }
 
@@ -498,31 +597,31 @@
   justify-content: space-between;
   align-items: center;
   font-family: var(--font-geist-mono), monospace;
-  font-size: 10px;
+  gap: calc(12px * var(--card-scale, 1));
+  font-size: calc(10px * var(--card-scale, 1));
   color: rgba(255, 255, 255, 0.35);
   letter-spacing: 0.08em;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 6px;
+  padding-top: calc(6px * var(--card-scale, 1));
   z-index: 5;
   flex-shrink: 0;
 }
 
 /* Mobile responsive adaptations (< 640px) */
 @media (max-width: 639px) {
-
   /* Front Face Mobile: Hierarchical vertical rhythm with zero collisions */
   .badge-meta-group {
-    left: 20px;
-    top: 22px;
-    max-width: 180px;
+    left: calc(20px * var(--card-scale, 1));
+    top: calc(22px * var(--card-scale, 1));
+    max-width: calc(180px * var(--card-scale, 1));
   }
   .badge-label {
-    font-size: 10px;
+    font-size: calc(10px * var(--card-scale, 1));
     letter-spacing: 0.12em;
   }
   .badge-meta {
-    font-size: 10px;
-    margin-top: 3px;
+    font-size: calc(10px * var(--card-scale, 1));
+    margin-top: calc(3px * var(--card-scale, 1));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -530,32 +629,46 @@
 
   /* Mascot stamp positioned in top-right without intruding on headline */
   .badge-mascot-container {
-    right: 16px;
-    top: 18px;
-    width: 76px;
-    height: 76px;
+    right: calc(16px * var(--card-scale, 1));
+    top: calc(18px * var(--card-scale, 1));
+    width: calc(76px * var(--card-scale, 1));
+    height: calc(76px * var(--card-scale, 1));
   }
   .badge-mascot-svg {
-    width: 76px;
-    height: 76px;
+    width: 100%;
+    height: 100%;
+  }
+  .badge-eye-bar {
+    width: calc(5px * var(--card-scale, 1));
+    height: calc(19px * var(--card-scale, 1));
+    border-radius: calc(3px * var(--card-scale, 1));
+    top: calc(-9.5px * var(--card-scale, 1));
+  }
+  .badge-eye-bar.left {
+    left: calc(-8.5px * var(--card-scale, 1));
+  }
+  .badge-eye-bar.right {
+    left: calc(3.5px * var(--card-scale, 1));
   }
 
   /* Headline starts safely below the mascot (y=106px vs mascot bottom y=94px) */
   .badge-headline {
-    left: 20px;
-    top: 106px;
-    width: 280px;
-    font-size: 20px;
+    left: calc(20px * var(--card-scale, 1));
+    right: calc(20px * var(--card-scale, 1));
+    top: calc(106px * var(--card-scale, 1));
+    width: auto;
+    font-size: calc(20px * var(--card-scale, 1));
     line-height: 1.15;
     letter-spacing: -0.03em;
   }
 
   /* Bio text with spacious line-height */
   .badge-bio {
-    left: 20px;
-    top: 196px;
-    width: 280px;
-    font-size: 11.5px;
+    left: calc(20px * var(--card-scale, 1));
+    right: calc(20px * var(--card-scale, 1));
+    top: calc(196px * var(--card-scale, 1));
+    width: auto;
+    font-size: calc(11.5px * var(--card-scale, 1));
     line-height: 1.55;
     max-height: unset;
     overflow-y: visible;
@@ -563,34 +676,35 @@
 
   /* Chips on their own row above footer meta */
   .badge-chips {
-    left: 20px;
-    right: 20px;
-    bottom: 50px;
+    left: calc(20px * var(--card-scale, 1));
+    right: calc(20px * var(--card-scale, 1));
+    bottom: calc(50px * var(--card-scale, 1));
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: calc(5px * var(--card-scale, 1));
   }
   .badge-chip {
-    font-size: 9.5px;
-    padding: 3px 8px;
+    font-size: calc(9.5px * var(--card-scale, 1));
+    padding: calc(3px * var(--card-scale, 1)) calc(8px * var(--card-scale, 1));
   }
 
   /* Footer meta on its own row at the bottom */
   .badge-footer-meta {
-    left: 20px;
-    right: 20px;
-    bottom: 16px;
+    left: calc(20px * var(--card-scale, 1));
+    right: calc(20px * var(--card-scale, 1));
+    bottom: calc(16px * var(--card-scale, 1));
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 8px;
-    font-size: 9.5px;
+    padding-top: calc(8px * var(--card-scale, 1));
+    font-size: calc(9.5px * var(--card-scale, 1));
   }
 
   /* Back Face Mobile Adaptations */
   .badge-face.back {
-    padding: 20px 20px 16px;
+    padding: calc(20px * var(--card-scale, 1)) calc(20px * var(--card-scale, 1))
+      calc(16px * var(--card-scale, 1));
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -598,42 +712,42 @@
     box-sizing: border-box;
   }
   .badge-back-header {
-    margin-bottom: 8px;
+    margin-bottom: calc(8px * var(--card-scale, 1));
   }
   .badge-back-label {
-    font-size: 10px;
+    font-size: calc(10px * var(--card-scale, 1));
   }
   .badge-back-sub {
-    font-size: 9px;
+    font-size: calc(9px * var(--card-scale, 1));
   }
   .badge-contrib-wrap {
-    padding: 8px 10px;
-    margin-bottom: 10px;
+    padding: calc(8px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
+    margin-bottom: calc(10px * var(--card-scale, 1));
   }
   .badge-contrib-cell {
-    width: 6px;
-    height: 6px;
-    border-radius: 1px;
+    width: calc(6px * var(--card-scale, 1));
+    height: calc(6px * var(--card-scale, 1));
+    border-radius: calc(1px * var(--card-scale, 1));
   }
   .badge-contrib-grid,
   .badge-contrib-col {
-    gap: 2px;
+    gap: calc(2px * var(--card-scale, 1));
   }
   .badge-back-socials {
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: calc(8px * var(--card-scale, 1));
+    margin-bottom: calc(16px * var(--card-scale, 1));
   }
   .badge-social-pill {
-    font-size: 10.5px;
-    padding: 4px 10px;
-    gap: 5px;
+    font-size: calc(10.5px * var(--card-scale, 1));
+    padding: calc(4px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
+    gap: calc(5px * var(--card-scale, 1));
   }
   .badge-back-bottom {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin-bottom: 14px;
+    margin-bottom: calc(14px * var(--card-scale, 1));
     min-height: 0;
   }
   /* Remove Spotify embed on mobile for clean breathing room */
@@ -643,27 +757,29 @@
   .badge-back-actions {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px 10px;
+    gap: calc(8px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
     width: 100%;
   }
   .badge-back-action {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    padding: 8px 10px;
-    border-radius: 8px;
+    gap: calc(8px * var(--card-scale, 1));
+    font-size: calc(11px * var(--card-scale, 1));
+    padding: calc(8px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
+    border-radius: calc(8px * var(--card-scale, 1));
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: background 0.15s ease, border-color 0.15s ease;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
   }
   .badge-back-action:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.2);
   }
   .badge-back-footer {
-    font-size: 9.5px;
-    padding-top: 8px;
+    font-size: calc(9.5px * var(--card-scale, 1));
+    padding-top: calc(8px * var(--card-scale, 1));
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
   }
@@ -672,80 +788,59 @@
 /* Desktop enlargement (>= 1024px) */
 @media (min-width: 1024px) {
   .badge-headline {
-    width: 350px;
-    max-width: calc(100% - 175px);
-    font-size: 26.5px;
-    top: 86px;
+    width: calc(350px * var(--card-scale, 1));
+    max-width: calc(100% - 200px * var(--card-scale, 1));
+    font-size: calc(26.5px * var(--card-scale, 1));
+    top: calc(86px * var(--card-scale, 1));
   }
   .badge-bio {
-    width: 370px;
-    max-width: calc(100% - 175px);
-    font-size: 13px;
-    top: 195px;
+    width: calc(370px * var(--card-scale, 1));
+    max-width: calc(100% - 180px * var(--card-scale, 1));
+    font-size: calc(13px * var(--card-scale, 1));
+    top: calc(195px * var(--card-scale, 1));
   }
   .badge-chips {
-    bottom: 24px;
-    left: 28px;
+    bottom: calc(24px * var(--card-scale, 1));
+    left: calc(28px * var(--card-scale, 1));
   }
   .badge-footer-meta {
-    right: 28px;
-    bottom: 24px;
+    right: calc(28px * var(--card-scale, 1));
+    bottom: calc(24px * var(--card-scale, 1));
   }
   .badge-mascot-container {
-    width: 145px;
-    height: 145px;
-    right: 28px;
-    top: 26px;
+    width: calc(140px * var(--card-scale, 1));
+    height: calc(140px * var(--card-scale, 1));
+    right: calc(28px * var(--card-scale, 1));
+    top: calc(26px * var(--card-scale, 1));
   }
   .badge-mascot-svg {
-    width: 145px;
-    height: 145px;
-  }
-  .badge-face.back {
-    padding: 24px 28px 18px;
-  }
-  .badge-contrib-wrap {
-    padding: 10px 14px;
-    margin-bottom: 14px;
-  }
-  .badge-contrib-cell {
-    width: 7.5px;
-    height: 7.5px;
-  }
-  .badge-back-socials {
-    margin-bottom: 14px;
-  }
-  .badge-back-actions {
-    font-size: 13px;
-    line-height: 2.1;
-  }
-  .badge-spotify-link {
-    max-width: 320px;
+    width: 100%;
+    height: 100%;
   }
 }
 
 /* Extra Large Screens (>= 1440px) */
 @media (min-width: 1440px) {
   .badge-headline {
-    width: 450px;
-    font-size: 33px;
-    top: 94px;
+    width: calc(370px * var(--card-scale, 1));
+    max-width: calc(100% - 205px * var(--card-scale, 1));
+    font-size: calc(28px * var(--card-scale, 1));
+    top: calc(88px * var(--card-scale, 1));
   }
   .badge-bio {
-    width: 460px;
-    font-size: 14px;
-    top: 212px;
+    width: calc(390px * var(--card-scale, 1));
+    max-width: calc(100% - 180px * var(--card-scale, 1));
+    font-size: calc(13px * var(--card-scale, 1));
+    top: calc(195px * var(--card-scale, 1));
   }
   .badge-mascot-container {
-    width: 154px;
-    height: 154px;
+    width: calc(145px * var(--card-scale, 1));
+    height: calc(145px * var(--card-scale, 1));
+    right: calc(30px * var(--card-scale, 1));
+    top: calc(28px * var(--card-scale, 1));
   }
   .badge-mascot-svg {
-    width: 154px;
-    height: 154px;
-  }
-  .badge-contrib-cell {
-    width: 8px;
-    height: 8px;
+    width: 100%;
+    height: 100%;
   }
 }

@@ -8,11 +8,15 @@ import {
   type RopeNode,
   type Constraint,
 } from "./rope";
-import { catmull, drawRibbon, metal, RIBBON_THEMES, type V } from "./ribbon";
+import { catmull, drawRibbon, metal, RIBBON_THEMES } from "./ribbon";
 import { BLOB_POINTS } from "./blob";
-import realGitHubData from "@/content/seed/github-contributions.json";
 import { RotateCw } from "lucide-react";
 import "./badge.css";
+
+type ContributionData = {
+  totalContributions: number;
+  weeks: Array<Array<{ date: string; count: number; level: number }>>;
+};
 
 export type BadgeProps = {
   copy: {
@@ -22,7 +26,6 @@ export type BadgeProps = {
     accent: string;
     bio: string;
     chips: string[];
-    spec: string;
     hint: string;
     back: {
       label: string;
@@ -38,19 +41,43 @@ function clamp(val: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, val));
 }
 
-export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) {
-  const [contribData, setContribData] = useState(realGitHubData);
+export function Badge({
+  copy,
+  anchorOffset = 0,
+  onFlip,
+  onCenter,
+}: BadgeProps) {
+  const [showBackContent, setShowBackContent] = useState(false);
+  const [contribData, setContribData] = useState<ContributionData | null>(null);
 
   useEffect(() => {
-    fetch("/api/github-contributions")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && data.weeks) {
-          setContribData(data);
+    if (!showBackContent) return;
+
+    let cancelled = false;
+
+    // Keep the sizeable fallback dataset out of the initial badge bundle. It
+    // is only needed after the user asks to see the back of the card.
+    import("@/content/seed/github-contributions.json")
+      .then(({ default: data }) => {
+        if (!cancelled) {
+          setContribData((current) => current ?? (data as ContributionData));
         }
       })
       .catch(() => {});
-  }, []);
+
+    fetch("/api/github-contributions")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data && data.weeks) {
+          setContribData(data as ContributionData);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showBackContent]);
   const stageRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -63,6 +90,7 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
 
   // Mascot & Eye refs
   const mascotContainerRef = useRef<HTMLDivElement>(null);
+  const mascotSvgRef = useRef<SVGSVGElement>(null);
   const eyesWrapRef = useRef<HTMLDivElement>(null);
   const topGradRef = useRef<SVGLinearGradientElement>(null);
   const glossEllipseRef = useRef<SVGEllipseElement>(null);
@@ -78,11 +106,14 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
 
   // Keep latest callbacks and anchorOffset in refs for the RAF loop
   const anchorOffsetRef = useRef(anchorOffset);
-  anchorOffsetRef.current = anchorOffset;
   const onFlipRef = useRef(onFlip);
-  onFlipRef.current = onFlip;
   const onCenterRef = useRef(onCenter);
-  onCenterRef.current = onCenter;
+
+  useEffect(() => {
+    anchorOffsetRef.current = anchorOffset;
+    onFlipRef.current = onFlip;
+    onCenterRef.current = onCenter;
+  }, [anchorOffset, onCenter, onFlip]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -94,7 +125,8 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
     const dotsEl = dotsRef.current;
     const glareEl = glareRef.current;
     const accentEl = accentRef.current;
-    const mascotEl = mascotContainerRef.current;
+    const mascotContainer = mascotContainerRef.current;
+    const mascotSvgEl = mascotSvgRef.current;
     const eyesEl = eyesWrapRef.current;
     const topGradEl = topGradRef.current;
     const glossEl = glossEllipseRef.current;
@@ -118,15 +150,23 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
     let stageHeight = stage.clientHeight || window.innerHeight;
     let isMobile = stageWidth < 640;
     let cardScale = 1;
-    let curBaseY = -50;
+    let curBaseY = -40;
     let cardW = card.clientWidth || (isMobile ? 320 : 560);
     let cardH = card.clientHeight || (isMobile ? 440 : 380);
+    let mascotLocalX = 189 * (cardW / 560);
+    let mascotLocalY = -99 * (cardH / 380);
 
     // Physics Simulation state
     let ax = stageWidth / 2;
-    let nodes: RopeNode[] = createRopeNodes(ax, cardH, anchorOffsetRef.current, cardScale, curBaseY);
+    let nodes: RopeNode[] = createRopeNodes(
+      ax,
+      cardH,
+      anchorOffsetRef.current,
+      cardScale,
+      curBaseY
+    );
     let cons: Constraint[] = createRopeConstraints(cardH, cardScale);
-    let drag = { active: false, target: { x: ax, y: 160 + cardH } };
+    const drag = { active: false, target: { x: ax, y: 160 + cardH } };
     let curAnchorOffset = anchorOffsetRef.current;
 
     // Smooth transform variables
@@ -144,10 +184,10 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
     let lastScrollY = window.scrollY;
     let scrollVelocity = 0;
     let hasPointer = false;
-    let stagePointer = { x: ax, y: 350 };
-    let grabOffset = { x: 0, y: 0 };
+    const stagePointer = { x: ax, y: 350 };
+    const grabOffset = { x: 0, y: 0 };
     let dragMovedDist = 0;
-    let idleTarget = { x: 0, y: 0 };
+    const idleTarget = { x: 0, y: 0 };
     let nextIdleTime = 0;
 
     // FPS counter for debug
@@ -160,14 +200,21 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       stageHeight = stage.clientHeight || window.innerHeight;
       isMobile = stageWidth < 640;
       if (isMobile) {
-        cardW = Math.min(stageWidth - 36, 320);
+        cardW = Math.min(stageWidth - 28, 344);
         cardH = Math.min(Math.max(340, stageHeight - 220), 420);
-        cardScale = cardW / 320;
+        // Fit the contents to both axes. On short phones the card can lose up
+        // to 80px of height, so scaling from width alone makes its contents
+        // feel crowded even though the physical card has become smaller.
+        cardScale = Math.min(cardW / 320, cardH / 420);
       } else {
-        // Fit card comfortably within viewport height: leave generous headroom and breathing space below
-        const maxHByScreen = Math.max(340, stageHeight - 340);
-        const maxWFromH = maxHByScreen / 0.68;
-        cardW = clamp(Math.min(stageWidth * 0.50, maxWFromH), 480, 580);
+        const cardAspect = 0.68;
+        const ropeHeightRatio = 168 / 560;
+        const bottomClearance = Math.max(56, stageHeight * 0.08);
+        const maxWFromHeight =
+          (stageHeight - bottomClearance - curBaseY) /
+          (cardAspect + ropeHeightRatio);
+        const preferredWidth = clamp(stageWidth * 0.5 + 20, 500, 820);
+        cardW = Math.max(280, Math.min(preferredWidth, maxWFromHeight));
         cardH = Math.round(0.68 * cardW);
         cardScale = cardW / 560;
       }
@@ -176,6 +223,18 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       card.style.setProperty("--card-w", `${cardW}px`);
       card.style.setProperty("--card-h", `${cardH}px`);
       card.style.setProperty("--card-scale", `${cardScale}`);
+
+      // Cache layout-dependent mascot geometry outside the animation loop.
+      if (mascotContainer) {
+        mascotLocalX =
+          mascotContainer.offsetLeft +
+          mascotContainer.offsetWidth / 2 -
+          cardW / 2;
+        mascotLocalY =
+          mascotContainer.offsetTop +
+          mascotContainer.offsetHeight / 2 -
+          cardH / 2;
+      }
 
       ax = stageWidth / 2;
 
@@ -220,13 +279,18 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
     const handleGlobalPointerLeave = () => {
       hasPointer = false;
     };
-    window.addEventListener("pointermove", handleGlobalPointerMove, { passive: true });
+    window.addEventListener("pointermove", handleGlobalPointerMove, {
+      passive: true,
+    });
     window.addEventListener("pointerleave", handleGlobalPointerLeave);
 
     // Card Pointer Drag & Flip
     const handlePointerDown = (e: PointerEvent) => {
       const target = e.target as HTMLElement;
-      if (target && target.closest("a, button, .badge-spotify-link, .badge-social-pill")) {
+      if (
+        target &&
+        target.closest("a, button, .badge-spotify-link, .badge-social-pill")
+      ) {
         return;
       }
       e.preventDefault();
@@ -274,12 +338,16 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       card.classList.remove("is-dragging");
 
       const target = e.target as HTMLElement;
-      if (target && target.closest("a, button, .badge-spotify-link, .badge-social-pill")) {
+      if (
+        target &&
+        target.closest("a, button, .badge-spotify-link, .badge-social-pill")
+      ) {
         return;
       }
 
       // Click under 6px movement flips the card
       if (dragMovedDist < 6) {
+        setShowBackContent(true);
         flipTarget = flipTarget === 0 ? 180 : 0;
         const cx = (nodes[9].x + nodes[10].x) / 2;
         const cy = (nodes[9].y + nodes[10].y) / 2;
@@ -305,6 +373,7 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
+        setShowBackContent(true);
         flipTarget = flipTarget === 0 ? 180 : 0;
         const cx = (nodes[9].x + nodes[10].x) / 2;
         const cy = (nodes[9].y + nodes[10].y) / 2;
@@ -404,7 +473,15 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
         l37 = Math.hypot(dx37, dy37) || 1;
       const crimpX = n3.x + (dx37 / l37) * 6,
         crimpY = n3.y + (dy37 / l37) * 6;
-      metal(ctx, crimpX, crimpY, 24, 36, 5, Math.atan2(dy37, dx37) + Math.PI / 2);
+      metal(
+        ctx,
+        crimpX,
+        crimpY,
+        24,
+        36,
+        5,
+        Math.atan2(dy37, dx37) + Math.PI / 2
+      );
       ctx.save();
       ctx.beginPath();
       ctx.arc(n8.x, n8.y, 6, 0, Math.PI * 2);
@@ -532,15 +609,9 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
         glossEl.setAttribute("cy", `${(38 + deg * 0.5).toFixed(1)}`);
       }
 
-      // Mascot center relative to card center
-      let lx0 = 189 * (cardW / 560);
-      let ly0 = -99 * (cardH / 380);
-      if (mascotEl) {
-        const mx = mascotEl.offsetLeft + mascotEl.offsetWidth / 2;
-        const my = mascotEl.offsetTop + mascotEl.offsetHeight / 2;
-        lx0 = mx - cardW / 2;
-        ly0 = my - cardH / 2;
-      }
+      // Mascot center relative to card center (measured on resize).
+      const lx0 = mascotLocalX;
+      const ly0 = mascotLocalY;
       const cosT = Math.cos(theta);
       const sinT = Math.sin(theta);
       const bx = cx + lx0 * cosT - ly0 * sinT;
@@ -556,13 +627,13 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
         const ly = -dx * sinT + dy * cosT;
         const len = Math.hypot(lx, ly) || 1;
         const k = Math.tanh(len / 150);
-        targetX = (lx / len) * k * 9;
-        targetY = (ly / len) * k * 7;
+        targetX = (lx / len) * k * 9 * Math.min(cardScale, 1.3);
+        targetY = (ly / len) * k * 7 * Math.min(cardScale, 1.3);
       } else {
         // Idle drift between random targets every 0.9 to 1.8s
         if (now >= nextIdleTime) {
-          idleTarget.x = (Math.random() - 0.5) * 12;
-          idleTarget.y = (Math.random() - 0.5) * 8;
+          idleTarget.x = (Math.random() - 0.5) * 12 * Math.min(cardScale, 1.3);
+          idleTarget.y = (Math.random() - 0.5) * 8 * Math.min(cardScale, 1.3);
           nextIdleTime = now + 900 + Math.random() * 900;
         }
         targetX = idleTarget.x;
@@ -570,7 +641,7 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
       }
 
       // Look up as page scrolls down
-      targetY += clamp(scrollVelocity * 0.6, -7, 7);
+      targetY += clamp(scrollVelocity * 0.6 * cardScale, -7 * cardScale, 7 * cardScale);
 
       ex += (targetX - ex) * 0.22;
       ey += (targetY - ey) * 0.22;
@@ -597,11 +668,13 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
         scaleY = 0.7;
       }
 
-      if (eyesEl) {
-        eyesEl.style.transform = `translate(${ex + tilt * 0.15}px, ${ey}px) scale(${scaleX}, ${scaleY})`;
+      if (mascotSvgEl) {
+        mascotSvgEl.style.transformOrigin = "center center";
+        mascotSvgEl.style.transform = `translate(${ex * 0.6}px, ${ey * 0.6}px) scale(${1 + 0.025 * Math.sin(now / 600)})`;
       }
-      if (mascotEl) {
-        mascotEl.style.transform = `translate(${ex * 0.6}px, ${ey * 0.6}px) scale(${1 + 0.025 * Math.sin(now / 600)})`;
+      if (eyesEl) {
+        eyesEl.style.transformOrigin = "center center";
+        eyesEl.style.transform = `translate(${ex + tilt * 0.15}px, ${ey}px) scale(${scaleX}, ${scaleY})`;
       }
 
       // 4. Strap Rendering on 2D Canvas
@@ -633,7 +706,8 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
 
       drawRibbon(ctx, R, {
         width: 20,
-        twist: (u) => tw0 * u + flipRad * 0.5 * u + 0.3 * Math.sin(t + u * 4 + 2),
+        twist: (u) =>
+          tw0 * u + flipRad * 0.5 * u + 0.3 * Math.sin(t + u * 4 + 2),
         front: theme.front,
         back: theme.back,
         stitching: theme.stitching,
@@ -663,7 +737,15 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
         l37 = Math.hypot(dx37, dy37) || 1;
       const crimpX = n3.x + (dx37 / l37) * 6,
         crimpY = n3.y + (dy37 / l37) * 6;
-      metal(ctx, crimpX, crimpY, 24, 36, 5, Math.atan2(dy37, dx37) + Math.PI / 2);
+      metal(
+        ctx,
+        crimpX,
+        crimpY,
+        24,
+        36,
+        5,
+        Math.atan2(dy37, dx37) + Math.PI / 2
+      );
 
       // Split ring at n8
       ctx.save();
@@ -800,14 +882,17 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
               <div className="badge-footer-meta">
                 <span className="inline-flex items-center gap-1.5">
                   <span>{copy.hint}</span>
-                  <RotateCw className="w-3 h-3 text-white/50" aria-hidden="true" />
+                  <RotateCw
+                    className="h-3 w-3 text-white/50"
+                    aria-hidden="true"
+                  />
                 </span>
-                <span>{copy.spec}</span>
               </div>
 
               {/* Mascot Container at right: 24, top: 24, 134×134 */}
               <div ref={mascotContainerRef} className="badge-mascot-container">
                 <svg
+                  ref={mascotSvgRef}
                   className="badge-mascot-svg"
                   viewBox="0 0 134 134"
                   xmlns="http://www.w3.org/2000/svg"
@@ -846,7 +931,13 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
                     </radialGradient>
 
                     {/* Blur filter for rim light and shade */}
-                    <filter id={rimBlurId} x="-20%" y="-20%" width="140%" height="140%">
+                    <filter
+                      id={rimBlurId}
+                      x="-20%"
+                      y="-20%"
+                      width="140%"
+                      height="140%"
+                    >
                       <feGaussianBlur stdDeviation="2.2" />
                     </filter>
 
@@ -926,25 +1017,30 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
               <div className="badge-back-header">
                 <div className="badge-back-label">{copy.back.label}</div>
                 <div className="badge-back-sub">
-                  GITHUB · {contribData.totalContributions} CONTRIBUTIONS (2025–2026)
+                  GITHUB
+                  {contribData
+                    ? ` · ${contribData.totalContributions} CONTRIBUTIONS`
+                    : " · LOADING CONTRIBUTIONS"}
+                  {" (2025–2026)"}
                 </div>
               </div>
 
               {/* GitHub Contributions Chart stretching across card width */}
               <div className="badge-contrib-wrap">
                 <div className="badge-contrib-grid">
-                  {contribData.weeks.map((col, cIdx) => (
-                    <div key={cIdx} className="badge-contrib-col">
-                      {col.map((cell, rIdx) => (
-                        <div
-                          key={rIdx}
-                          className="badge-contrib-cell"
-                          data-level={cell.level}
-                          title={`${cell.count} contribution${cell.count === 1 ? "" : "s"} on ${cell.date}`}
-                        />
-                      ))}
-                    </div>
-                  ))}
+                  {showBackContent &&
+                    contribData?.weeks.map((col, cIdx) => (
+                      <div key={cIdx} className="badge-contrib-col">
+                        {col.map((cell, rIdx) => (
+                          <div
+                            key={rIdx}
+                            className="badge-contrib-cell"
+                            data-level={cell.level}
+                            title={`${cell.count} contribution${cell.count === 1 ? "" : "s"} on ${cell.date}`}
+                          />
+                        ))}
+                      </div>
+                    ))}
                 </div>
               </div>
 
@@ -958,7 +1054,7 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
                   onClick={(e) => e.stopPropagation()}
                   onPointerDown={(e) => e.stopPropagation()}
                 >
-                  <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                  <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
                   <span>X</span>
@@ -973,7 +1069,7 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
                   onClick={(e) => e.stopPropagation()}
                   onPointerDown={(e) => e.stopPropagation()}
                 >
-                  <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                  <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
                     <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                   </svg>
                   <span>LinkedIn</span>
@@ -988,7 +1084,7 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
                   onClick={(e) => e.stopPropagation()}
                   onPointerDown={(e) => e.stopPropagation()}
                 >
-                  <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                  <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
                     <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
                   </svg>
                   <span>GitHub</span>
@@ -1026,19 +1122,22 @@ export function Badge({ copy, anchorOffset = 0, onFlip, onCenter }: BadgeProps) 
                     onClick={(e) => e.stopPropagation()}
                     onPointerDown={(e) => e.stopPropagation()}
                   >
-                    <img
-                      src="https://spotify.beebombshell.com/now-playing?uid=a55e8495c5"
-                      alt="Spotify Now Playing"
-                      className="badge-spotify-img"
-                    />
+                    {showBackContent && (
+                      <img
+                        src="https://spotify.beebombshell.com/now-playing?uid=a55e8495c5"
+                        alt="Spotify Now Playing"
+                        className="badge-spotify-img"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    )}
                   </a>
                 </div>
               </div>
 
               {/* Back Face Footer Meta */}
               <div className="badge-back-footer">
-                <span>BEEBOMBSHELL IDENTITY CARD</span>
-                <span>{copy.spec}</span>
+                <span>Bhavya Verma</span>
               </div>
             </div>
           </div>

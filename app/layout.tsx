@@ -47,6 +47,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://beebombshell.com",
   },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",

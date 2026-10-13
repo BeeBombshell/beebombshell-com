@@ -1,6 +1,8 @@
 import { getProfile, getProjects, getPosts } from "@/lib/queries";
 import { COPY } from "@/lib/copy";
 
+const SITE_URL = "https://beebombshell.com";
+
 export async function GET() {
   const [profile, projects, posts] = await Promise.all([
     getProfile(),
@@ -10,10 +12,12 @@ export async function GET() {
 
   const projectsMarkdown = projects
     .map(
-      (p) => `### ${p.title} (${p.year})
-- Blurb: ${p.blurb}
+      (p) => `### [${p.title}](${SITE_URL}/work/${p.slug}) (${p.year})
+
+${p.blurb}
+
 - Stack: ${p.stack.join(", ")}
-- Links: Repo (${p.links.repo || "N/A"}), Live (${p.links.live || "N/A"})
+${p.links.repo ? `- Repository: ${p.links.repo}\n` : ""}${p.links.live ? `- Live site: ${p.links.live}\n` : ""}
 
 ${p.body}
 `
@@ -23,7 +27,8 @@ ${p.body}
   const postsMarkdown = posts.length
     ? posts
         .map(
-          (p) => `### ${p.title}
+          (p) => `### [${p.title}](${SITE_URL}/writing/${p.slug})
+
 - Published: ${p.publishedAt}
 - Tags: ${p.tags.join(", ")}
 
@@ -33,27 +38,41 @@ ${p.body}
         .join("\n\n")
     : "First post loading. Opinions are being formed.\n";
 
-  const body = `# ${profile.name} - Full Documentation & Portfolio Context
-Role: ${profile.role}
-Bio: ${COPY.bio.medium}
+  const socialsMarkdown = profile.socials
+    .map((social) => `- ${social.label}: ${social.url}`)
+    .join("\n");
+
+  const body = `# ${profile.name} — full portfolio context
+
+- Role: ${profile.role}
+- Website: ${SITE_URL}
+- Location: ${profile.location || "Remote"}
+- Availability: ${profile.statusText}
+
+## About
+
+${COPY.bio.medium}
 
 ${COPY.bio.long.join("\n\n")}
 
----
+## Projects
 
-## Detailed Projects
 ${projectsMarkdown}
 
----
+## Writing
 
-## Full Essays & Writing
 ${postsMarkdown}
+
+## Contact and profiles
+
+${socialsMarkdown}
 `;
 
   return new Response(body, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=86400",
+      "Cache-Control":
+        "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400",
     },
   });
 }

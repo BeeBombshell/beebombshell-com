@@ -1,234 +1,227 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { X, Copy, Check, ExternalLink, Terminal } from "lucide-react";
+import React, { useEffect, useId, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { Check, Copy, ExternalLink, FileText, X } from "lucide-react";
 import { useLlmsStore } from "@/lib/llms-store";
 
 export function LlmsModal() {
   const { isOpen, variant, close, setVariant } = useLlmsStore();
-  const [content, setContent] = useState<string>("");
+  const [content, setContent] = useState("");
   const [copied, setCopied] = useState(false);
-  const [loadedVariant, setLoadedVariant] = useState<string>("");
+  const [loadedVariant, setLoadedVariant] = useState("");
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
 
+  const endpoint = variant === "full" ? "/llms-full.txt" : "/llms.txt";
   const loading = isOpen && loadedVariant !== variant;
+  const lines = content.split("\n");
 
-  // Fetch document when opened or variant changed
   useEffect(() => {
     if (!isOpen) return;
 
-    let cancelled = false;
-    const endpoint = variant === "full" ? "/llms-full.txt" : "/llms.txt";
+    const controller = new AbortController();
 
-    fetch(endpoint)
-      .then((res) => res.text())
-      .then((text) => {
-        if (!cancelled) {
-          setContent(text);
-          setLoadedVariant(variant);
+    fetch(endpoint, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`);
         }
+        return response.text();
       })
-      .catch((err) => {
-        if (!cancelled) {
-          setContent(`Failed to load ${endpoint}: ${String(err)}`);
-          setLoadedVariant(variant);
-        }
+      .then((text) => {
+        setContent(text);
+        setLoadedVariant(variant);
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setContent(`Unable to load ${endpoint}.\n\n${String(error)}`);
+        setLoadedVariant(variant);
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, variant]);
+    return () => controller.abort();
+  }, [endpoint, isOpen, variant]);
 
-  // Lock body scroll when open
   useEffect(() => {
     if (!isOpen) return;
-    const originalOverflow = document.body.style.overflow;
+
+    const previousOverflow = document.body.style.overflow;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isOpen]);
+    closeButtonRef.current?.focus();
 
-  // Handle escape key
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close();
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, close]);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [close, isOpen]);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(content);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
+      setCopied(false);
     }
   };
-
-  const lines = content.split("\n");
 
   return (
     <AnimatePresence>
       {isOpen && (
         <div
           data-lenis-prevent
-          className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-md pointer-events-auto"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) close();
+          className="fixed inset-0 z-[120] flex items-end justify-center bg-black/65 sm:items-center sm:p-6"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) close();
           }}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Plain text llms.txt viewer"
         >
-          <motion.div
+          <motion.section
             data-lenis-prevent
-            initial={{ opacity: 0, scale: 0.96, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="relative w-full max-w-4xl h-[88vh] max-h-[88vh] min-h-0 flex flex-col rounded-2xl bg-[#0c0c0e] text-[#eeece6] border border-white/15 shadow-[0_32px_64px_rgba(0,0,0,0.5)] overflow-hidden font-mono"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            initial={{ opacity: 0, y: 24, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.985 }}
+            transition={{ type: "spring", damping: 30, stiffness: 360 }}
+            className="flex h-[92svh] w-full max-w-5xl flex-col overflow-hidden rounded-t-[28px] border border-black/20 bg-[#f1eee6] text-[#171716] shadow-[0_32px_90px_rgba(0,0,0,0.45)] sm:h-[min(82vh,760px)] sm:rounded-[24px]"
+            onMouseDown={(event) => event.stopPropagation()}
           >
-            {/* Header Chrome */}
-            <div className="flex-none flex items-center justify-between border-b border-white/10 px-4 py-3 bg-white/[0.03]">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 opacity-60">
-                  <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
+            <header className="flex-none bg-[#151516] text-white">
+              <div className="flex min-h-16 items-center justify-between gap-3 px-4 sm:px-6">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[0.06]">
+                    <FileText className="size-4" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <h2
+                      id={titleId}
+                      className="truncate text-sm font-medium tracking-[-0.01em]"
+                    >
+                      {endpoint.slice(1)}
+                    </h2>
+                    <p className="hidden font-mono text-[10px] tracking-[0.08em] text-white/45 uppercase sm:block">
+                      Plain-text context for humans and machines
+                    </p>
+                  </div>
                 </div>
-                <div className="h-4 w-px bg-white/15 mx-1" />
-                <div className="flex items-center gap-2 text-[11px] tracking-wider uppercase text-white/70">
-                  <Terminal className="w-3.5 h-3.5 text-white/50" />
-                  <span>SPEC · MACHINE CONTEXT</span>
+
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    disabled={loading}
+                    className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] px-3 text-xs text-white/75 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-40"
+                    aria-label="Copy document"
+                  >
+                    {copied ? (
+                      <Check className="size-3.5" />
+                    ) : (
+                      <Copy className="size-3.5" />
+                    )}
+                    <span className="hidden sm:inline">
+                      {copied ? "Copied" : "Copy"}
+                    </span>
+                  </button>
+                  <a
+                    href={endpoint}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="grid size-9 place-items-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white"
+                    aria-label={`Open ${endpoint.slice(1)} in a new tab`}
+                  >
+                    <ExternalLink className="size-4" />
+                  </a>
+                  <button
+                    ref={closeButtonRef}
+                    type="button"
+                    onClick={close}
+                    className="grid size-9 place-items-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    aria-label="Close document"
+                  >
+                    <X className="size-4" />
+                  </button>
                 </div>
               </div>
 
-              {/* Variant Tabs: Standard / Full */}
-              <div className="flex items-center gap-1 bg-black/50 p-1 rounded-lg border border-white/10 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setVariant("standard")}
-                  className={`px-2.5 py-1 rounded transition-colors ${
-                    variant === "standard"
-                      ? "bg-white/20 text-white font-medium shadow-sm"
-                      : "text-white/50 hover:text-white/80"
-                  }`}
-                >
-                  /llms.txt
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVariant("full")}
-                  className={`px-2.5 py-1 rounded transition-colors ${
-                    variant === "full"
-                      ? "bg-white/20 text-white font-medium shadow-sm"
-                      : "text-white/50 hover:text-white/80"
-                  }`}
-                >
-                  /llms-full.txt
-                </button>
-              </div>
+              <nav
+                className="flex gap-1 border-t border-white/[0.07] px-4 pt-2 sm:px-6"
+                aria-label="LLM documents"
+              >
+                {(["standard", "full"] as const).map((item) => {
+                  const selected = variant === item;
+                  const label = item === "full" ? "llms-full.txt" : "llms.txt";
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => {
+                        setCopied(false);
+                        setVariant(item);
+                      }}
+                      aria-pressed={selected}
+                      className={`relative rounded-t-lg px-3 py-2 font-mono text-[11px] transition-colors ${
+                        selected
+                          ? "bg-[#f1eee6] text-[#171716]"
+                          : "text-white/45 hover:text-white/80"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </header>
 
-              {/* Action Buttons: Copy, Open Raw, Close */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs bg-white/10 hover:bg-white/15 text-white/90 transition-colors focus-visible:outline-white"
-                  title="Copy to clipboard"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3 h-3 text-emerald-400" />
-                      <span className="text-emerald-400">Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3 opacity-70" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-
-                <a
-                  href={variant === "full" ? "/llms-full.txt" : "/llms.txt"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 rounded-md hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-                  title="Open raw document"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-
-                <button
-                  type="button"
-                  onClick={close}
-                  className="p-1.5 rounded-md hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-                  title="Close modal (Esc)"
-                  aria-label="Close modal"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Document Meta Spec Subheader */}
-            <div className="flex-none flex items-center justify-between px-5 py-2 text-[10px] text-white/40 border-b border-white/5 bg-black/30">
-              <div className="flex items-center gap-4">
-                <span>FORMAT: MARKDOWN / PLAIN-TEXT</span>
-                <span>CHARSET: UTF-8</span>
-                <span>CACHE: 3600S</span>
-              </div>
-              <div>
-                <span>{lines.length} LINES</span>
-              </div>
-            </div>
-
-            {/* Editor Body */}
             <div
               data-lenis-prevent
               tabIndex={0}
-              className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 text-[12px] sm:text-[13px] leading-relaxed selection:bg-white selection:text-black focus:outline-none"
+              className="min-h-0 flex-1 overflow-auto overscroll-contain bg-[#f1eee6] focus-visible:outline-none"
             >
               {loading ? (
-                <div className="flex items-center justify-center py-16 text-white/40">
-                  <span className="animate-pulse">Loading context stream...</span>
+                <div className="grid min-h-full place-items-center p-8">
+                  <div className="flex items-center gap-2 font-mono text-xs text-black/45">
+                    <span className="size-1.5 animate-pulse rounded-full bg-black/50" />
+                    Loading {endpoint.slice(1)}
+                  </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-[2.5rem_1fr] sm:grid-cols-[3rem_1fr] gap-4">
-                  {/* Line Numbers */}
-                  <div className="text-right select-none text-white/20 font-mono text-[11px] leading-[1.625] pr-2 border-r border-white/10">
-                    {lines.map((_, i) => (
-                      <div key={i}>{String(i + 1).padStart(2, "0")}</div>
-                    ))}
-                  </div>
-
-                  {/* Document Content */}
-                  <pre className="font-mono text-[12px] sm:text-[13px] leading-[1.625] text-white/85 whitespace-pre-wrap break-words overflow-x-auto">
-                    {content}
-                  </pre>
-                </div>
+                <ol className="min-w-full py-5 font-mono text-[12px] leading-6 sm:py-7 sm:text-[13px] sm:leading-7">
+                  {lines.map((line, index) => (
+                    <li
+                      key={`${index}-${line.slice(0, 12)}`}
+                      className="grid grid-cols-[3rem_minmax(0,1fr)] px-3 transition-colors hover:bg-black/[0.035] sm:grid-cols-[4.5rem_minmax(0,1fr)] sm:px-6"
+                    >
+                      <span className="border-r border-black/10 pr-3 text-right text-black/25 select-none sm:pr-5">
+                        {index + 1}
+                      </span>
+                      <code className="block pl-3 break-words whitespace-pre-wrap text-black/78 sm:pl-5">
+                        {line || "\u00a0"}
+                      </code>
+                    </li>
+                  ))}
+                </ol>
               )}
             </div>
 
-            {/* Footer Status Bar */}
-            <div className="flex-none flex items-center justify-between px-4 py-2 border-t border-white/10 text-[10px] text-white/40 bg-white/[0.02]">
-              <div className="flex items-center gap-2">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span>INDEXED & SYNCHRONIZED</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span>CURL COMPLIANT</span>
-                <span>BEEBOMBSHELL.COM</span>
-              </div>
-            </div>
-          </motion.div>
+            <footer className="flex h-10 flex-none items-center justify-between border-t border-black/10 bg-[#e7e3da] px-4 font-mono text-[9px] tracking-[0.07em] text-black/45 uppercase sm:px-6 sm:text-[10px]">
+              <span className="inline-flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-emerald-600" />
+                Public · UTF-8
+              </span>
+              <span>
+                {lines.length} lines · {content.length.toLocaleString()}{" "}
+                characters
+              </span>
+            </footer>
+          </motion.section>
         </div>
       )}
     </AnimatePresence>

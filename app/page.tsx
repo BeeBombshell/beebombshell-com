@@ -1,13 +1,12 @@
-import { getProfile, getProjects, getPosts, getTakes, getConfig } from "@/lib/queries";
+import { getProfile, getProjects, getPosts, getTakes } from "@/lib/queries";
 import { HeroSection } from "@/components/hero/hero-section";
 
 export default async function HomePage() {
-  const [profile, projects, posts, takes, config] = await Promise.all([
+  const [profile, projects, posts, takes] = await Promise.all([
     getProfile(),
     getProjects(),
     getPosts(),
     getTakes(),
-    getConfig(),
   ]);
 
   return (
@@ -16,7 +15,6 @@ export default async function HomePage() {
       selectedProjects={projects}
       recentPosts={posts}
       takes={takes}
-      enableCharacter={config.featureFlags?.character !== false}
     />
   );
 }

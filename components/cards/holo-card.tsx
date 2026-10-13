@@ -10,7 +10,6 @@ interface HoloCardProps {
   style?: React.CSSProperties;
   enableTilt?: boolean;
   variant?: HoloVariant;
-  hudText?: string;
   roundedClassName?: string;
 }
 
@@ -31,9 +30,6 @@ const VARIANT_PALETTES = {
       "rgba(127, 210, 230, 0.85)", // #7fd2e6
       "rgba(181, 166, 255, 0.85)", // #b5a6ff
     ],
-    glyphs: ["·", "+", "*", "×", "▪", "▫", "::", "1", "0"],
-    corners: ["┌", "┐", "└", "┘"],
-    dotColor: "bg-[#b3a6ff]",
   },
   opinion: {
     dark: [
@@ -50,9 +46,6 @@ const VARIANT_PALETTES = {
       "rgba(127, 210, 230, 0.85)",
       "rgba(247, 166, 209, 0.85)",
     ],
-    glyphs: ["“", "”", "!", "?", "·", "/*", "*/", "—", "№"],
-    corners: ["⌜", "⌝", "⌞", "⌟"],
-    dotColor: "bg-[#d5b0f5]",
   },
   editorial: {
     dark: [
@@ -69,9 +62,6 @@ const VARIANT_PALETTES = {
       "rgba(219, 39, 119, 0.85)",  // pink-600
       "rgba(79, 70, 229, 0.85)",
     ],
-    glyphs: ["—", "~", "::", "¶", "§", "·", "//", ">", "»"],
-    corners: ["⸢", "⸣", "⸤", "⸥"],
-    dotColor: "bg-indigo-400",
   },
 };
 
@@ -81,8 +71,6 @@ interface Particle {
   vx: number;
   vy: number;
   size: number;
-  glyph: string;
-  isGlyph: boolean;
   colorIdx: number;
   orbitRadius: number;
   orbitAngle: number;
@@ -93,11 +81,7 @@ interface Particle {
 /**
  * HoloCard
  *
- * Implements an interactive technical blueprint stipple particle & ASCII micro-glyph
- * interaction with section-specific major accents:
- * - "blueprint" (Work): Ember / Dusk Cyan / Isometric lattice / Coordinate HUD
- * - "opinion" (Views): Radiant Amber / Gold / Quote & sentiment glyphs / Take HUD
- * - "editorial" (Writing): Electric Violet / Lavender Ice / Typographic dashes / Dispatch HUD
+ * Adds a subtle pointer-responsive particle field, border glow, and optional tilt.
  */
 export function HoloCard({
   children,
@@ -105,13 +89,12 @@ export function HoloCard({
   style = {},
   enableTilt = true,
   variant = "blueprint",
-  hudText,
   roundedClassName = "rounded-2xl",
 }: HoloCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const [coords, setCoords] = useState({ x: 50, y: 50, pxX: 0, pxY: 0, tiltX: 0, tiltY: 0 });
+  const [coords, setCoords] = useState({ x: 50, y: 50, tiltX: 0, tiltY: 0 });
 
   const config = VARIANT_PALETTES[variant] || VARIANT_PALETTES.blueprint;
 
@@ -161,8 +144,6 @@ export function HoloCard({
     setCoords({
       x: Math.round(pctX * 10) / 10,
       y: Math.round(pctY * 10) / 10,
-      pxX: Math.round(x),
-      pxY: Math.round(y),
       tiltX: Math.round(tiltX * 10) / 10,
       tiltY: Math.round(tiltY * 10) / 10,
     });
@@ -191,6 +172,7 @@ export function HoloCard({
   useEffect(() => {
     const canvas = canvasRef.current;
     const card = cardRef.current;
+    const simulation = simRef.current;
     if (!canvas || !card) return;
 
     const ctx = canvas.getContext("2d", { alpha: true });
@@ -212,18 +194,13 @@ export function HoloCard({
       if (simRef.current.particles.length === 0 && rect.width > 0) {
         const count = variant === "editorial" ? 36 : 52;
         const particles: Particle[] = [];
-        const glyphList = config.glyphs;
-
         for (let i = 0; i < count; i++) {
-          const isGlyph = i % 3 === 0;
           particles.push({
             x: Math.random() * rect.width,
             y: Math.random() * rect.height,
             vx: (Math.random() - 0.5) * 1.5,
             vy: (Math.random() - 0.5) * 1.5,
-            size: isGlyph ? 9 : Math.random() > 0.5 ? 2.0 : 1.4,
-            glyph: glyphList[i % glyphList.length],
-            isGlyph,
+            size: Math.random() > 0.5 ? 2.2 : 1.5,
             colorIdx: i % 5,
             orbitRadius: 18 + Math.random() * 105,
             orbitAngle: Math.random() * Math.PI * 2,
@@ -317,72 +294,7 @@ export function HoloCard({
       ctx.fillStyle = aura;
       ctx.fillRect(0, 0, width, height);
 
-      // 2. Specialized Geometry Guide Lines per Variant
-      if (variant === "blueprint") {
-        // Subtle Isometric Lattice Points (design.md spec: 34 x 19)
-        const latticeStepX = 34;
-        const latticeStepY = 19;
-        for (let lx = latticeStepX / 2; lx < width; lx += latticeStepX) {
-          for (let ly = latticeStepY / 2; ly < height; ly += latticeStepY) {
-            const dist = Math.hypot(lx - mx, ly - my);
-            if (dist < 150) {
-              const glowFactor = Math.pow(1 - dist / 150, 2);
-              ctx.fillStyle = isDark
-                ? `rgba(166, 230, 242, ${0.12 + glowFactor * 0.45})`
-                : `rgba(127, 210, 230, ${0.1 + glowFactor * 0.4})`;
-              ctx.fillRect(lx - 0.75, ly - 0.75, 1.5, 1.5);
-            }
-          }
-        }
-
-        // Pointer Crosshair Guides (Dashed technical hairline)
-        ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.07)";
-        ctx.lineWidth = 0.75;
-        ctx.setLineDash([3, 4]);
-
-        ctx.beginPath();
-        ctx.moveTo(14, my);
-        ctx.lineTo(width - 14, my);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(mx, 14);
-        ctx.lineTo(mx, height - 14);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      } else if (variant === "opinion") {
-        // Concentric Opinion Radar rings near pointer
-        ctx.strokeStyle = isDark ? "rgba(251, 191, 36, 0.09)" : "rgba(217, 119, 6, 0.08)";
-        ctx.lineWidth = 0.75;
-        ctx.setLineDash([2, 5]);
-
-        [45, 90, 135].forEach((radius) => {
-          ctx.beginPath();
-          ctx.arc(mx, my, radius, 0, Math.PI * 2);
-          ctx.stroke();
-        });
-        ctx.setLineDash([]);
-      } else if (variant === "editorial") {
-        // Manuscript horizontal baseline rules near pointer
-        ctx.strokeStyle = isDark ? "rgba(167, 139, 250, 0.08)" : "rgba(124, 58, 237, 0.07)";
-        ctx.lineWidth = 0.75;
-        ctx.setLineDash([4, 6]);
-
-        for (let ly = 16; ly < height; ly += 24) {
-          if (Math.abs(ly - my) < 90) {
-            ctx.beginPath();
-            ctx.moveTo(16, ly);
-            ctx.lineTo(width - 16, ly);
-            ctx.stroke();
-          }
-        }
-        ctx.setLineDash([]);
-      }
-
-      // 3. Interactive Physics Swarm (Spring + Orbit around cursor)
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
+      // Interactive dot swarm (spring + orbit around cursor)
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
 
@@ -401,31 +313,11 @@ export function HoloCard({
 
         const color = palette[p.colorIdx];
 
-        if (p.isGlyph) {
-          ctx.font = '600 9px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
-          ctx.fillStyle = color;
-          ctx.fillText(p.glyph, Math.round(p.x), Math.round(p.y));
-        } else {
-          ctx.fillStyle = color;
-          ctx.fillRect(
-            Math.round(p.x - p.size / 2),
-            Math.round(p.y - p.size / 2),
-            p.size,
-            p.size
-          );
-        }
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(Math.round(p.x), Math.round(p.y), p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
       }
-
-      // 4. Corner Technical Registration Brackets
-      ctx.font = '500 11px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
-      ctx.fillStyle = isDark ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.28)";
-
-      const margin = 12;
-      const [tl, tr, bl, br] = config.corners;
-      ctx.fillText(tl, margin, margin);
-      ctx.fillText(tr, width - margin, margin);
-      ctx.fillText(bl, margin, height - margin);
-      ctx.fillText(br, width - margin, height - margin);
 
       if (!prefersReducedMotion && isHovered) {
         simRef.current.rafId = requestAnimationFrame(render);
@@ -435,19 +327,10 @@ export function HoloCard({
     simRef.current.rafId = requestAnimationFrame(render);
 
     return () => {
-      cancelAnimationFrame(simRef.current.rafId);
+      cancelAnimationFrame(simulation.rafId);
       resizeObserver.disconnect();
     };
   }, [isHovered, variant, config]);
-
-  // Derived HUD text and dynamic rim gradient
-  const displayHud =
-    hudText ||
-    (variant === "blueprint"
-      ? `X ${String(coords.pxX).padStart(3, "0")} / Y ${String(coords.pxY).padStart(3, "0")}`
-      : variant === "opinion"
-      ? "OPINION SPECIMEN"
-      : "DISPATCH // READ");
 
   const borderHighlight =
     variant === "opinion"
@@ -506,16 +389,6 @@ export function HoloCard({
         }}
       />
 
-      {/* Live Technical HUD */}
-      <div
-        className="pointer-events-none absolute bottom-2.5 right-4 z-30 flex items-center gap-2 text-[9px] font-mono tracking-wider transition-opacity duration-300 text-[var(--mut)] select-none bg-[var(--bg)]/85 px-2 py-0.5 rounded backdrop-blur-sm border border-[var(--line)]/50"
-        style={{
-          opacity: isHovered ? 1 : 0,
-        }}
-      >
-        <span className={`w-1.5 h-1.5 rounded-full ${config.dotColor} animate-pulse`} />
-        <span>{displayHud}</span>
-      </div>
     </div>
   );
 }

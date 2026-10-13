@@ -7,22 +7,19 @@ import { HoloCard } from "@/components/cards/holo-card";
 
 interface WritingRowProps {
   post: Post;
-  index: number;
 }
 
-export function WritingRow({ post, index }: WritingRowProps) {
+export function WritingRow({ post }: WritingRowProps) {
   const dateStr = new Date(post.publishedAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
   const readingTime = calculateReadingTime(post.body);
-  const formattedIndex = String(index + 1).padStart(3, "0");
 
   return (
     <HoloCard
       variant="editorial"
-      hudText={`DISPATCH // ${readingTime.text.toUpperCase()}`}
       enableTilt={false}
       roundedClassName="rounded-none"
       className="w-full"
@@ -33,13 +30,9 @@ export function WritingRow({ post, index }: WritingRowProps) {
           className="block w-full px-4 sm:px-6 py-7 transition-all duration-300 bg-transparent group-focus-visible:outline-2 group-focus-visible:outline-[var(--fg)]"
         >
           <div className="flex flex-col gap-2.5">
-            {/* Metadata Row: Index, Date, Reading Time, Tags */}
+            {/* Metadata Row: Date, Reading Time, Tags */}
             <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-[var(--mut)]">
               <div className="flex items-center gap-2.5">
-                <span className="font-medium text-[var(--mut)] group-hover:text-[var(--fg)] transition-colors">
-                  № {formattedIndex}
-                </span>
-                <span>·</span>
                 <time dateTime={post.publishedAt}>{dateStr}</time>
                 <span>·</span>
                 <span className="inline-flex items-center gap-1">

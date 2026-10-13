@@ -13,12 +13,10 @@ import {
 
 interface ViewsSectionProps {
   takes?: Take[];
-  enableCharacter?: boolean;
 }
 
 export function ViewsSection({
   takes = [],
-  enableCharacter = true,
 }: ViewsSectionProps) {
   const items = useMemo<Take[]>(() => {
     return takes.length > 0
@@ -63,9 +61,6 @@ export function ViewsSection({
 
   const selectedIndex = Math.min(activeIndex, Math.max(0, total - 1));
   const activeTake = items[selectedIndex];
-  const activeNumber = String(selectedIndex + 1).padStart(2, "0");
-  const totalNumber = String(total).padStart(2, "0");
-  const counter = COPY.views.counter.replace("{n}", String(total));
 
   const handleLinkEnter = () => {
     if (linkRef.current) {
@@ -109,25 +104,14 @@ export function ViewsSection({
       className="relative z-10 mx-auto w-full max-w-6xl px-5 py-[clamp(88px,13vh,148px)] sm:px-8"
     >
       <SectionHeader
-        number="№ 004"
-        figure={COPY.views.caption || "FIG 0.4 · UNSOLICITED TAKES"}
         title={COPY.views.title}
         intro={COPY.views.sub}
-        meta={
-          <span className="inline-flex items-center gap-2 tabular-nums">
-            <span>{counter}</span>
-            <span className="opacity-35">/</span>
-            <span>
-              {activeNumber} of {totalNumber}
-            </span>
-          </span>
-        }
       />
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
         <div
           ref={panelRef}
-          id={`take-panel-${activeTake.id}`}
+          id="take-panel"
           role="tabpanel"
           aria-labelledby={`take-tab-${activeTake.id}`}
           onMouseEnter={(event) => handleAccentTarget(event.currentTarget)}
@@ -144,30 +128,7 @@ export function ViewsSection({
             }}
           />
 
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 top-[72px] h-px bg-[var(--line)]"
-          />
-
           <div className="relative flex min-h-[340px] flex-col justify-between p-6 sm:p-8 md:min-h-[380px] md:p-10">
-            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--line)] pb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--mut)]">
-              <div className="flex items-center gap-3">
-                <span className="text-[var(--fg)]">current take</span>
-                <span className="opacity-35">·</span>
-                <span>specimen {activeNumber}</span>
-                {activeTake.date ? (
-                  <>
-                    <span className="opacity-35">·</span>
-                    <span>{activeTake.date}</span>
-                  </>
-                ) : null}
-              </div>
-
-              <div className="text-[var(--mut)]/80">
-                {enableCharacter ? "live selection" : "static selection"}
-              </div>
-            </div>
-
             <div className="py-8 md:py-10">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.blockquote
@@ -188,9 +149,11 @@ export function ViewsSection({
             </div>
 
             <div className="flex flex-wrap items-end justify-between gap-4 border-t border-[var(--line)] pt-4">
-              <div className="max-w-md font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--mut)]">
-                Hover, focus, or tap the index to inspect each take without the page fighting back.
-              </div>
+              {activeTake.date ? (
+                <time className="font-mono text-[11px] text-[var(--mut)]">
+                  {activeTake.date}
+                </time>
+              ) : <span />}
 
               {activeTake.url ? (
                 <a
@@ -207,11 +170,7 @@ export function ViewsSection({
                   <span>Open on X</span>
                   <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </a>
-              ) : (
-                <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--mut)]">
-                  {activeNumber} / {totalNumber}
-                </div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -227,8 +186,6 @@ export function ViewsSection({
           >
             {items.map((take, index) => {
               const isActive = index === selectedIndex;
-              const number = String(index + 1).padStart(2, "0");
-
               return (
                 <button
                   key={take.id}
@@ -240,7 +197,7 @@ export function ViewsSection({
                   role="tab"
                   tabIndex={isActive ? 0 : -1}
                   aria-selected={isActive}
-                  aria-controls={`take-panel-${take.id}`}
+                  aria-controls="take-panel"
                   onClick={() => setActiveIndex(index)}
                   onFocus={(event) => {
                     setActiveIndex(index);
@@ -287,14 +244,6 @@ export function ViewsSection({
                     }`}
                   />
 
-                  <span
-                    className={`relative z-10 mt-0.5 w-9 shrink-0 font-mono text-[11px] uppercase tracking-[0.1em] transition-transform duration-200 ${
-                      isActive ? "text-[var(--fg)]" : "text-[var(--mut)]"
-                    } group-hover:translate-x-0.5 group-focus-visible:translate-x-0.5`}
-                  >
-                    № {number}
-                  </span>
-
                   <div className="relative z-10 min-w-0 flex-1">
                     <div
                       className={`text-[17px] leading-[1.35] tracking-[-0.02em] transition-[transform,color] duration-200 sm:text-[18px] ${
@@ -304,15 +253,11 @@ export function ViewsSection({
                       {take.text}
                     </div>
 
-                    <div className="mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--mut)]">
-                      <span>{isActive ? "selected" : "inspect"}</span>
-                      {take.date ? (
-                        <>
-                          <span className="opacity-35">·</span>
-                          <span>{take.date}</span>
-                        </>
-                      ) : null}
-                    </div>
+                    {take.date ? (
+                      <time className="mt-2 block font-mono text-[10px] text-[var(--mut)]">
+                        {take.date}
+                      </time>
+                    ) : null}
                   </div>
                 </button>
               );

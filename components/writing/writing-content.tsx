@@ -26,36 +26,28 @@ export function WritingContent({ posts }: WritingContentProps) {
     >
       <div>
         <SectionHeader
-          figure="FIG 0.4 · ESSAYS & ESSENCE"
-          number="№ 003"
           title={COPY.writing.title}
           intro={COPY.writing.intro}
-          meta={<span>{posts.length} POSTS</span>}
+          meta={<span>{posts.length} posts</span>}
         />
 
         {/* Posts List with Editorial Hover Interaction */}
         <div className="divide-y divide-[var(--line)] border-b border-[var(--line)]">
-          {posts.map((post, idx) => (
-            <WritingRow key={post.slug} post={post} index={idx} />
+          {posts.map((post) => (
+            <WritingRow key={post.slug} post={post} />
           ))}
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="mt-16 pt-4 border-t border-[var(--line)] flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono text-[var(--mut)]">
-        <span>STATUS: PERIODIC DISPATCHES</span>
-        <div className="flex items-center gap-4">
-          <a
-            href="/feed.xml"
-            className="hover:text-[var(--fg)] transition-colors inline-flex items-center gap-1.5"
-            title="Subscribe via RSS"
-          >
-            <Rss className="w-3 h-3" />
-            <span>RSS FEED</span>
-          </a>
-          <span>·</span>
-          <span>WRITING DRIFT ACTIVE</span>
-        </div>
+      <footer className="mt-16 pt-4 border-t border-[var(--line)] text-[11px] font-mono text-[var(--mut)]">
+        <a
+          href="/feed.xml"
+          className="hover:text-[var(--fg)] transition-colors inline-flex items-center gap-1.5"
+          title="Subscribe via RSS"
+        >
+          <Rss className="w-3 h-3" />
+          <span>RSS feed</span>
+        </a>
       </footer>
     </div>
   );

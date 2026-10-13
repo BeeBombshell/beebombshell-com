@@ -10,17 +10,14 @@ import { HoloCard } from "./holo-card";
 
 interface ExpandableProjectCardProps {
   project: Project;
-  index: number;
 }
 
-export function ExpandableProjectCard({ project, index }: ExpandableProjectCardProps) {
+export function ExpandableProjectCard({ project }: ExpandableProjectCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Register card rect for particle dimming
   useRegisterTextBlock(`project-${project.slug}`, cardRef);
-
-  const formattedIdx = String(index + 1).padStart(2, "0");
 
   return (
     <HoloCard className="h-full">
@@ -34,9 +31,9 @@ export function ExpandableProjectCard({ project, index }: ExpandableProjectCardP
         } backdrop-blur-md`}
       >
       <div>
-        {/* Specimen Header Metadata */}
+        {/* Project Metadata */}
         <div className="flex items-center justify-between text-[11px] font-mono text-[var(--mut)] mb-4 pb-2 border-b border-[var(--line)]/50">
-          <span className="text-[var(--fg)] font-medium">№ {formattedIdx}</span>
+          <span>{project.year}</span>
           <div className="flex items-center gap-3">
             {project.stars !== undefined && (
               <span className="flex items-center gap-1 text-[var(--mut)]">
@@ -44,7 +41,6 @@ export function ExpandableProjectCard({ project, index }: ExpandableProjectCardP
                 <span>{project.stars}</span>
               </span>
             )}
-            <span>{project.year}</span>
           </div>
         </div>
 
@@ -90,7 +86,7 @@ export function ExpandableProjectCard({ project, index }: ExpandableProjectCardP
               className="overflow-hidden border-t border-[var(--line)] pt-4 mt-2"
             >
               <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--mut)] mb-2">
-                ARCHITECTURAL SPECIFICATION:
+                Details
               </div>
               <p className="text-xs sm:text-sm text-[var(--fg)]/80 leading-relaxed mb-5 font-sans">
                 {project.body}
@@ -136,7 +132,7 @@ export function ExpandableProjectCard({ project, index }: ExpandableProjectCardP
             aria-expanded={isExpanded}
             className="font-mono text-xs text-[var(--mut)] hover:text-[var(--fg)] transition-colors inline-flex items-center gap-1.5 focus-visible:outline-2 focus-visible:outline-[var(--fg)] rounded"
           >
-            <span>{isExpanded ? "Collapse spec" : "Expand spec"}</span>
+            <span>{isExpanded ? "Collapse details" : "Expand details"}</span>
             <ChevronDown
               className={`w-3.5 h-3.5 transition-transform duration-200 ${
                 isExpanded ? "rotate-180" : ""

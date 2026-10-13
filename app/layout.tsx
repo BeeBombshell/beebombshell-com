@@ -113,7 +113,7 @@ export default async function RootLayout({
     "@type": "WebSite",
     name: "BeeBombshell",
     url: "https://beebombshell.com",
-    description: "Personal specimen & portfolio of Bhavya Verma.",
+    description: "Personal portfolio of Bhavya Verma.",
     author: {
       "@type": "Person",
       name: profile.name,
@@ -177,4 +177,3 @@ export default async function RootLayout({
     </html>
   );
 }
-

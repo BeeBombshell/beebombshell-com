@@ -59,8 +59,7 @@ export default async function ProjectCaseStudyPage({ params }: PageProps) {
   return (
     <div className="flex-1 w-full max-w-4xl mx-auto px-5 sm:px-8 py-8 md:py-12 flex flex-col justify-between font-sans">
       <div>
-        {/* Top Specimen Header & Back Link */}
-        <div className="flex items-center justify-between border-b border-[var(--line)] pb-3 mb-8 text-[11px] font-mono uppercase tracking-wider text-[var(--mut)]">
+        <div className="mb-8 text-[11px] font-mono uppercase tracking-wider">
           <Link
             href="/work"
             className="inline-flex items-center gap-1.5 text-[var(--fg)] hover:text-halo transition-colors group"
@@ -68,10 +67,6 @@ export default async function ProjectCaseStudyPage({ params }: PageProps) {
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
             <span>BACK TO WORK</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline">FIG 2.{project.order} · CASE STUDY</span>
-            <span className="text-[var(--fg)]">№ {String(project.order).padStart(2, "0")}</span>
-          </div>
         </div>
 
         {/* Hero Section */}
@@ -102,12 +97,12 @@ export default async function ProjectCaseStudyPage({ params }: PageProps) {
           </p>
         </header>
 
-        {/* Technical Metadata & Links Bar */}
+        {/* Project details and links */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 rounded-2xl border border-[var(--line)] bg-[var(--bg)]/70 backdrop-blur-md mb-12">
-          {/* Tech Stack */}
+          {/* Technology stack */}
           <div className="sm:col-span-2">
             <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--mut)] mb-2">
-              TECHNOLOGY STACK
+              Technology stack
             </div>
             <div className="flex flex-wrap gap-2">
               {project.stack.map((item) => (
@@ -124,7 +119,7 @@ export default async function ProjectCaseStudyPage({ params }: PageProps) {
           {/* Links */}
           <div>
             <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--mut)] mb-2">
-              DEPLOYMENT & SOURCE
+              Links
             </div>
             <div className="flex flex-col gap-2 text-xs font-mono">
               {project.links.live && (
@@ -159,7 +154,7 @@ export default async function ProjectCaseStudyPage({ params }: PageProps) {
         <article className="space-y-8 text-[var(--fg)]/90 leading-relaxed max-w-2xl text-base sm:text-lg">
           <section>
             <h2 className="text-xl sm:text-2xl font-normal tracking-[-0.02em] text-[var(--fg)] mb-4 font-sans">
-              Overview & Architecture
+              Details
             </h2>
             <p className="text-[var(--mut)] leading-relaxed mb-6">
               {project.body}
@@ -172,19 +167,16 @@ export default async function ProjectCaseStudyPage({ params }: PageProps) {
             </h2>
             <ul className="space-y-3 text-sm sm:text-base text-[var(--mut)] font-sans">
               <li className="flex items-start gap-3">
-                <span className="font-mono text-xs text-[var(--fg)] mt-1">01</span>
                 <span>
                   <strong>Zero compromise frame budget:</strong> Engineered to hold 60fps on mid-tier mobile hardware and low-power devices.
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="font-mono text-xs text-[var(--fg)] mt-1">02</span>
                 <span>
                   <strong>Physical tactile feel:</strong> Spring mechanics, velocity preservation, and responsive collision boundaries.
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="font-mono text-xs text-[var(--fg)] mt-1">03</span>
                 <span>
                   <strong>Resilient fallbacks:</strong> Clean degradation on reduced motion settings, touch interfaces, and server caching.
                 </span>

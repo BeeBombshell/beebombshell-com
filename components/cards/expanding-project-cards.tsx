@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Code2, ExternalLink, ArrowRight } from "lucide-react";
 import type { Project } from "@/lib/schemas";
@@ -44,7 +44,6 @@ export function ExpandingProjectCards({ projects }: ExpandingProjectCardsProps) 
     >
       {projects.map((project, idx) => {
         const isExpanded = activeIndex === idx;
-        const formattedIdx = String(idx + 1).padStart(2, "0");
 
         return (
           <div
@@ -66,10 +65,7 @@ export function ExpandingProjectCards({ projects }: ExpandingProjectCardsProps) 
               isExpanded ? "md:min-w-[340px]" : "md:min-w-[130px]"
             }`}
           >
-            <HoloCard
-              hudText={`SPEC // № ${formattedIdx}`}
-              className="h-full w-full"
-            >
+            <HoloCard className="h-full w-full">
               <div
                 className={`relative h-full w-full p-5 sm:p-6 rounded-2xl border transition-all duration-500 backdrop-blur-md flex flex-col justify-between overflow-hidden ${
                   isExpanded
@@ -77,17 +73,9 @@ export function ExpandingProjectCards({ projects }: ExpandingProjectCardsProps) 
                     : "bg-[var(--bg)]/90 dark:bg-[#0c0c0e]/90 border-[var(--line)] hover:border-[var(--mut)] shadow-sm"
                 }`}
               >
-                {/* ── CARD TOP: Index & Metadata ────────────────────── */}
+                {/* ── CARD TOP: Metadata ────────────────────────────── */}
                 <div className="flex items-center justify-between text-[11px] font-mono text-[var(--mut)] pb-3 border-b border-[var(--line)]/50 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[var(--fg)] font-medium">№ {formattedIdx}</span>
-                    {isExpanded && (
-                      <>
-                        <span className="hidden sm:inline">·</span>
-                        <span className="hidden sm:inline uppercase">{project.year}</span>
-                      </>
-                    )}
-                  </div>
+                  <span>{project.year}</span>
 
                   <div className="flex items-center gap-2.5">
                     {project.stars !== undefined && (
@@ -152,7 +140,7 @@ export function ExpandingProjectCards({ projects }: ExpandingProjectCardsProps) 
                     {project.body && (
                       <div className="mb-4 pt-3 border-t border-[var(--line)]/40 hidden sm:block">
                         <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--mut)] mb-1.5">
-                          SPECIFICATION:
+                          Details
                         </div>
                         <p className="text-xs text-[var(--fg)]/75 leading-relaxed font-sans line-clamp-3">
                           {project.body}

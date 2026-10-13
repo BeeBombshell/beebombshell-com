@@ -24,15 +24,6 @@ export function AboutContent({ profile }: AboutContentProps) {
       className="flex-1 w-full max-w-4xl mx-auto px-5 sm:px-8 py-8 md:py-12 flex flex-col justify-between font-sans"
     >
       <div>
-        {/* Technical Caption Header */}
-        <div className="flex items-center justify-between border-b border-[var(--line)] pb-3 mb-8 text-[11px] font-mono uppercase tracking-wider text-[var(--mut)]">
-          <div className="flex items-center gap-3">
-            <span className="text-[var(--fg)] font-medium">№ 004</span>
-            <span>{COPY.about.caption}</span>
-          </div>
-          <span>BEEBOMBSHELL.COM</span>
-        </div>
-
         {/* Section title & Long Bio */}
         <div ref={bioRef} className="mb-14">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.03em] text-[var(--fg)] text-halo mb-8">
@@ -54,14 +45,11 @@ export function AboutContent({ profile }: AboutContentProps) {
             {COPY.about.howTitle}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {COPY.about.howItems.map((item, idx) => (
+            {COPY.about.howItems.map((item) => (
               <div
-                key={idx}
+                key={item}
                 className="p-5 rounded-xl border border-[var(--line)] bg-[var(--bg)]/80 dark:bg-[#0c0c0e]/80 backdrop-blur-md shadow-sm"
               >
-                <div className="font-mono text-[10px] text-[var(--mut)] mb-2 font-medium">
-                  RULE 0{idx + 1}
-                </div>
                 <p className="text-[14px] text-[var(--fg)]/95 font-normal leading-relaxed">
                   {item}
                 </p>
@@ -119,10 +107,10 @@ export function AboutContent({ profile }: AboutContentProps) {
           </p>
         </div>
 
-        {/* Channels / Elsewhere Links */}
+        {/* Elsewhere Links */}
         <div className="pt-8 border-t border-[var(--line)]">
           <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-6">
-            ELSEWHERE / CHANNELS
+            Elsewhere
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -151,11 +139,6 @@ export function AboutContent({ profile }: AboutContentProps) {
         </div>
       </div>
 
-      {/* Footer Readout */}
-      <footer className="mt-16 pt-4 border-t border-[var(--line)] flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] font-mono text-[var(--mut)] gap-2">
-        <span>STATUS: {profile.statusText.toUpperCase()}</span>
-        <span>CONTOUR FIELD ACTIVE</span>
-      </footer>
     </div>
   );
 }

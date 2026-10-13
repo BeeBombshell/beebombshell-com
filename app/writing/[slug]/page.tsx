@@ -91,8 +91,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     <div className="flex-1 w-full max-w-4xl mx-auto px-5 sm:px-8 py-8 md:py-12 flex flex-col justify-between font-sans">
       <JsonLd data={blogJsonLd} />
       <div>
-        {/* Specimen Header & Back Link */}
-        <div className="flex items-center justify-between border-b border-[var(--line)] pb-3 mb-8 text-[11px] font-mono uppercase tracking-wider text-[var(--mut)]">
+        <div className="mb-8 text-[11px] font-mono uppercase tracking-wider">
           <Link
             href="/writing"
             className="inline-flex items-center gap-1.5 text-[var(--fg)] hover:text-halo transition-colors group"
@@ -100,12 +99,6 @@ export default async function BlogPostPage({ params }: PageProps) {
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
             <span>BACK TO WRITING</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline">FIG 0.4 · DISPATCH</span>
-            <span className="text-[var(--fg)]">
-              № {String(currentIndex + 1).padStart(3, "0")}
-            </span>
-          </div>
         </div>
 
         {/* Article Header */}

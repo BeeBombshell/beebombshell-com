@@ -31,25 +31,24 @@ export const COPY = {
       "I'm Bhavya, a product engineer working on developer experience, which is a fancy way of saying I care a lot about the first ten minutes with a tool. I started at early-stage low-code startups, where the team is small and the surface area is everything. I like the spot where technical meets creative, and I'm good at explaining either one to the other. Outside work: open source, mentoring (20+ women and non-binary folks into their first contributions so far), and X, where I post views nobody asked for.",
     long: [
       "I'm a product engineer working on developer experience, which is a fancy way of saying I care a lot about the first ten minutes with a tool.",
-      "I started out at early-stage low-code startups, where nobody has a job title for what you're doing and the only rule is \"make it work, then make it nice.\"",
+      'I started out at early-stage low-code startups, where nobody has a job title for what you\'re doing and the only rule is "make it work, then make it nice."',
       "I'm happiest where the technical meets the creative, and I'm unreasonably fond of explaining either one to the other.",
       "Open source is where I learned most of what I know, so I give it back. I've helped mentor 20+ women and non-binary folks into their first contributions, and I'd do it again tomorrow.",
       "I'm bad at sitting still. When I'm \"off\", I'm usually on X, sharing views nobody asked for.",
     ],
   },
   card: {
-    label: "BHAVYA / VERMA",
-    meta: "№ 001 · product engineer, developer experience",
+    label: "Bhavya Verma",
+    meta: "Product engineer · Developer experience.",
     headline: "Hi, I'm Bhavya. I make dev tools feel like someone cared.",
     headlineLead: "Hi, I'm Bhavya. I make dev tools feel like ",
     headlineAccent: "someone cared.",
     bio: "Product engineer on the developer-experience side. Early-stage low-code startups raised me. I live where technical meets creative, and I explain things well. Free time goes to open source and to X, where I post views nobody asked for.",
     chips: ["20+ mentored into OSS", "ex low-code", "DX"],
-    spec: "SPEC·001",
     hint: "psst, flip me",
     hintBack: "flip me back",
     back: {
-      label: "BACK / FIND ME",
+      label: "Find me",
       book: "book a call",
       writing: "writing",
       llms: "llms.txt",
@@ -72,11 +71,9 @@ export const COPY = {
   },
   index: {
     scrollHint: "scroll. the badge will survive.",
-    workIntroLabel: "selected work",
     workIntroTitle: "Things I've shipped",
   },
   about: {
-    caption: "",
     title: "About",
     howTitle: "How I work",
     howItems: [
@@ -104,7 +101,6 @@ export const COPY = {
     nowBody: "Shipping features and memes in equal measure.",
   },
   work: {
-    caption: "",
     title: "Work",
     intro: "Selected work. Some of it even has a README.",
     cardHint: "click to open",
@@ -112,7 +108,6 @@ export const COPY = {
     stars: "{n} stars",
   },
   writing: {
-    caption: "",
     title: "Writing",
     intro: "Mostly things I wish I'd read sooner.",
     empty: "First post loading. Opinions are being formed.",
@@ -123,10 +118,8 @@ export const COPY = {
     draftBanner: "Draft. You weren't supposed to see this. (Hi.)",
   },
   views: {
-    caption: "",
     title: "Views nobody asked for",
     sub: "Unsolicited, unreviewed, occasionally correct.",
-    counter: "0 requests · {n} takes",
     cta: "Disagree with me on X ↗",
     empty: "No takes today. Suspicious.",
     takes: [
@@ -166,25 +159,6 @@ export const COPY = {
     aria: "Currently playing {track} by {artist} on Spotify.",
     pillHint: "hover for the track",
   },
-  mood: {
-    chilling: "chilling",
-    curious: "curious",
-    startled: "startled",
-    restless: "restless",
-    excited: "excited",
-    sleepy: "sleepy",
-  },
-  greet: {
-    morning: "Morning.",
-    afternoon: "Afternoon.",
-    evening: "Evening.",
-    late: "Still up?",
-    veryLate: "Go to sleep. (Says the person who is also up.)",
-  },
-  idle: {
-    fidgeting: "Fidgeting.",
-    stillHere: "Still here? Same.",
-  },
   tab: {
     away: "come back, I was mid-thought",
     return: "oh, hi",
@@ -197,14 +171,19 @@ export const COPY = {
     logoClick: "ouch.",
   },
   footer: {
-    lines: [
-      "Built by hand. Fidgeted with constantly.",
-      "Shipping features and memes in equal measure.",
-      "Last updated: whenever I couldn't sit still.",
-      "Made with too many springs.",
-      "You scrolled all the way here. Respect.",
-    ],
-    backToTop: "up we go",
+    status: "Open for chats",
+    heading: "Let's talk",
+    sub: "Pick a time. Bring a problem, I'll bring opinions.",
+    cta: "Book a call",
+    copyright: "© {year} beebombshell.com",
+    top: "up we go",
+    wordmark: "BEEBOMBSHELL",
+    links: {
+      github: "GitHub",
+      x: "X",
+      linkedin: "LinkedIn",
+      llms: "llms.txt",
+    },
   },
   a11y: {
     reducedMotion: "Motion is off. The badge is just hanging out.",

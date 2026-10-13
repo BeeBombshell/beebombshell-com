@@ -253,7 +253,7 @@ export function NotchNav({
               ? { duration: 0.15 }
               : { type: "spring", stiffness: 280, damping: 26 }
           }
-          className={`relative flex flex-col items-center font-mono text-[12px] shadow-lg transition-[background-color,border-color,box-shadow,backdrop-filter] duration-250 ease-out ${
+          className={`relative flex flex-col items-center font-mono text-[12px] transition-[background-color,border-color,box-shadow,backdrop-filter] duration-250 ease-out ${
             isPill
               ? "bg-[#f6f5f1]/90 dark:bg-[#0d0d0c]/90 text-[#121212] dark:text-[#eeece6] backdrop-blur-[14px] rounded-full px-4 py-[9px] border border-black/10 dark:border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
               : "bg-[var(--fg)] text-[var(--bg)] rounded-b-[22px] px-4 pt-[9px] pb-[11px] sm:px-4.5"

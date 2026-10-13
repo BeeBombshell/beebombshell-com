@@ -34,13 +34,15 @@ export function ParticleCanvas() {
 
       engine = new ParticleEngine(canvasRef.current);
       window.__particleEngine = engine;
+      window.dispatchEvent(new Event("particle-engine-ready"));
 
       // Cursor tracking
       const onMove = (e: MouseEvent) => engine.setCursor(e.clientX, e.clientY);
       window.addEventListener("mousemove", onMove, { passive: true });
 
       // Click burst
-      const onClick = (e: MouseEvent) => engine.clickBurst(e.clientX, e.clientY);
+      const onClick = (e: MouseEvent) =>
+        engine.clickBurst(e.clientX, e.clientY);
       window.addEventListener("click", onClick, { passive: true });
 
       // Touch cursor tracking
@@ -57,7 +59,7 @@ export function ParticleCanvas() {
         { id: "work", mode: "lattice" },
         { id: "writing", mode: "writing" },
         { id: "views", mode: "takes" },
-        { id: "footer", mode: "footer" },
+        { id: "footer", mode: "wordmark" },
       ];
 
       let activeSectionMode: ParticleMode = "burst";
@@ -80,18 +82,23 @@ export function ParticleCanvas() {
           return { mode: sec.mode, ratio };
         });
 
-        const currentActive = visibilities.find((v) => v.mode === activeSectionMode);
+        const currentActive = visibilities.find(
+          (v) => v.mode === activeSectionMode
+        );
         const currentRatio = currentActive?.ratio ?? 0;
 
         // If another section has crossed 45% visibility and exceeds current active, switch to it
         const candidate = visibilities.find(
-          (v) => v.mode !== activeSectionMode && v.ratio >= 0.45 && v.ratio > currentRatio
+          (v) =>
+            v.mode !== activeSectionMode &&
+            v.ratio >= 0.45 &&
+            v.ratio > currentRatio
         );
 
         if (candidate) {
           activeSectionMode = candidate.mode;
           engine.morphTo(activeSectionMode);
-        } else if (currentRatio < 0.40) {
+        } else if (currentRatio < 0.4) {
           // Current section fell below 40% exit threshold: pick dominant visible section
           const best = visibilities.reduce(
             (max, curr) => (curr.ratio > max.ratio ? curr : max),
@@ -102,6 +109,8 @@ export function ParticleCanvas() {
             engine.morphTo(activeSectionMode);
           }
         }
+
+        engine.syncWordmarkPosition();
       };
 
       window.addEventListener("scroll", onScroll, { passive: true });
@@ -119,9 +128,13 @@ export function ParticleCanvas() {
     }
 
     let cleanup: (() => void) | undefined;
-    init().then((fn) => { cleanup = fn; });
+    init().then((fn) => {
+      cleanup = fn;
+    });
 
-    return () => { cleanup?.(); };
+    return () => {
+      cleanup?.();
+    };
   }, []);
 
   // ── Theme sync ──────────────────────────────────────────────────────────────

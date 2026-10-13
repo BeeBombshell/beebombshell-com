@@ -18,49 +18,90 @@ declare global {
 }
 
 export function useParticleEngine() {
-  const engineRef = useRef<import("./particle-engine").ParticleEngine | null>(null);
+  const engineRef = useRef<import("./particle-engine").ParticleEngine | null>(
+    null
+  );
 
   useEffect(() => {
-    // Get the engine that the ParticleCanvas already created
-    if (typeof window !== "undefined" && window.__particleEngine) {
-      engineRef.current = window.__particleEngine;
-    }
+    const syncEngine = () => {
+      engineRef.current = window.__particleEngine ?? null;
+    };
+
+    syncEngine();
+    window.addEventListener("particle-engine-ready", syncEngine);
+    return () =>
+      window.removeEventListener("particle-engine-ready", syncEngine);
   }, []);
 
   const morphTo = useCallback((mode: ParticleMode) => {
-    engineRef.current?.morphTo(mode);
+    (window.__particleEngine ?? engineRef.current)?.morphTo(mode);
   }, []);
 
-  const registerRect = useCallback((id: string, getRect: () => DOMRect | null) => {
-    engineRef.current?.registerRect(id, getRect);
-    return () => engineRef.current?.unregisterRect(id);
-  }, []);
+  const registerRect = useCallback(
+    (id: string, getRect: () => DOMRect | null) => {
+      let registeredEngine = window.__particleEngine ?? engineRef.current;
+      registeredEngine?.registerRect(id, getRect);
+
+      const registerWithCurrentEngine = () => {
+        const currentEngine = window.__particleEngine;
+        if (!currentEngine || currentEngine === registeredEngine) return;
+        registeredEngine?.unregisterRect(id);
+        currentEngine.registerRect(id, getRect);
+        registeredEngine = currentEngine;
+      };
+
+      window.addEventListener(
+        "particle-engine-ready",
+        registerWithCurrentEngine
+      );
+      return () => {
+        window.removeEventListener(
+          "particle-engine-ready",
+          registerWithCurrentEngine
+        );
+        registeredEngine?.unregisterRect(id);
+      };
+    },
+    []
+  );
 
   const impulse = useCallback(
     (x: number, y: number, radius?: number, force?: number) => {
-      engineRef.current?.impulse(x, y, radius, force);
+      (window.__particleEngine ?? engineRef.current)?.impulse(
+        x,
+        y,
+        radius,
+        force
+      );
     },
     []
   );
 
   const setTheme = useCallback((theme: Theme) => {
-    (engineRef.current || window.__particleEngine)?.setTheme(theme);
+    (window.__particleEngine ?? engineRef.current)?.setTheme(theme);
   }, []);
 
   const shearTakes = useCallback((vx: number) => {
-    (engineRef.current || window.__particleEngine)?.shearTakes(vx);
+    (window.__particleEngine ?? engineRef.current)?.shearTakes(vx);
   }, []);
 
   const slideImpulse = useCallback((direction: 1 | -1) => {
-    (engineRef.current || window.__particleEngine)?.slideImpulse(direction);
+    (window.__particleEngine ?? engineRef.current)?.slideImpulse(direction);
   }, []);
 
-  const setAccentTarget = useCallback((point: { x: number; y: number } | null) => {
-    (engineRef.current || window.__particleEngine)?.setAccentTarget(point);
-  }, []);
+  const setAccentTarget = useCallback(
+    (point: { x: number; y: number } | null) => {
+      (window.__particleEngine ?? engineRef.current)?.setAccentTarget(point);
+    },
+    []
+  );
 
   const setGlyphTarget = useCallback((rect: DOMRect | null) => {
-    (engineRef.current || window.__particleEngine)?.setGlyphTarget(rect);
+    (window.__particleEngine ?? engineRef.current)?.setGlyphTarget(rect);
+  }, []);
+
+  const setWordmarkElement = useCallback((element: HTMLElement | null) => {
+    (window.__particleEngine ?? engineRef.current)?.setWordmarkElement(element);
   }, []);
 
   return {
@@ -72,6 +113,7 @@ export function useParticleEngine() {
     slideImpulse,
     setAccentTarget,
     setGlyphTarget,
+    setWordmarkElement,
   };
 }
 

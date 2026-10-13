@@ -17,7 +17,15 @@
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ParticleMode = "burst" | "lattice" | "contours" | "writing" | "footer" | "llms" | "takes";
+export type ParticleMode =
+  | "burst"
+  | "lattice"
+  | "contours"
+  | "writing"
+  | "footer"
+  | "wordmark"
+  | "llms"
+  | "takes";
 export type Theme = "light" | "dark";
 
 interface Particle {
@@ -45,23 +53,43 @@ interface RegisteredRect {
   lastRefresh: number;
 }
 
+interface WordmarkPoint {
+  x: number;
+  y: number;
+  colorIdx: number;
+}
+
 // ─── Palette ──────────────────────────────────────────────────────────────────
 
-const PALETTE_LIGHT = ["#9d8df5", "#c58cec", "#f08fc6", "#7fd2e6", "#b5a6ff", "#f7a6d1"];
-const PALETTE_DARK  = ["#b3a6ff", "#d5b0f5", "#ffb3dc", "#a6e6f2", "#c9c0ff", "#fcc4e3"];
+const PALETTE_LIGHT = [
+  "#9d8df5",
+  "#c58cec",
+  "#f08fc6",
+  "#7fd2e6",
+  "#b5a6ff",
+  "#f7a6d1",
+];
+const PALETTE_DARK = [
+  "#b3a6ff",
+  "#d5b0f5",
+  "#ffb3dc",
+  "#a6e6f2",
+  "#c9c0ff",
+  "#fcc4e3",
+];
 
 // ─── Physics constants (design.md §Physics) ───────────────────────────────────
 
-const SPRING       = 0.018;   // toward target
-const DAMPING      = 0.86;    // per frame
-const REPEL_R      = 90;      // cursor repel radius px
-const REPEL_F      = 1.6;     // cursor repel force
-const CLICK_R      = 260;     // click burst radius px
-const CLICK_F      = 14;      // click burst force
+const SPRING = 0.018; // toward target
+const DAMPING = 0.86; // per frame
+const REPEL_R = 90; // cursor repel radius px
+const REPEL_F = 1.6; // cursor repel force
+const CLICK_R = 260; // click burst radius px
+const CLICK_F = 14; // click burst force
 
 // Hysteresis thresholds for scroll morph (plan.md §Phase 2)
 const S_TO_LATTICE = 0.45;
-const S_TO_BURST   = 0.40;
+const S_TO_BURST = 0.4;
 
 // ─── Engine ───────────────────────────────────────────────────────────────────
 
@@ -86,17 +114,35 @@ export class ParticleEngine {
 
   // Mode center percents
   private modeCenter: Record<ParticleMode, [number, number]> = {
-    burst:    [0.50, 0.42],
-    lattice:  [0.50, 0.50],
-    contours: [0.50, 0.50],
-    writing:  [0.50, 0.50],
-    footer:   [0.50, 0.85],
-    llms:     [0.50, 0.50],
-    takes:    [0.50, 0.50],
+    burst: [0.5, 0.42],
+    lattice: [0.5, 0.5],
+    contours: [0.5, 0.5],
+    writing: [0.5, 0.5],
+    footer: [0.5, 0.85],
+    wordmark: [0.5, 0.85],
+    llms: [0.5, 0.5],
+    takes: [0.5, 0.5],
   };
 
   private particleCount = 0;
   private dpr = 1;
+  private palette = PALETTE_LIGHT;
+  private guideColor = "rgba(0, 0, 0, 0.16)";
+
+  // Footer wordmark state. Targets remain local; only the cached origin moves.
+  private wordmarkElement: HTMLElement | null = null;
+  private wordmarkTargets: WordmarkPoint[] = [];
+  private wordmarkOrigin = { x: 0, y: 0 };
+  private wordmarkSize = { width: 0, height: 0 };
+  private wordmarkGuides: number[] = [];
+  private wordmarkResizeTimer = 0;
+  private lastWordmarkPointerAt = 0;
+  private readonly coarsePointer = window.matchMedia("(hover: none)").matches;
+  private readonly handleResize = () => this.resize();
+  private readonly handleVisibilityChange = () => {
+    this.paused = document.hidden;
+    if (!this.paused && !this.rafId) this.start();
+  };
 
   // Takes mode physics & interactive states
   private takesDriftVx = 0;
@@ -106,7 +152,13 @@ export class ParticleEngine {
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
-    this.reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    this.reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    this.theme = document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light";
+    this.refreshThemeTokens();
     this.init();
   }
 
@@ -114,13 +166,10 @@ export class ParticleEngine {
 
   private init() {
     this.resize();
-    window.addEventListener("resize", () => this.resize(), { passive: true });
+    window.addEventListener("resize", this.handleResize, { passive: true });
 
     // Visibility: pause when hidden
-    document.addEventListener("visibilitychange", () => {
-      this.paused = document.hidden;
-      if (!this.paused && !this.rafId) this.start();
-    });
+    document.addEventListener("visibilitychange", this.handleVisibilityChange);
 
     this.buildParticles();
     this.retarget(this.mode);
@@ -137,9 +186,9 @@ export class ParticleEngine {
     const H = window.innerHeight;
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    this.canvas.width  = W * this.dpr;
+    this.canvas.width = W * this.dpr;
     this.canvas.height = H * this.dpr;
-    this.canvas.style.width  = W + "px";
+    this.canvas.style.width = W + "px";
     this.canvas.style.height = H + "px";
 
     this.ctx.scale(this.dpr, this.dpr);
@@ -150,9 +199,23 @@ export class ParticleEngine {
     this.particleCount = Math.max(450, Math.min(1250, base));
 
     // Rebuild if count changed significantly
-    if (Math.abs(this.particles.length - this.particleCount) > 80) {
+    if (
+      this.mode !== "wordmark" &&
+      Math.abs(this.particles.length - this.particleCount) > 80
+    ) {
       this.buildParticles();
       this.retarget(this.mode);
+    }
+
+    if (this.wordmarkElement) {
+      window.clearTimeout(this.wordmarkResizeTimer);
+      this.wordmarkResizeTimer = window.setTimeout(() => {
+        this.sampleWordmark();
+        if (this.mode === "wordmark") {
+          this.targetWordmark();
+          if (this.reducedMotion) this.drawFrame();
+        }
+      }, 150);
     }
   }
 
@@ -160,29 +223,58 @@ export class ParticleEngine {
     const W = window.innerWidth;
     const H = window.innerHeight;
     const n = this.particleCount;
-    this.particles = Array.from({ length: n }, (_, i) => {
-      const xFrac = i / n;
-      // Color index: left-to-right cool-to-warm with gaussian noise
-      const colorIdx = Math.max(0, Math.min(5, Math.floor(xFrac * 6 + (Math.random() - 0.5) * 0.3 * 6)));
-      return {
-        x: Math.random() * W,
-        y: Math.random() * H,
-        vx: 0,
-        vy: 0,
-        tx: Math.random() * W,
-        ty: Math.random() * H,
-        relTx: 0,
-        relTy: 0,
-        size: 1.0 + Math.random() * 0.9, // 1.0 to 1.9px per design.md
-        colorIdx,
-        baseOpacity: this.theme === "light" ? 0.80 + Math.random() * 0.1 : 0.85 + Math.random() * 0.1,
-        opacity: 0,
-        dashLen: 4 + Math.random() * 8,
-        dashAngle: Math.random() * Math.PI * 2,
-      };
-    });
+    this.particles = Array.from({ length: n }, (_, i) =>
+      this.createParticle(i / n, W, H)
+    );
     // Sort by colorIdx so canvas fillStyle switches are minimized to at most 6 per frame
     this.particles.sort((a, b) => a.colorIdx - b.colorIdx);
+  }
+
+  private createParticle(xFrac: number, W: number, H: number): Particle {
+    const colorIdx = Math.max(
+      0,
+      Math.min(5, Math.floor(xFrac * 6 + gaussianRandom() * 0.3))
+    );
+
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: 0,
+      vy: 0,
+      tx: Math.random() * W,
+      ty: Math.random() * H,
+      relTx: 0,
+      relTy: 0,
+      size: 1 + Math.random() * 0.9,
+      colorIdx,
+      baseOpacity:
+        this.theme === "light"
+          ? 0.8 + Math.random() * 0.1
+          : 0.85 + Math.random() * 0.1,
+      opacity: 0,
+      dashLen: 4 + Math.random() * 8,
+      dashAngle: Math.random() * Math.PI * 2,
+    };
+  }
+
+  private ensureParticleCount(count: number) {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    if (this.particles.length > count) {
+      const source = this.particles;
+      const stride = source.length / count;
+      this.particles = Array.from(
+        { length: count },
+        (_, index) => source[Math.floor(index * stride)]
+      );
+      return;
+    }
+
+    const start = this.particles.length;
+    for (let i = start; i < count; i++) {
+      this.particles.push(this.createParticle(i / count, W, H));
+    }
   }
 
   // ── Targeting ───────────────────────────────────────────────────────────────
@@ -193,20 +285,37 @@ export class ParticleEngine {
     const [cx, cy] = this.modeCenter[mode].map((p, i) => p * (i === 0 ? W : H));
 
     switch (mode) {
-      case "burst":    this.targetBurst(cx, cy, W, H); break;
-      case "lattice":  this.targetLattice(cx, cy, W, H); break;
-      case "contours": this.targetContours(W, H); break;
-      case "writing":  this.targetWriting(W, H); break;
-      case "footer":   this.targetFooter(W, H); break;
-      case "llms":     this.targetContours(W, H); break; // same as contours, dimmed
-      case "takes":    this.targetTakes(W, H); break;
+      case "burst":
+        this.targetBurst(cx, cy, W, H);
+        break;
+      case "lattice":
+        this.targetLattice(cx, cy, W, H);
+        break;
+      case "contours":
+        this.targetContours(W, H);
+        break;
+      case "writing":
+        this.targetWriting(W, H);
+        break;
+      case "footer":
+        this.targetFooter(W, H);
+        break;
+      case "wordmark":
+        this.targetWordmark();
+        break;
+      case "llms":
+        this.targetContours(W, H);
+        break; // same as contours, dimmed
+      case "takes":
+        this.targetTakes(W, H);
+        break;
     }
   }
 
   private targetBurst(cx: number, cy: number, W: number, H: number) {
     const n = this.particles.length;
     const coreCount = Math.floor(n * 0.35); // Dense core
-    const rayCount  = n - coreCount;
+    const rayCount = n - coreCount;
     const rays = 8;
 
     this.particles.forEach((p, i) => {
@@ -241,10 +350,145 @@ export class ParticleEngine {
     });
   }
 
+  private targetWordmark() {
+    if (!this.wordmarkTargets.length) {
+      this.sampleWordmark();
+    }
+
+    if (!this.wordmarkTargets.length) {
+      this.targetFooter(window.innerWidth, window.innerHeight);
+      return;
+    }
+
+    this.ensureParticleCount(this.wordmarkTargets.length);
+    this.particles.forEach((particle, index) => {
+      const target = this.wordmarkTargets[index];
+      particle.tx = this.wordmarkOrigin.x + target.x;
+      particle.ty = this.wordmarkOrigin.y + target.y;
+      particle.colorIdx = target.colorIdx;
+      particle.baseOpacity =
+        this.theme === "dark"
+          ? 0.88 + Math.random() * 0.04
+          : 0.83 + Math.random() * 0.04;
+      if (this.reducedMotion) {
+        particle.x = particle.tx;
+        particle.y = particle.ty;
+        particle.vx = 0;
+        particle.vy = 0;
+      }
+    });
+    this.particles.sort((a, b) => a.colorIdx - b.colorIdx);
+  }
+
+  private sampleWordmark() {
+    const element = this.wordmarkElement;
+    if (!element) return;
+
+    const rect = element.getBoundingClientRect();
+    const width = Math.max(1, Math.round(rect.width));
+    const height = Math.max(1, Math.round(rect.height));
+    if (width < 40 || height < 40) return;
+
+    const text = element.dataset.wordmark || "BEEBOMBSHELL";
+    const styles = window.getComputedStyle(element);
+    const family = styles.fontFamily || "monospace";
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) return;
+
+    const characters = Array.from(text);
+    const trackingRatio = -0.06;
+    const measureWidth = (fontSize: number) => {
+      context.font = `500 ${fontSize}px ${family}`;
+      const glyphWidth = characters.reduce(
+        (total, character) => total + context.measureText(character).width,
+        0
+      );
+      return glyphWidth + trackingRatio * fontSize * (characters.length - 1);
+    };
+
+    const widthAt100 = measureWidth(100);
+    let fontSize = ((width - 6) / widthAt100) * 100;
+    context.font = `500 ${fontSize}px ${family}`;
+
+    const initialMetrics = context.measureText("H");
+    const initialHeight =
+      initialMetrics.actualBoundingBoxAscent +
+        initialMetrics.actualBoundingBoxDescent || fontSize;
+    fontSize = Math.min(fontSize, (fontSize * (height - 16)) / initialHeight);
+
+    context.font = `500 ${fontSize}px ${family}`;
+    context.textAlign = "left";
+    context.textBaseline = "alphabetic";
+    context.lineJoin = "round";
+    context.lineCap = "round";
+    context.strokeStyle = "#fff";
+    context.lineWidth = Math.max(1.6, 0.014 * fontSize);
+
+    const hMetrics = context.measureText("H");
+    const xMetrics = context.measureText("x");
+    const ascent = hMetrics.actualBoundingBoxAscent || fontSize * 0.72;
+    const descent = hMetrics.actualBoundingBoxDescent || fontSize * 0.04;
+    const xHeight = xMetrics.actualBoundingBoxAscent || ascent * 0.7;
+    const baseline = (height + ascent - descent) / 2;
+    const totalWidth = measureWidth(fontSize);
+    let cursorX = (width - totalWidth) / 2;
+
+    for (const character of characters) {
+      context.strokeText(character, cursorX, baseline);
+      cursorX +=
+        context.measureText(character).width + trackingRatio * fontSize;
+    }
+
+    const pixels = context.getImageData(0, 0, width, height).data;
+    const step = width < 640 ? 2.7 : 2.6;
+    const points: WordmarkPoint[] = [];
+
+    for (let y = 0; y < height; y += step) {
+      for (let x = 0; x < width; x += step) {
+        const pixelX = Math.min(width - 1, Math.round(x));
+        const pixelY = Math.min(height - 1, Math.round(y));
+        if (pixels[(pixelY * width + pixelX) * 4 + 3] < 48) continue;
+
+        const jitteredX = x + (Math.random() - 0.5) * 0.8;
+        const colorIdx = Math.max(
+          0,
+          Math.min(
+            5,
+            Math.floor((jitteredX / width) * 6 + gaussianRandom() * 0.3)
+          )
+        );
+        points.push({
+          x: jitteredX,
+          y: y + (Math.random() - 0.5) * 0.8,
+          colorIdx,
+        });
+      }
+    }
+
+    const cap =
+      width < 640
+        ? Math.max(700, Math.round(width * 2.2))
+        : Math.min(2600, Math.round(width * 2.7));
+    for (let i = points.length - 1; i > 0; i--) {
+      const swapIndex = Math.floor(Math.random() * (i + 1));
+      [points[i], points[swapIndex]] = [points[swapIndex], points[i]];
+    }
+
+    this.wordmarkTargets = points.slice(0, cap);
+    this.wordmarkOrigin = { x: rect.left, y: rect.top };
+    this.wordmarkSize = { width: rect.width, height: rect.height };
+    this.wordmarkGuides = [baseline, baseline - xHeight, baseline - ascent];
+  }
+
   private targetLattice(cx: number, cy: number, W: number, H: number) {
     // Isometric lattice: axes (34,19), (-34,19), (0,-38), cell 34×19
-    const ax1x = 34, ax1y = 19;
-    const ax2x = -34, ax2y = 19;
+    const ax1x = 34,
+      ax1y = 19;
+    const ax2x = -34,
+      ax2y = 19;
 
     // How many lattice points fit: tile a grid and pick the N closest to center
     const cols = Math.ceil(W / 34) + 2;
@@ -278,11 +522,12 @@ export class ParticleEngine {
 
     this.particles.forEach((p, i) => {
       const line = i % numLines;
-      const baseY = line * lineSpacing + (lineSpacing / 2);
+      const baseY = line * lineSpacing + lineSpacing / 2;
       const xPos = Math.random() * W;
       // Two sine displacements
-      const dy = Math.sin(xPos * 0.012 + line * 1.1) * 16
-               + Math.sin(xPos * 0.024 + line * 2.3) * 12;
+      const dy =
+        Math.sin(xPos * 0.012 + line * 1.1) * 16 +
+        Math.sin(xPos * 0.024 + line * 2.3) * 12;
       p.tx = xPos;
       p.ty = baseY + dy;
     });
@@ -337,8 +582,13 @@ export class ParticleEngine {
   /** Switch particle mode. The particles will spring to new targets. */
   morphTo(mode: ParticleMode) {
     if (mode === this.mode) return;
+    const leavingWordmark = this.mode === "wordmark" && mode !== "wordmark";
     this.mode = mode;
+    if (leavingWordmark) {
+      this.ensureParticleCount(this.particleCount);
+    }
     this.retarget(mode);
+    if (this.reducedMotion) this.drawFrame();
   }
 
   /** Update scroll progress. Used to morph between burst↔lattice. */
@@ -377,22 +627,105 @@ export class ParticleEngine {
   /** Update theme. Particle opacities shift. */
   setTheme(theme: Theme) {
     this.theme = theme;
+    this.refreshThemeTokens();
     const isDark = theme === "dark";
     this.particles.forEach((p) => {
-      p.baseOpacity = isDark ? 0.85 + Math.random() * 0.1 : 0.80 + Math.random() * 0.1;
+      p.baseOpacity = isDark
+        ? 0.85 + Math.random() * 0.1
+        : 0.8 + Math.random() * 0.1;
     });
+    if (this.reducedMotion) this.drawFrame();
+  }
+
+  private refreshThemeTokens() {
+    const styles = window.getComputedStyle(document.documentElement);
+    const fallback = this.theme === "dark" ? PALETTE_DARK : PALETTE_LIGHT;
+    this.palette = fallback.map(
+      (color, index) => styles.getPropertyValue(`--p${index}`).trim() || color
+    );
+    this.guideColor =
+      styles.getPropertyValue("--line").trim() || this.guideColor;
   }
 
   /** Update cursor position in viewport coordinates. */
   setCursor(x: number, y: number) {
     this.cx = x;
     this.cy = y;
+    if (
+      this.mode === "wordmark" &&
+      x >= this.wordmarkOrigin.x &&
+      x <= this.wordmarkOrigin.x + this.wordmarkSize.width &&
+      y >= this.wordmarkOrigin.y &&
+      y <= this.wordmarkOrigin.y + this.wordmarkSize.height
+    ) {
+      this.lastWordmarkPointerAt = performance.now();
+    }
   }
 
   /** Click burst at a point (called externally for canvas clicks). */
   clickBurst(x: number, y: number) {
+    if (
+      this.mode === "wordmark" &&
+      (x < this.wordmarkOrigin.x ||
+        x > this.wordmarkOrigin.x + this.wordmarkSize.width ||
+        y < this.wordmarkOrigin.y ||
+        y > this.wordmarkOrigin.y + this.wordmarkSize.height)
+    ) {
+      return;
+    }
     this.applyBurst(x, y, CLICK_R, CLICK_F);
   }
+
+  /** Attach the decorative footer target sampled by the shared canvas. */
+  setWordmarkElement(element: HTMLElement | null) {
+    document.fonts.removeEventListener("loadingdone", this.handleFontsLoaded);
+    this.wordmarkElement = element;
+
+    if (!element) {
+      this.wordmarkTargets = [];
+      this.wordmarkGuides = [];
+      return;
+    }
+
+    this.sampleWordmark();
+    if (this.mode === "wordmark") {
+      this.targetWordmark();
+      if (this.reducedMotion) this.drawFrame();
+    }
+    void document.fonts.ready.then(() => {
+      if (this.wordmarkElement !== element) return;
+      this.sampleWordmark();
+      if (this.mode === "wordmark") {
+        this.targetWordmark();
+        if (this.reducedMotion) this.drawFrame();
+      }
+    });
+    document.fonts.addEventListener("loadingdone", this.handleFontsLoaded);
+  }
+
+  /** Update cached viewport coordinates during scroll without resampling pixels. */
+  syncWordmarkPosition() {
+    if (!this.wordmarkElement || this.mode !== "wordmark") return;
+    const rect = this.wordmarkElement.getBoundingClientRect();
+    const dx = rect.left - this.wordmarkOrigin.x;
+    const dy = rect.top - this.wordmarkOrigin.y;
+    if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return;
+
+    this.wordmarkOrigin = { x: rect.left, y: rect.top };
+    for (const particle of this.particles) {
+      particle.tx += dx;
+      particle.ty += dy;
+    }
+    if (this.reducedMotion) this.drawFrame();
+  }
+
+  private readonly handleFontsLoaded = () => {
+    this.sampleWordmark();
+    if (this.mode === "wordmark") {
+      this.targetWordmark();
+      if (this.reducedMotion) this.drawFrame();
+    }
+  };
 
   /** Dragging carousel shears field by drag velocity scaled down (~0.15). */
   shearTakes(vx: number) {
@@ -460,6 +793,13 @@ export class ParticleEngine {
 
   destroy() {
     cancelAnimationFrame(this.rafId);
+    window.clearTimeout(this.wordmarkResizeTimer);
+    window.removeEventListener("resize", this.handleResize);
+    document.removeEventListener(
+      "visibilitychange",
+      this.handleVisibilityChange
+    );
+    document.fonts.removeEventListener("loadingdone", this.handleFontsLoaded);
     this.rafId = 0;
   }
 
@@ -479,11 +819,11 @@ export class ParticleEngine {
   private drawFrame() {
     const W = window.innerWidth;
     const H = window.innerHeight;
-    const palette = this.theme === "dark" ? PALETTE_DARK : PALETTE_LIGHT;
+    const palette = this.palette;
+    const now = performance.now();
 
     // Refresh registered rects every ~20 frames
     if (this.frameCount % 20 === 0) {
-      const now = performance.now();
       this.rects.forEach((r) => {
         if (now - r.lastRefresh > 300) {
           r.cached = r.getRect();
@@ -494,6 +834,22 @@ export class ParticleEngine {
     this.frameCount++;
 
     this.ctx.clearRect(0, 0, W, H);
+
+    if (this.mode === "wordmark" && this.wordmarkGuides.length) {
+      this.ctx.save();
+      this.ctx.globalAlpha = 1;
+      this.ctx.strokeStyle = this.guideColor;
+      this.ctx.lineWidth = 1;
+      this.ctx.setLineDash([3, 4]);
+      for (const guideY of this.wordmarkGuides) {
+        const y = this.wordmarkOrigin.y + guideY;
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.wordmarkOrigin.x, y);
+        this.ctx.lineTo(this.wordmarkOrigin.x + this.wordmarkSize.width, y);
+        this.ctx.stroke();
+      }
+      this.ctx.restore();
+    }
 
     const isWriting = this.mode === "writing";
 
@@ -507,9 +863,10 @@ export class ParticleEngine {
     let modeMultiplier = 0.85;
     if (this.mode === "lattice") modeMultiplier = 0.16;
     else if (this.mode === "footer") modeMultiplier = 0.14;
-    else if (this.mode === "writing") modeMultiplier = 0.40;
+    else if (this.mode === "writing") modeMultiplier = 0.4;
     else if (this.mode === "contours") modeMultiplier = 0.65;
     else if (this.mode === "llms") modeMultiplier = 0.35;
+    else if (this.mode === "wordmark") modeMultiplier = 1;
     else if (this.mode === "takes") {
       modeMultiplier = this.theme === "dark" ? 0.38 : 0.44;
       if (!this.reducedMotion && Math.abs(this.takesDriftVx) > 0.001) {
@@ -523,6 +880,26 @@ export class ParticleEngine {
 
     let lastColorIdx = -1;
     let lastAlpha = -1;
+    let repelX = this.cx;
+    let repelY = this.cy;
+    let isVirtualCursor = false;
+
+    if (
+      this.mode === "wordmark" &&
+      (this.coarsePointer || now - this.lastWordmarkPointerAt > 1200)
+    ) {
+      isVirtualCursor = true;
+      const phase = (now / 2100) * Math.PI * 2;
+      repelX =
+        this.wordmarkOrigin.x +
+        this.wordmarkSize.width * (0.5 + Math.sin(phase) * 0.46);
+      repelY =
+        this.wordmarkOrigin.y +
+        this.wordmarkSize.height * (0.5 + Math.sin(phase * 0.55) * 0.12);
+    }
+    const repelRadius = isVirtualCursor ? 52 : REPEL_R;
+    const repelForce = isVirtualCursor ? 0.22 : REPEL_F;
+    const repelRadiusSquared = repelRadius * repelRadius;
 
     for (let i = 0; i < this.particles.length; i++) {
       const p = this.particles[i];
@@ -535,12 +912,12 @@ export class ParticleEngine {
         p.vy += dy * SPRING;
 
         // Cursor repel
-        const cdx = p.x - this.cx;
-        const cdy = p.y - this.cy;
+        const cdx = p.x - repelX;
+        const cdy = p.y - repelY;
         const cd2 = cdx * cdx + cdy * cdy;
-        if (cd2 < REPEL_R * REPEL_R && cd2 > 0) {
+        if (cd2 < repelRadiusSquared && cd2 > 0) {
           const cd = Math.sqrt(cd2);
-          const strength = (1 - cd / REPEL_R) * REPEL_F;
+          const strength = (1 - cd / repelRadius) * repelForce;
           p.vx += (cdx / cd) * strength;
           p.vy += (cdy / cd) * strength;
         }
@@ -557,9 +934,11 @@ export class ParticleEngine {
       for (let rIdx = 0; rIdx < this.rects.length; rIdx++) {
         const rc = this.rects[rIdx].cached;
         if (!rc) continue;
-        const rdx = p.x < rc.left ? rc.left - p.x : p.x > rc.right ? p.x - rc.right : 0;
+        const rdx =
+          p.x < rc.left ? rc.left - p.x : p.x > rc.right ? p.x - rc.right : 0;
         if (rdx >= 46) continue;
-        const rdy = p.y < rc.top ? rc.top - p.y : p.y > rc.bottom ? p.y - rc.bottom : 0;
+        const rdy =
+          p.y < rc.top ? rc.top - p.y : p.y > rc.bottom ? p.y - rc.bottom : 0;
         if (rdy >= 46) continue;
         const d = Math.hypot(rdx, rdy);
         if (d < minDist) minDist = d;
@@ -603,7 +982,8 @@ export class ParticleEngine {
         this.ctx.restore();
       } else {
         // Square dots (design.md §Particle properties)
-        const drawSize = this.mode === "takes" ? p.size * 1.35 * accentBoost : p.size;
+        const drawSize =
+          this.mode === "takes" ? p.size * 1.35 * accentBoost : p.size;
         this.ctx.fillRect(
           p.x - drawSize / 2,
           p.y - drawSize / 2,
@@ -637,7 +1017,8 @@ export class ParticleEngine {
 
 function gaussianRandom() {
   // Box-Muller
-  let u = 0, v = 0;
+  let u = 0,
+    v = 0;
   while (u === 0) u = Math.random();
   while (v === 0) v = Math.random();
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);

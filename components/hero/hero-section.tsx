@@ -150,7 +150,11 @@ export function HeroSection({
           />
 
           <div className="divide-y divide-[var(--line)] border-b border-[var(--line)]">
-            {recentPosts.slice(0, 3).map((post) => (
+            {(
+              recentPosts.filter((p) => p.tags.includes("Work")).length > 0
+                ? recentPosts.filter((p) => p.tags.includes("Work"))
+                : recentPosts.slice(0, 4)
+            ).map((post) => (
               <WritingRow key={post.slug} post={post} />
             ))}
           </div>

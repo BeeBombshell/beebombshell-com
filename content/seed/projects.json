@@ -4,7 +4,12 @@
     "title": "brilliant",
     "blurb": "An AI calendar that sits on top of Google Calendar. Schedule, manage, and reorganize events by just talking to it. Because dragging events around is not a personality.",
     "body": "An AI calendar that sits on top of Google Calendar. Schedule, manage, and reorganize events by just talking to it.\n\nBecause dragging events around is not a personality.\n\nBuilt with Next.js, Google Calendar API integration, and natural language schedule manipulation.",
-    "stack": ["TypeScript", "Next.js", "Google Calendar API", "AI Agents"],
+    "stack": [
+      "TypeScript",
+      "Next.js",
+      "Google Calendar API",
+      "AI Agents"
+    ],
     "links": {
       "repo": "https://github.com/BeeBombshell/brilliant",
       "live": "https://brilliant.beebombshell.com"
@@ -19,7 +24,12 @@
     "title": "spotify-now-playing",
     "blurb": "A minimalist service that shows what you're listening to on a profile, site, or blog. Yes, it's on the lanyard card. That's the flex.",
     "body": "A minimalist service that shows what you're listening to on a profile, site, or blog.\n\nYes, it's on the lanyard card. That's the flex.\n\nProvides real-time cached Spotify track data via clean SVG embeds and API endpoints.",
-    "stack": ["TypeScript", "Spotify Web API", "Edge Functions", "SVG"],
+    "stack": [
+      "TypeScript",
+      "Spotify Web API",
+      "Edge Functions",
+      "SVG"
+    ],
     "links": {
       "repo": "https://github.com/BeeBombshell/spotify-now-playing",
       "live": "https://spotify.beebombshell.com"
@@ -34,7 +44,12 @@
     "title": "stickle",
     "blurb": "Persistent sticky notes on any webpage, with export to Notion. Sticky notes for the internet.",
     "body": "A browser extension that lets you drop persistent, positioned sticky notes anywhere on any webpage, with full export to Notion.\n\nSticky notes for the internet.",
-    "stack": ["TypeScript", "Chrome Extension", "Notion API", "Tailwind CSS"],
+    "stack": [
+      "TypeScript",
+      "Chrome Extension",
+      "Notion API",
+      "Tailwind CSS"
+    ],
     "links": {
       "repo": "https://github.com/BeeBombshell/stickle",
       "live": "https://stickle.beebombshell.com"
@@ -49,7 +64,12 @@
     "title": "This site",
     "blurb": "A monochrome personal system featuring Verlet lanyard physics, 2D canvas stipple morphing, and liquid glass notch nav.",
     "body": "Case study for this site's own build: Verlet rope physics for an interactive ID badge, responsive canvas stipple particle engine with text-aware dimming, and an adaptive notch navigation that morphs into a liquid glass pill.",
-    "stack": ["Next.js", "Verlet Physics", "Canvas 2D", "Tailwind CSS"],
+    "stack": [
+      "Next.js",
+      "Verlet Physics",
+      "Canvas 2D",
+      "Tailwind CSS"
+    ],
     "links": {
       "repo": "https://github.com/BeeBombshell/beebomsbhell-oct'26",
       "live": "https://beebombshell.com"
@@ -57,6 +77,78 @@
     "year": 2026,
     "stars": 19,
     "order": 4,
+    "featured": true
+  },
+  {
+    "slug": "community-templating",
+    "title": "Community Sharing & Templating",
+    "blurb": "Building a community marketplace for workflows and nodes at BuildShip using remixing, template library, documentation, and node contributions, all deeply integrated into the existing builder experience.",
+    "body": "## Overview\n\nCommunity Sharing and Templating was about turning BuildShip from a place where workflows live in isolation into an ecosystem where good work compounds. Users were already building powerful workflows and custom nodes, but there was no structured way to share, document, or reuse them across projects.\n\nThis project focused on building the foundations for a community marketplace through workflow templates, remixing, documentation, and node contributions, all deeply integrated into the existing builder experience.\n\n## Remix Templates and Workflow Sharing\n\nAt the core of this system is the idea of remixing workflows.\n\nUsers can share any workflow using a Remix link directly from the workflow top bar. This generates a public URL that allows others to preview the workflow and clone it into one of their own projects.\n\n![Remix Workflow Preview and Deep Clone Modal](/images/projects/buildship/remix.gif)\n\nThe remix experience is designed to be frictionless. A user opens the link, selects a target project, and the workflow is deeply cloned without modifying the source. This includes preserving the workflow graph, node configuration, and example values while safely stripping anything project-specific.\n\nThe Remix Modal handles this entire flow and acts as the primary entry point for sharing workflows publicly. The result is one-click sharing with project-level cloning that feels native to the product rather than bolted on.\n\n## Template Library\n\nOn top of remixing, I built the Template Library as a dedicated place to discover complete workflows.\n\nTemplates are presented in a gallery-style interface where users can browse, search, and filter by category such as AI, utility, or database. Each template can be previewed before use and cloned directly into a selected project.\n\n![Template Explorer and Filterable Gallery](/images/projects/buildship/template-explorer.png)\n\nThe library is integrated with the same project selection and cloning logic used by remix links, ensuring consistency across the sharing experience. This allows new users to get started quickly with production-ready workflow patterns instead of starting from a blank canvas.\n\n## Template Details and Remixing\n\nEach template has a detailed view that explains what it does and how to use it. This includes descriptions, README content, and real input-output examples from executions.\n\n![Template Details with Live Execution Examples](/images/projects/buildship/template-details.png)\n\nUsers can remix templates into their own projects. This required building deep cloning workflows that preserve the workflow graph, node configuration, and example values while removing anything unsafe. I also added internal testing routes to validate templates before they become public.\n\n## Workflow READMEs\n\nTo make shared workflows understandable, I implemented README support directly within the workflow context.\n\nEach workflow can have an associated README page that acts as its documentation. Creating a README is triggered from the workflow top bar using a dedicated hook. Under the hood, this creates a new document in Firestore under the project pages collection, initialized with a structured Markdown template to guide authors.\n\n![Workflow README Embedded in Builder Context](/images/projects/buildship/readme.png)\n\nIf a workflow is not already organized, the system automatically creates a folder and moves both the workflow and its README into it. This keeps shared templates clean and discoverable.\n\nThe editor experience is powered by a rich Markdown editor with support for tables, images, code blocks, and interactive Sandpack snippets. Changes are synchronized in real time using a two-way Firestore data flow with debounced persistence to keep edits responsive and safe.\n\n## Community Nodes and Node Library\n\nCommunity sharing extends beyond workflows to the building blocks themselves.\n\nThe Node Library includes a dedicated Community tab alongside core nodes and personal libraries. This space is designed to surface community-contributed nodes and encourage users to become node makers.\n\n![Node Library with Community Contributions Tab](/images/projects/buildship/community-nodes.png)\n\nWhile the current implementation includes a featured placeholder and call to action, the underlying system supports node submissions, review, and future expansion into a full community catalog. Nodes can be discovered through the same search experience used inside the canvas, keeping discovery close to where users actually build.\n\n## The Developer Experience\n\nA large part of this project was about designing for portability and ecosystem growth:\n\n- **Frictionless Creation**: Users create workflows and nodes inside their own projects without ecosystem friction.\n- **Natural Publishing**: Built-in modals make publishing and sharing feel natural and guided.\n- **Centralized Discovery**: Centralized libraries handle search, filtering, and categorization.\n- **Seamless Adoption**: Adoption is handled through a consistent project selection flow that automatically manages project limits and resource allocation during cloning.\n\nThis separation between creation, publishing, discovery, and adoption keeps the system flexible while avoiding tight coupling between community content and core product logic.\n\nCommunity Sharing and Templating laid the groundwork for reuse inside BuildShip. Workflows can now be shared, documented, discovered, and safely cloned. Users can learn from real examples, and the platform has a clear path toward a growing ecosystem of templates and nodes.",
+    "stack": [
+      "Work",
+      "Product",
+      "Architecture",
+      "BuildShip"
+    ],
+    "links": {
+      "live": "https://beebombshell.com/work/community-templating"
+    },
+    "year": 2025,
+    "order": 5,
+    "featured": true
+  },
+  {
+    "slug": "google-vision-api",
+    "title": "Object Detection with BuildShip's Google Vision API Template",
+    "blurb": "Learn how to implement object detection in your workflows using the Google Vision API template on BuildShip.",
+    "body": "## Bringing Computer Vision to Serverless Workflows\n\nComputer vision has rapidly become a core capability for modern software, enabling everything from automated inventory tracking and quality inspection to intelligent media moderation. However, traditionally integrating vision models into production applications required substantial infrastructure overhead: provisioning GPU or containerized backend servers, configuring Google Cloud service accounts and SDKs, parsing multi-part payloads, and calculating bounding box coordinate transforms.\n\nWhile building templates and nodes at BuildShip, I wanted to bridge this gap. The goal was to provide an end-to-end, production-ready template that packages Google Cloud Vision's object localization into a visual, low-code workflow that any developer can remix and customize in minutes.\n\n## Architecture of the Google Vision Workflow\n\nThe template exposes an HTTP endpoint that ingests an image URL, analyzes its contents via Google Vision API, detects objects, and returns both structured JSON metadata and an annotated image with colored bounding boxes and labels.\n\nHere is how the end-to-end pipeline operates:\n\n1. **HTTP Trigger (`/detectobjects`)**: The workflow starts with an incoming GET request that takes a query parameter, `imageURL`, pointing to the target image file.\n2. **Input Validation**: The URL is validated to ensure it points to a reachable, supported image format (JPEG, PNG, WebP).\n3. **Google Cloud Vision Node**: The image URL is passed to BuildShip's Google Vision localization node. Under the hood, this makes an authenticated request to the Google Vision API, executing an `OBJECT_LOCALIZATION` feature query.\n4. **Bounding Box Calculation**: Google Vision returns a list of detected objects, each with a localized name, confidence score (`0.0` to `1.0`), and normalized bounding polygon vertices.\n5. **Visual Annotation (Canvas / Headless Renderer)**: A downstream node computes the pixel coordinates from the normalized vertices and draws bounding boxes with category tags directly over the original image.\n6. **API Response**: The workflow responds with a clean JSON payload containing the detected entities along with the newly rendered annotated image asset.\n\n![Object Detection Workflow Architecture in BuildShip](/images/blog/vision-workflow.jpeg)\n\n## Real-World Use Cases\n\nIntegrating object detection as an API endpoint unlocks immediate automation opportunities across industries:\n\n- **E-Commerce & Inventory Management**: Automatically categorize items from warehouse cameras or seller product uploads, verifying that required items are present before listing.\n- **Smart Asset Tagging & DAM**: Ingest thousands of marketing assets, automatically tag visible items (e.g., laptops, clothing, vehicles), and index them for rapid internal search.\n- **Security & Workplace Safety**: Monitor facility imagery for required safety equipment like helmets and vests, triggering instant notifications when safety compliance standards are breached.\n- **Social & UGC Moderation**: Detect prohibited items or inappropriate objects in user uploads before they are published to public feeds.\n\n## Handling Coordinate Normalization\n\nA common gotcha when working with Google Vision API is handling coordinate geometry. Rather than returning absolute pixel values, Google Vision returns normalized vertices where $x$ and $y$ are floats between `0.0` and `1.0`, representing the proportion of the image width and height.\n\nBy abstracting this coordinate transformation inside the workflow node, consumers of the template do not have to write custom canvas drawing logic. They simply pass an image URL and receive the annotated result ready for downstream consumers.\n\n## Extensibility & Composable Pipelines\n\nThe true power of this template lies in its composability. Because BuildShip connects visual triggers and nodes seamlessly, you can branch the workflow to:\n\n- Store detected object tags directly in **Firestore**, **Supabase**, or **Postgres**.\n- Trigger alerts in **Slack** or **Discord** if a specific item or anomaly is identified.\n- Feed the detected labels into **OpenAI** or **Claude** to generate an automated descriptive summary of the scene.\n\nYou can inspect the full workflow and try out the template directly on [BuildShip](https://buildship.com), or check out the [original post on Medium](https://medium.com/@beebombshell).",
+    "stack": [
+      "Work",
+      "AI",
+      "Pipelines",
+      "BuildShip"
+    ],
+    "links": {
+      "live": "https://beebombshell.com/work/google-vision-api"
+    },
+    "year": 2024,
+    "order": 6,
+    "featured": true
+  },
+  {
+    "slug": "human-in-loop",
+    "title": "Human in the Loop",
+    "blurb": "Building Human in the Loop workflows at BuildShip using pause and resume, enabling email and Slack based approvals with structured, validated input.",
+    "body": "## Overview\n\nThis project focused on enabling Human in the Loop workflows in BuildShip by leveraging the platform’s existing pause and resume execution model. The goal was to let workflows safely wait for human input without breaking automation, consuming credits, or requiring complex workarounds.\n\nThe result was two production nodes:\n\n- **Email Human in the Loop**: Delivers approval requests and input forms directly to user inboxes with dynamic resume links.\n- **Slack Human in the Loop**: Dispatches interactive message blocks into Slack channels or DMs with live response validation.\n\nBoth allow workflows to pause, request a decision or structured input from a human, and then resume execution once a response is received.\n\n![Slack Human in the Loop Interactive Workflow](/images/projects/buildship/Slack-hitl.mp4)\n\n## The Problem\n\nMany real-world workflows cannot be fully automated:\n\n- AI outputs need human review and validation.\n- Critical operations and financial actions require explicit sign-off.\n- Contextual and subjective decisions need domain expertise.\n\nBefore this work, users had to either stop automation entirely or build fragile external approval systems.\n\nThe requirements were clear:\n\n- Allow workflows to pause safely for human input.\n- Resume cleanly with validated, type-safe data.\n- Keep the entire authoring experience native to BuildShip.\n\n## Leveraging Pause and Resume\n\nBuildShip already supports pausing workflows using an underlying pause and resume mechanism. My work focused on applying this capability to real communication channels and designing a clean developer experience around it.\n\nWhen a Human in the Loop node executes, it calls pause and returns a waiting response. The workflow state is preserved, and a unique resume URL is generated. Execution stops until that URL is invoked.\n\nThis approach avoids long-running execution, polling, or credit usage while waiting. From the workflow author’s perspective, it feels like a natural pause in the flow.\n\n## Response Models\n\nBoth Email and Slack nodes support two distinct response models:\n\n![Conditional vs Structured Response Models](/images/projects/buildship/hitl-response.png)\n\n- **Conditional responses**: Simple approvals or rejections. Authors can customize button labels, and the node returns a clean boolean result back into the workflow graph.\n- **Structured responses**: Allow workflow authors to define a JSON Schema describing expected input. Human responses are validated against this schema before the workflow resumes, ensuring downstream nodes receive predictable, typed data.\n\nThis made it possible to collect real structured input from humans instead of unvalidated free-form text.\n\n## Email Human in the Loop\n\nThe Email HITL node delivers approval or input requests via email.\n\n![Email Human in the Loop Configuration](/images/projects/buildship/hitl-email.png)\n\nWhen the node runs, it calls an internal workflow responsible for sending the email. That workflow handles authentication, template rendering, and attachments. After triggering the email, the main workflow pauses.\n\nEmails include links or buttons wired directly to the resume URL. When a recipient responds, the workflow resumes and processes the result.\n\nThe implementation supports rich HTML templates, placeholder interpolation, and image handling. Images can be external URLs or files that are automatically converted and uploaded to make them publicly accessible.\n\nThis allowed email-based approvals without requiring users to build separate email infrastructure.\n\n## Slack Human in the Loop\n\nThe Slack HITL node integrates with Slack using OAuth and delivers requests directly into channels or direct messages.\n\n![Slack Interactive Message Blocks and Action Handling](/images/projects/buildship/hitl-slack.png)\n\nWhen executed, the node sends a Slack message built from dynamic blocks and then pauses the workflow. Message metadata and resume details are stored in Firestore to preserve state across the pause.\n\nWhen a user interacts with the message, the input handler retrieves the stored context, validates the response, updates the Slack message to mark it as completed, and resumes the workflow.\n\nThis avoids duplicate responses and gives clear visual feedback inside Slack.\n\n## State Management and Validation\n\nSlack-based HITL requires explicit state management. Message timestamps, channel IDs, response schemas, and callback URLs are persisted so the workflow can safely resume later.\n\n- **Structured responses** are validated against the original JSON Schema before continuing execution.\n- **Conditional responses** are passed through directly as boolean decisions.\n\nThis ensures that human input does not introduce inconsistent or malformed data into downstream workflow nodes.\n\n## Developer Experience\n\nA large part of this work focused on DX rather than raw functionality:\n\n- Workflow authors can configure HITL nodes without thinking about low-level callbacks or database storage.\n- Templates support placeholder interpolation and separate states for pending and resolved requests.\n- Errors are surfaced clearly when workflows are not in a shippable state or when integrations are misconfigured.\n- The pause itself does not consume runtime credits, making long-running human approvals practical.",
+    "stack": [
+      "Work",
+      "AI Agents",
+      "Slack",
+      "BuildShip"
+    ],
+    "links": {
+      "live": "https://beebombshell.com/work/human-in-loop"
+    },
+    "year": 2025,
+    "order": 7,
+    "featured": true
+  },
+  {
+    "slug": "readme",
+    "title": "Workflow READMEs",
+    "blurb": "Building Workflow READMEs at BuildShip using Firestore, real time sync, and a rich Markdown editor to keep documentation close to execution.",
+    "body": "## Overview\n\nAs workflows grow in complexity, understanding them becomes just as important as executing them. Before Workflow READMEs, context lived in people’s heads, Slack threads, or external docs that quickly drifted out of sync.\n\nThis feature focused on bringing documentation directly into the workflow itself.\n\nWorkflow READMEs in BuildShip are implemented as first-class pages that live alongside workflows, not as an afterthought or static text field.\n\n## Why READMEs Needed to Live Inside the Product\n\nWorkflows are often shared, cloned, or revisited weeks later. Without context, it is hard to answer basic questions:\n\n- Why does this workflow exist?\n- What inputs does it expect?\n- What assumptions does it make?\n- How should it be customized?\n\nExternal documentation breaks easily, and inline comments are rarely sufficient. READMEs needed to be tightly coupled to the workflow while remaining flexible and expressive.\n\n## Creating a README\n\nREADMEs are created directly from the workflow top bar.\n\nWhen a user selects **Create Read Me**, the feature uses a dedicated hook to trigger page creation. Under the hood, this calls a shared atom responsible for creating new pages in Firestore under the project’s pages collection.\n\nEach README starts from a predefined Markdown template. This gives users a structured starting point instead of a blank editor, encouraging better documentation by default.\n\nTo keep projects organized, the system ensures that READMEs and workflows live together. If a workflow is not already in a folder, a new folder is created automatically and both the workflow and its README are moved into it.\n\nThis small detail prevented a lot of long-term clutter.\n\n## Editing Experience\n\nThe README editor is built using a rich WYSIWYG Markdown editor (pronounced *\"wiz-ee-wig\"*, standing for \"What You See Is What You Get\"), rather than a raw text area.\n\n![Rich Markdown Editor with Sandpack Integration](/images/projects/buildship/readme-mdx.png)\n\nUsers can write standard Markdown while also having access to richer features such as tables, images, and code blocks. Image uploads are handled through the BuildShip API, so assets remain accessible and stable.\n\nFor more advanced use cases, the editor supports Sandpack, allowing interactive code snippets to live directly inside the README. This made READMEs useful not just for description, but for interactive teaching and onboarding.\n\nAll editing logic is centralized in a dedicated `PageEditor` component, keeping the feature modular and extensible.\n\n## Real-Time Collaboration and Persistence\n\nREADMEs are backed by Firestore and use real-time synchronization.\n\nThe `usePage` hook handles **two-way data flow**:\n\n- It listens for updates from Firestore so multiple users can see changes live.\n- It persists local edits back to the database with debounced persistence to avoid excessive writes.\n\nThis allowed READMEs to behave more like collaborative documents than static files, without exposing that complexity to users.\n\n## Routing and Navigation\n\nEach README is accessed through a dedicated page route in the v2 routing system.\n\nThis keeps documentation navigable, linkable, and shareable, while still being clearly associated with a specific workflow. READMEs are not hidden modals or side panels—they are full pages that can grow as workflows grow.\n\nWorkflow READMEs unlocked several practical benefits:\n\n- **Clarity & Reuse**: Shared workflows became easier to understand and reuse across teams.\n- **Comprehensive Guidance**: Templates could explain setup and customization clearly with interactive snippets.\n- **Contextual Decisions**: Teams could document decisions close to execution logic.\n- **Frictionless Onboarding**: Onboarding new users and teammates became significantly easier.\n\nMost importantly, documentation stopped being optional. By making it easy and integrated, it became an organic part of the workflow authoring process.",
+    "stack": [
+      "Work",
+      "DevTools",
+      "Documentation",
+      "BuildShip"
+    ],
+    "links": {
+      "live": "https://beebombshell.com/work/readme"
+    },
+    "year": 2024,
+    "order": 8,
     "featured": true
   }
 ]

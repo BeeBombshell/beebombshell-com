@@ -48,6 +48,52 @@ export async function renderMarkdown(markdown: string): Promise<MarkdownRenderRe
     `;
   };
 
+  // Custom image & video renderer: renders videos for .mp4/.webm and figures with captions
+  renderer.image = ({ href, text, title }) => {
+    const isVideo = /\.(mp4|webm|mov|ogg)$/i.test(href);
+    const caption = text || title || "";
+    if (isVideo) {
+      return `
+        <figure class="my-8">
+          <video
+            src="${href}"
+            controls
+            autoplay
+            loop
+            muted
+            playsinline
+            class="w-full rounded-xl border border-[var(--line)] bg-black/5 shadow-sm block"
+          ></video>
+          ${caption ? `<figcaption class="mt-2.5 text-center text-xs font-mono text-[var(--mut)]">${caption}</figcaption>` : ""}
+        </figure>
+      `;
+    }
+
+    return `
+      <figure class="my-8">
+        <img
+          src="${href}"
+          alt="${caption}"
+          class="w-full h-auto rounded-xl border border-[var(--line)] shadow-sm block"
+        />
+        ${caption ? `<figcaption class="mt-2.5 text-center text-xs font-mono text-[var(--mut)]">${caption}</figcaption>` : ""}
+      </figure>
+    `;
+  };
+
+  // Custom link renderer with rel="noopener noreferrer" for external links
+  renderer.link = ({ href, title, tokens }) => {
+    const text = tokens.map((t) => t.raw).join("");
+    const isExternal = href.startsWith("http://") || href.startsWith("https://");
+    const extAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : "";
+    return `<a href="${href}"${title ? ` title="${title}"` : ""}${extAttrs} class="underline underline-offset-4 text-[var(--fg)] decoration-[var(--line)] hover:decoration-[var(--fg)] transition-colors">${text}</a>`;
+  };
+
+  // Custom hr divider
+  renderer.hr = () => {
+    return `<hr class="my-10 border-0 border-t border-[var(--line)]" />`;
+  };
+
   // Extract all code blocks and highlight them asynchronously
   const codeBlocks: { placeholder: string; code: string; lang: string }[] = [];
   let blockIndex = 0;

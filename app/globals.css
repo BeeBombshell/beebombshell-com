@@ -159,21 +159,38 @@ html.lenis body {
   color: var(--fg);
 }
 
-.prose-article ul,
+.prose-article ul {
+  list-style: disc outside !important;
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  padding-left: 1.6em;
+}
+
 .prose-article ol {
-  margin-top: 1em;
-  margin-bottom: 1em;
-  padding-left: 1.5em;
+  list-style: decimal outside !important;
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  padding-left: 1.6em;
 }
 
 .prose-article li {
-  margin-top: 0.4em;
-  margin-bottom: 0.4em;
+  display: list-item !important;
+  list-style: inherit !important;
+  margin-top: 0.45em;
+  margin-bottom: 0.45em;
+  line-height: 1.7;
+  color: var(--fg);
+  opacity: 0.92;
+}
+
+.prose-article li::marker {
   color: var(--mut);
+  font-weight: 500;
 }
 
 .prose-article li strong {
   color: var(--fg);
+  font-weight: 600;
 }
 
 .prose-article a {
@@ -191,7 +208,7 @@ html.lenis body {
 .prose-article code:not(pre code) {
   font-family: var(--font-geist-mono), monospace;
   font-size: 0.875em;
-  padding: 0.15em 0.35em;
+  padding: 0.15em 0.4em;
   border-radius: 4px;
   background-color: var(--line);
   color: var(--fg);
@@ -202,6 +219,33 @@ html.lenis body {
   font-family: var(--font-geist-mono), monospace;
   font-size: 0.85rem;
   line-height: 1.6;
+}
+
+.prose-article figure {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.prose-article img,
+.prose-article video {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+}
+
+.prose-article figcaption {
+  margin-top: 0.65rem;
+  text-align: center;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  color: var(--mut);
+}
+
+.prose-article hr {
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
+  border: 0;
+  border-top: 1px solid var(--line);
 }
 
 /* Spotify Equalizer Bars (4 bars, height 3px to 12px, 0.9s ease-in-out) */

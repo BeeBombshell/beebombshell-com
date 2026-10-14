@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Code2, ExternalLink, Star } from "lucide-react";
 import type { Metadata } from "next";
 import { getProject, getProjects } from "@/lib/queries";
+import { renderMarkdown } from "@/lib/markdown";
+import { ArticleContent } from "@/components/writing/article-content";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -47,6 +49,8 @@ export default async function ProjectCaseStudyPage({ params }: PageProps) {
   if (!project) {
     notFound();
   }
+
+  const { html } = await renderMarkdown(project.body);
 
   // Find next and previous projects for navigation
   const currentIndex = allProjects.findIndex((p) => p.slug === slug);
@@ -153,12 +157,7 @@ export default async function ProjectCaseStudyPage({ params }: PageProps) {
         {/* Deep Dive Case Study Content */}
         <article className="space-y-8 text-[var(--fg)]/90 leading-relaxed max-w-2xl text-base sm:text-lg">
           <section>
-            <h2 className="text-xl sm:text-2xl font-normal tracking-[-0.02em] text-[var(--fg)] mb-4 font-sans">
-              Details
-            </h2>
-            <p className="text-[var(--mut)] leading-relaxed mb-6">
-              {project.body}
-            </p>
+            <ArticleContent html={html} />
           </section>
 
           <section className="border-t border-[var(--line)] pt-8">

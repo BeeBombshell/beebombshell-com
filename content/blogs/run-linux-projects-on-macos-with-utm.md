@@ -2,7 +2,7 @@
 
 Some projects are built specifically for Linux. They may depend on system packages, particular library versions, or tools that behave differently on macOS.
 
-Instead of adapting your Mac to the project—or the project to your Mac—you can run it inside a Linux virtual machine (VM) while continuing to use your preferred macOS editor and browser.
+Instead of adapting your Mac to the project, or the project to your Mac, you can run it inside a Linux virtual machine (VM) while continuing to use your preferred macOS editor and browser.
 
 This guide walks through that setup with a Debian VM in [UTM](https://mac.getutm.app/) and a Django app. The same approach works for any development server that listens on a network port, including Node.js, Rails, and Go apps.
 
@@ -41,7 +41,7 @@ macOS (host)                          Debian VM (guest)
 Before you begin, you need:
 
 - A Mac with [UTM](https://mac.getutm.app/) installed.
-- A Debian—or another Linux—VM that is already installed and bootable in UTM. This [four-minute setup video](https://www.youtube.com/watch?v=S8hR0CD4Kmc) covers the initial setup, although the full installation may take about an hour.
+- A Debian VM, or another Linux VM, that is already installed and bootable in UTM. This [four-minute setup video](https://www.youtube.com/watch?v=S8hR0CD4Kmc) covers the initial setup, although the full installation may take about an hour.
 - A project to run. This guide assumes it is located at `~/projects/myapp` inside the VM and includes a `requirements.txt` file. Replace that path with your own.
 - A code editor on your Mac. VS Code and Cursor support the Remote - SSH extension; any editor can work with a Samba share.
 
@@ -106,7 +106,7 @@ pip install -r requirements.txt
 
 ### Allow connections from your Mac
 
-Django rejects requests whose host is not listed in `ALLOWED_HOSTS`. Open your settings file—the exact filename varies by project:
+Django rejects requests whose host is not listed in `ALLOWED_HOSTS`. Open your settings file; the exact filename varies by project:
 
 ```bash
 nano localsettings.py

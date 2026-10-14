@@ -1,32 +1,26 @@
 [
   {
     "id": "001",
-    "text": "A good README is the cheapest feature you'll ever ship.",
-    "date": "2026-03-12"
+    "text": "The worst thing you could do for your X presence is to involve \"AI\" in any way, shape, or form. \n \n (Except opinions, obviously.)"
   },
   {
     "id": "002",
-    "text": "If your error message doesn't say what to do next, it's not an error message. It's a vibe.",
-    "date": "2026-02-28"
+    "text": "RIP public static void main, you will be missed. \n \n Not that I Java anymore, lol."
   },
   {
     "id": "003",
-    "text": "Developer experience is just empathy with a changelog.",
-    "date": "2026-02-14"
+    "text": "My Claude agent went rogue and ordered two more pairs of wide-leg jeans and pullovers. On my card."
   },
   {
     "id": "004",
-    "text": "Low-code is still code. It's just somewhere else, and someone is on call for it.",
-    "date": "2026-01-30"
+    "text": "We all start somewhere. Be the mentor you once wished you had.\n \n A mindset I've mostly seen in open source communities though. Wish more people thought this way."
   },
   {
     "id": "005",
-    "text": "Mentoring is the only open source contribution with compounding returns.",
-    "date": "2026-01-15"
+    "text": "Graph Engineering is apparently the next big hype.\n \n We had:\n Context Eng. > Harness Eng. > Loop Eng. > Added nodes & vertices = Graph Engineering 😵💫\n \nPeople be making tiny tweaks and calling it a breakthrough. It's just modifying the architecture to fit what you build 🤷♀️"
   },
   {
     "id": "006",
-    "text": "Memes are documentation for people who skipped the docs.",
-    "date": "2026-01-02"
+    "text": "What I initially intended as a personal project turned into a SaaS.\n \n Going in big, it seems! ※\\(^o^)/※\n ★ Dropping the beta soon. Drop a comment if you want early access! ★"
   }
 ]

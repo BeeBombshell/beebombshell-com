@@ -123,12 +123,12 @@ export const COPY = {
     cta: "Disagree with me on X ↗",
     empty: "No takes today. Suspicious.",
     takes: [
-      "A good README is the cheapest feature you'll ever ship.",
-      "If your error message doesn't say what to do next, it's not an error message. It's a vibe.",
-      "Developer experience is just empathy with a changelog.",
-      "Low-code is still code. It's just somewhere else, and someone is on call for it.",
-      "Mentoring is the only open source contribution with compounding returns.",
-      "Memes are documentation for people who skipped the docs.",
+      "The worst thing you could do for your X presence is to involve \"AI\" in any way, shape, or form. (Except opinions, obviously.)",
+      "RIP public static void main, you will be missed. Not that I Java anymore, lol.",
+      "My Claude agent went rogue and ordered two more pairs of wide-leg jeans and pullovers. On my card.",
+      "We all start somewhere. Be the mentor you once wished you had.\nA mindset I've mostly seen in open source communities though. Wish more people thought this way.",
+      "Graph Engineering is apparently the next big hype.\nWe had:\nContext Eng. > Harness Eng. > Loop Eng. > Added nodes & vertices = Graph Engineering 😵💫\nPeople be making tiny tweaks and calling it a breakthrough. It's just modifying the architecture to fit what you build 🤷♀️",
+      "What I initially intended as a personal project turned into a SaaS.\nGoing in big, it seems! ※\\(^o^)/※\n★ Dropping the beta soon. Drop a comment if you want early access! ★",
     ],
   },
   booking: {

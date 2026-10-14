@@ -137,10 +137,12 @@ export function ViewsSection({
                   animate={{ opacity: 1, y: 0 }}
                   exit={reducedMotion ? undefined : { opacity: 0, y: -12 }}
                   transition={{ duration: reducedMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-                  className={`max-w-4xl font-normal tracking-[-0.04em] text-[var(--fg)] [text-wrap:balance] ${
-                    activeTake.text.length > 120
-                      ? "text-[clamp(28px,4vw,46px)] leading-[1.1]"
-                      : "text-[clamp(32px,4.8vw,58px)] leading-[1.04]"
+                  className={`max-w-4xl font-normal tracking-[-0.04em] text-[var(--fg)] whitespace-pre-line [text-wrap:balance] ${
+                    activeTake.text.length > 200
+                      ? "text-[clamp(20px,2.6vw,30px)] leading-[1.18]"
+                      : activeTake.text.length > 120
+                      ? "text-[clamp(24px,3.4vw,38px)] leading-[1.14]"
+                      : "text-[clamp(28px,4.2vw,48px)] leading-[1.08]"
                   }`}
                 >
                   &ldquo;{activeTake.text}&rdquo;
@@ -225,7 +227,7 @@ export function ViewsSection({
                       tabRefs.current[total - 1]?.focus();
                     }
                   }}
-                  className="group relative flex w-full items-start gap-4 px-4 py-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-[var(--fg)] focus-visible:outline-offset-[-2px] sm:px-5 sm:py-5"
+                  className="group relative flex w-full items-start gap-4 px-4 py-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-[var(--fg)] focus-visible:outline-offset-[-2px] sm:px-5 sm:py-4"
                 >
                   {isActive ? (
                     <motion.span
@@ -246,7 +248,7 @@ export function ViewsSection({
 
                   <div className="relative z-10 min-w-0 flex-1">
                     <div
-                      className={`text-[17px] leading-[1.35] tracking-[-0.02em] transition-[transform,color] duration-200 sm:text-[18px] ${
+                      className={`line-clamp-2 text-[15px] leading-[1.38] tracking-[-0.015em] transition-[transform,color] duration-200 sm:text-[16px] ${
                         isActive ? "text-[var(--fg)]" : "text-[var(--fg)]/78"
                       } group-hover:translate-x-0.5 group-focus-visible:translate-x-0.5`}
                     >

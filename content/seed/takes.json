@@ -1,32 +1,32 @@
 [
   {
     "id": "take-1",
-    "text": "A good README is the cheapest feature you'll ever ship.",
+    "text": "The worst thing you could do for your X presence is to involve \"AI\" in any way, shape, or form. \n \n (Except opinions, obviously.)",
     "order": 1
   },
   {
     "id": "take-2",
-    "text": "If your error message doesn't say what to do next, it's not an error message. It's a vibe.",
+    "text": "RIP public static void main, you will be missed. \n \n Not that I Java anymore, lol.",
     "order": 2
   },
   {
     "id": "take-3",
-    "text": "Developer experience is just empathy with a changelog.",
+    "text": "My Claude agent went rogue and ordered two more pairs of wide-leg jeans and pullovers. On my card.",
     "order": 3
   },
   {
     "id": "take-4",
-    "text": "Low-code is still code. It's just somewhere else, and someone is on call for it.",
+    "text": "We all start somewhere. Be the mentor you once wished you had.\nA mindset I've mostly seen in open source communities though. Wish more people thought this way.",
     "order": 4
   },
   {
     "id": "take-5",
-    "text": "Mentoring is the only open source contribution with compounding returns.",
+    "text": "Graph Engineering is apparently the next big hype.\nWe had:\nContext Eng. > Harness Eng. > Loop Eng. > Added nodes & vertices = Graph Engineering 😵💫\nPeople be making tiny tweaks and calling it a breakthrough. It's just modifying the architecture to fit what you build 🤷♀️",
     "order": 5
   },
   {
     "id": "take-6",
-    "text": "Memes are documentation for people who skipped the docs.",
+    "text": "What I initially intended as a personal project turned into a SaaS.\nGoing in big, it seems! ※\\(^o^)/※\n★ Dropping the beta soon. Drop a comment if you want early access! ★",
     "order": 6
   }
 ]

@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { type Profile } from "@/lib/schemas";
 import { COPY } from "@/lib/copy";
 import { useBookingStore } from "@/lib/booking-store";
 import { useLlmsStore } from "@/lib/llms-store";
-import {
-  useParticleEngine,
-  useRegisterTextBlock,
-} from "@/components/particles/use-particles";
+import { useRegisterTextBlock } from "@/components/particles/use-particles";
 
 interface SiteFooterProps {
   profile: Profile;
@@ -26,47 +23,13 @@ function ExternalArrow() {
 }
 
 export function SiteFooter({ profile }: SiteFooterProps) {
-  const wordmarkRef = useRef<HTMLDivElement>(null);
   const talkRef = useRef<HTMLElement>(null);
   const linksRef = useRef<HTMLDivElement>(null);
   const { open: openBooking } = useBookingStore();
   const { open: openLlms } = useLlmsStore();
-  const { morphTo, setWordmarkElement } = useParticleEngine();
 
   useRegisterTextBlock("footer-talk", talkRef);
   useRegisterTextBlock("footer-links", linksRef);
-
-  useEffect(() => {
-    const activateWordmark = () => {
-      const element = wordmarkRef.current;
-      setWordmarkElement(element);
-      if (!element) return;
-
-      const rect = element.getBoundingClientRect();
-      if (rect.top < window.innerHeight && rect.bottom > 0) {
-        morphTo("wordmark");
-      }
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setWordmarkElement(wordmarkRef.current);
-          morphTo("wordmark");
-        }
-      },
-      { threshold: 0.05 }
-    );
-
-    if (wordmarkRef.current) observer.observe(wordmarkRef.current);
-    activateWordmark();
-    window.addEventListener("particle-engine-ready", activateWordmark);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("particle-engine-ready", activateWordmark);
-      setWordmarkElement(null);
-    };
-  }, [morphTo, setWordmarkElement]);
 
   const socialUrl = (label: string) =>
     profile.socials.find((social) => social.label.toLowerCase() === label)?.url;
@@ -104,28 +67,28 @@ export function SiteFooter({ profile }: SiteFooterProps) {
     <footer
       id="footer"
       data-section="footer"
-      className="relative z-10 mx-auto mt-[clamp(72px,10vw,128px)] w-full max-w-[1024px] px-5 pb-[max(16px,env(safe-area-inset-bottom))] sm:px-8"
+      className="relative z-10 mx-auto mt-[clamp(72px,10vw,128px)] w-full max-w-6xl px-5 pb-[max(20px,env(safe-area-inset-bottom))] sm:px-8"
     >
       <section
         ref={talkRef}
         aria-labelledby="footer-heading"
-        className="flex flex-col gap-6 border-t border-[var(--line)] py-6 sm:flex-row sm:items-end sm:justify-between sm:py-7"
+        className="grid gap-10 border-t border-[var(--line)] py-[clamp(48px,7vw,80px)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"
       >
-        <div>
-          <div className="mb-3 flex items-center gap-2 font-mono text-[11px] tracking-[0.1em] text-[var(--mut)] uppercase">
+        <div className="max-w-2xl">
+          <div className="mb-5 flex items-center gap-2 font-mono text-[11px] text-[var(--mut)]">
             <span
               aria-hidden="true"
-              className="footer-status-glyph h-2 w-2 bg-[var(--fg)]"
+              className="h-1.5 w-1.5 rounded-full bg-[var(--fg)]"
             />
             <span>{COPY.footer.status}</span>
           </div>
           <h2
             id="footer-heading"
-            className="text-[clamp(30px,4vw,40px)] leading-none font-normal tracking-[-0.035em] text-[var(--fg)]"
+            className="text-[clamp(38px,6vw,64px)] leading-[0.98] font-normal tracking-[-0.045em] text-[var(--fg)]"
           >
             {COPY.footer.heading}
           </h2>
-          <p className="mt-2 font-mono text-[12.5px] leading-relaxed text-[var(--mut)]">
+          <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-[var(--mut)] sm:text-base">
             {COPY.footer.sub}
           </p>
         </div>
@@ -133,7 +96,7 @@ export function SiteFooter({ profile }: SiteFooterProps) {
         <button
           type="button"
           onClick={openBooking}
-          className="group inline-flex h-11 w-fit shrink-0 items-center gap-2 rounded-full bg-[var(--fg)] px-5 font-mono text-[13px] font-medium text-[var(--bg)] transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[var(--fg)]"
+          className="group inline-flex w-fit shrink-0 items-center gap-2 border-b border-[var(--fg)] pb-1.5 font-mono text-[13px] text-[var(--fg)] transition-opacity hover:opacity-65 focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[5px] focus-visible:outline-[var(--fg)]"
         >
           <span>{COPY.footer.cta}</span>
           <ExternalArrow />
@@ -141,15 +104,8 @@ export function SiteFooter({ profile }: SiteFooterProps) {
       </section>
 
       <div
-        ref={wordmarkRef}
-        aria-hidden="true"
-        data-wordmark={COPY.footer.wordmark}
-        className="relative h-[clamp(104px,11vw,140px)] w-full touch-none font-mono"
-      />
-
-      <div
         ref={linksRef}
-        className="flex flex-col gap-4 border-t border-[var(--line)] py-[18px] font-mono text-[11.5px] text-[var(--mut)] sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-5 border-t border-[var(--line)] py-5 font-mono text-[11.5px] text-[var(--mut)] sm:flex-row sm:items-center sm:justify-between"
       >
         <nav
           aria-label="Footer links"

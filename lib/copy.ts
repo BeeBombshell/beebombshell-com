@@ -177,7 +177,6 @@ export const COPY = {
     cta: "Book a call",
     copyright: "© {year} beebombshell.com",
     top: "up we go",
-    wordmark: "BEEBOMBSHELL",
     links: {
       github: "GitHub",
       x: "X",

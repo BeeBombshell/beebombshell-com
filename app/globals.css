@@ -90,27 +90,6 @@ html.lenis body {
   outline-offset: 2px;
 }
 
-@keyframes footer-status-blink {
-  0%,
-  44% {
-    opacity: 1;
-  }
-  45%,
-  100% {
-    opacity: 0.3;
-  }
-}
-
-.footer-status-glyph {
-  animation: footer-status-blink 2.4s steps(1, end) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .footer-status-glyph {
-    animation: none;
-  }
-}
-
 /* View Transition: theme glide (lightbulb effect)
    Suppress the default cross-fade; JS drives the clip-path animation. */
 ::view-transition-old(root),

@@ -32,10 +32,19 @@ export const RIBBON_THEMES = {
 /**
  * Smooth polyline using Catmull-Rom spline with n samples per segment
  */
-export function catmull(P: V[], n = 8): V[] {
-  const out: V[] = [];
+export function catmull(P: V[], n = 8, out: V[] = []): V[] {
+  let outIndex = 0;
   const L = P.length;
-  if (L < 2) return [...P];
+  if (L < 2) {
+    out.length = L;
+    for (let i = 0; i < L; i++) {
+      const point = out[i] ?? { x: 0, y: 0 };
+      point.x = P[i].x;
+      point.y = P[i].y;
+      out[i] = point;
+    }
+    return out;
+  }
 
   for (let s = 0; s < L - 1; s++) {
     const p0 = P[Math.max(0, s - 1)];
@@ -46,24 +55,41 @@ export function catmull(P: V[], n = 8): V[] {
       const t = k / n;
       const t2 = t * t;
       const t3 = t2 * t;
-      out.push({
-        x:
-          0.5 *
-          (2 * p1.x +
-            (-p0.x + p2.x) * t +
-            (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
-            (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
-        y:
-          0.5 *
-          (2 * p1.y +
-            (-p0.y + p2.y) * t +
-            (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
-            (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
-      });
+      const point = out[outIndex] ?? { x: 0, y: 0 };
+      point.x =
+        0.5 *
+        (2 * p1.x +
+          (-p0.x + p2.x) * t +
+          (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
+          (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3);
+      point.y =
+        0.5 *
+        (2 * p1.y +
+          (-p0.y + p2.y) * t +
+          (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+          (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3);
+      out[outIndex++] = point;
     }
   }
-  out.push({ ...P[L - 1] });
+  const last = out[outIndex] ?? { x: 0, y: 0 };
+  last.x = P[L - 1].x;
+  last.y = P[L - 1].y;
+  out[outIndex++] = last;
+  out.length = outIndex;
   return out;
+}
+
+export interface RibbonScratch {
+  s: number[];
+  tx: number[];
+  ty: number[];
+  nx: number[];
+  ny: number[];
+  c: number[];
+}
+
+export function createRibbonScratch(): RibbonScratch {
+  return { s: [], tx: [], ty: [], nx: [], ny: [], c: [] };
 }
 
 /**
@@ -79,22 +105,21 @@ export function drawRibbon(
     back: string;
     stitching?: string;
     print?: { text: string; phase: number; color: string; font: string };
-  }
+  },
+  scratch: RibbonScratch = createRibbonScratch()
 ) {
   const n = poly.length;
   if (n < 2) return;
 
-  const s = [0];
+  const { s, tx, ty, nx, ny, c } = scratch;
+  s.length = tx.length = ty.length = nx.length = ny.length = c.length = n;
+  s[0] = 0;
   for (let i = 1; i < n; i++) {
-    s.push(s[i - 1] + Math.hypot(poly[i].x - poly[i - 1].x, poly[i].y - poly[i - 1].y));
+    s[i] =
+      s[i - 1] +
+      Math.hypot(poly[i].x - poly[i - 1].x, poly[i].y - poly[i - 1].y);
   }
   const total = s[n - 1] || 1;
-
-  const tx: number[] = [];
-  const ty: number[] = [];
-  const nx: number[] = [];
-  const ny: number[] = [];
-  const c: number[] = [];
 
   for (let i = 0; i < n; i++) {
     const a = poly[Math.max(0, i - 1)];
@@ -102,11 +127,11 @@ export function drawRibbon(
     const dx = b.x - a.x;
     const dy = b.y - a.y;
     const l = Math.hypot(dx, dy) || 1;
-    tx.push(dx / l);
-    ty.push(dy / l);
-    nx.push(-dy / l);
-    ny.push(dx / l);
-    c.push(Math.cos(o.twist(s[i] / total))); // cos of the twist angle at this sample
+    tx[i] = dx / l;
+    ty[i] = dy / l;
+    nx[i] = -dy / l;
+    ny[i] = dx / l;
+    c[i] = Math.cos(o.twist(s[i] / total));
   }
 
   for (let i = 0; i < n - 1; i++) {
@@ -132,24 +157,34 @@ export function drawRibbon(
       ctx.lineWidth = 1;
       for (const sg of [1, -1]) {
         ctx.beginPath();
-        ctx.moveTo(poly[i].x + sg * nx[i] * h1 * 0.78, poly[i].y + sg * ny[i] * h1 * 0.78);
-        ctx.lineTo(poly[i + 1].x + sg * nx[i + 1] * h2 * 0.78, poly[i + 1].y + sg * ny[i + 1] * h2 * 0.78);
+        ctx.moveTo(
+          poly[i].x + sg * nx[i] * h1 * 0.78,
+          poly[i].y + sg * ny[i] * h1 * 0.78
+        );
+        ctx.lineTo(
+          poly[i + 1].x + sg * nx[i + 1] * h2 * 0.78,
+          poly[i + 1].y + sg * ny[i + 1] * h2 * 0.78
+        );
         ctx.stroke();
       }
     }
   }
 
-const CHAR_WIDTH_CACHE = new Map<string, number>();
+  const CHAR_WIDTH_CACHE = new Map<string, number>();
 
-function getCharWidth(ctx: CanvasRenderingContext2D, ch: string, font: string): number {
-  const key = `${font}_${ch}`;
-  let w = CHAR_WIDTH_CACHE.get(key);
-  if (w === undefined) {
-    w = ctx.measureText(ch).width + 1.4;
-    CHAR_WIDTH_CACHE.set(key, w);
+  function getCharWidth(
+    ctx: CanvasRenderingContext2D,
+    ch: string,
+    font: string
+  ): number {
+    const key = `${font}_${ch}`;
+    let w = CHAR_WIDTH_CACHE.get(key);
+    if (w === undefined) {
+      w = ctx.measureText(ch).width + 1.4;
+      CHAR_WIDTH_CACHE.set(key, w);
+    }
+    return w;
   }
-  return w;
-}
 
   // Text printed along the strap by arc length
   if (o.print) {

@@ -8,7 +8,13 @@ import {
   type RopeNode,
   type Constraint,
 } from "./rope";
-import { catmull, drawRibbon, metal, RIBBON_THEMES } from "./ribbon";
+import {
+  catmull,
+  createRibbonScratch,
+  drawRibbon,
+  metal,
+  RIBBON_THEMES,
+} from "./ribbon";
 import { BLOB_POINTS } from "./blob";
 import { RotateCw } from "lucide-react";
 import "./badge.css";
@@ -168,6 +174,18 @@ export function Badge({
     let cons: Constraint[] = createRopeConstraints(cardH, cardScale);
     const drag = { active: false, target: { x: ax, y: 160 + cardH } };
     let curAnchorOffset = anchorOffsetRef.current;
+    const leftPath: Array<{ x: number; y: number }> = [];
+    const rightPath: Array<{ x: number; y: number }> = [];
+    const stemPath: Array<{ x: number; y: number }> = [];
+    const leftRibbonScratch = createRibbonScratch();
+    const rightRibbonScratch = createRibbonScratch();
+    const stemRibbonScratch = createRibbonScratch();
+    let ropeDirtyRect: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    } | null = null;
 
     // Smooth transform variables
     let prevCx = (nodes[9].x + nodes[10].x) / 2;
@@ -244,6 +262,7 @@ export function Badge({
       canvas.style.width = `${stageWidth}px`;
       canvas.style.height = `${stageHeight}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ropeDirtyRect = null;
 
       // Anchors are pinned at baseY (-40px), behind the top notch nav
       curBaseY = -40;
@@ -426,42 +445,57 @@ export function Badge({
       ctx.clearRect(0, 0, stageWidth, stageHeight);
       const isDark = document.documentElement.classList.contains("dark");
       const theme = isDark ? RIBBON_THEMES.dark : RIBBON_THEMES.light;
-      const L = catmull([nodes[0], nodes[1], nodes[2], nodes[3]]);
-      const R = catmull([nodes[4], nodes[5], nodes[6], nodes[3]]);
-      const K = catmull([nodes[3], nodes[7], nodes[8]]);
-      drawRibbon(ctx, L, {
-        width: 20,
-        twist: () => 0,
-        front: theme.front,
-        back: theme.back,
-        stitching: theme.stitching,
-        print: {
-          text: "BHAVYA VERMA · PRODUCT ENGINEER · ",
-          phase: 40,
-          color: theme.print,
-          font: "500 11px var(--font-geist-mono), monospace",
+      const L = catmull([nodes[0], nodes[1], nodes[2], nodes[3]], 8, leftPath);
+      const R = catmull([nodes[4], nodes[5], nodes[6], nodes[3]], 8, rightPath);
+      const K = catmull([nodes[3], nodes[7], nodes[8]], 8, stemPath);
+      drawRibbon(
+        ctx,
+        L,
+        {
+          width: 20,
+          twist: () => 0,
+          front: theme.front,
+          back: theme.back,
+          stitching: theme.stitching,
+          print: {
+            text: "BHAVYA VERMA · PRODUCT ENGINEER · ",
+            phase: 40,
+            color: theme.print,
+            font: "500 11px var(--font-geist-mono), monospace",
+          },
         },
-      });
-      drawRibbon(ctx, R, {
-        width: 20,
-        twist: () => 0,
-        front: theme.front,
-        back: theme.back,
-        stitching: theme.stitching,
-        print: {
-          text: "BHAVYA VERMA · PRODUCT ENGINEER · ",
-          phase: 92,
-          color: theme.print,
-          font: "500 11px var(--font-geist-mono), monospace",
+        leftRibbonScratch
+      );
+      drawRibbon(
+        ctx,
+        R,
+        {
+          width: 20,
+          twist: () => 0,
+          front: theme.front,
+          back: theme.back,
+          stitching: theme.stitching,
+          print: {
+            text: "BHAVYA VERMA · PRODUCT ENGINEER · ",
+            phase: 92,
+            color: theme.print,
+            font: "500 11px var(--font-geist-mono), monospace",
+          },
         },
-      });
-      drawRibbon(ctx, K, {
-        width: 13,
-        twist: () => 0,
-        front: theme.front,
-        back: theme.back,
-        stitching: theme.stitching,
-      });
+        rightRibbonScratch
+      );
+      drawRibbon(
+        ctx,
+        K,
+        {
+          width: 13,
+          twist: () => 0,
+          front: theme.front,
+          back: theme.back,
+          stitching: theme.stitching,
+        },
+        stemRibbonScratch
+      );
 
       // Hardware
       const n3 = nodes[3],
@@ -641,7 +675,11 @@ export function Badge({
       }
 
       // Look up as page scrolls down
-      targetY += clamp(scrollVelocity * 0.6 * cardScale, -7 * cardScale, 7 * cardScale);
+      targetY += clamp(
+        scrollVelocity * 0.6 * cardScale,
+        -7 * cardScale,
+        7 * cardScale
+      );
 
       ex += (targetX - ex) * 0.22;
       ey += (targetY - ey) * 0.22;
@@ -678,7 +716,14 @@ export function Badge({
       }
 
       // 4. Strap Rendering on 2D Canvas
-      ctx.clearRect(0, 0, stageWidth, stageHeight);
+      if (ropeDirtyRect) {
+        ctx.clearRect(
+          ropeDirtyRect.x,
+          ropeDirtyRect.y,
+          ropeDirtyRect.width,
+          ropeDirtyRect.height
+        );
+      }
 
       const isDark = document.documentElement.classList.contains("dark");
       const theme = isDark ? RIBBON_THEMES.dark : RIBBON_THEMES.light;
@@ -686,46 +731,79 @@ export function Badge({
       const tw0 = theta * 2.2 + vxc * 0.1;
       const t = now / 900;
 
-      const L = catmull([nodes[0], nodes[1], nodes[2], nodes[3]]);
-      const R = catmull([nodes[4], nodes[5], nodes[6], nodes[3]]);
-      const K = catmull([nodes[3], nodes[7], nodes[8]]);
+      const L = catmull([nodes[0], nodes[1], nodes[2], nodes[3]], 8, leftPath);
+      const R = catmull([nodes[4], nodes[5], nodes[6], nodes[3]], 8, rightPath);
+      const K = catmull([nodes[3], nodes[7], nodes[8]], 8, stemPath);
 
-      drawRibbon(ctx, L, {
-        width: 20,
-        twist: (u) => tw0 * u + flipRad * 0.5 * u + 0.3 * Math.sin(t + u * 4),
-        front: theme.front,
-        back: theme.back,
-        stitching: theme.stitching,
-        print: {
-          text: "BHAVYA VERMA · PRODUCT ENGINEER · ",
-          phase: 40,
-          color: theme.print,
-          font: "500 11px var(--font-geist-mono), monospace",
+      let minRopeX = Number.POSITIVE_INFINITY;
+      let minRopeY = Number.POSITIVE_INFINITY;
+      let maxRopeX = Number.NEGATIVE_INFINITY;
+      let maxRopeY = Number.NEGATIVE_INFINITY;
+      for (let i = 0; i <= 9; i++) {
+        minRopeX = Math.min(minRopeX, nodes[i].x);
+        minRopeY = Math.min(minRopeY, nodes[i].y);
+        maxRopeX = Math.max(maxRopeX, nodes[i].x);
+        maxRopeY = Math.max(maxRopeY, nodes[i].y);
+      }
+      const dirtyPadding = 42 * cardScale;
+      ropeDirtyRect = {
+        x: minRopeX - dirtyPadding,
+        y: minRopeY - dirtyPadding,
+        width: maxRopeX - minRopeX + dirtyPadding * 2,
+        height: maxRopeY - minRopeY + dirtyPadding * 2,
+      };
+
+      drawRibbon(
+        ctx,
+        L,
+        {
+          width: 20,
+          twist: (u) => tw0 * u + flipRad * 0.5 * u + 0.3 * Math.sin(t + u * 4),
+          front: theme.front,
+          back: theme.back,
+          stitching: theme.stitching,
+          print: {
+            text: "BHAVYA VERMA · PRODUCT ENGINEER · ",
+            phase: 40,
+            color: theme.print,
+            font: "500 11px var(--font-geist-mono), monospace",
+          },
         },
-      });
+        leftRibbonScratch
+      );
 
-      drawRibbon(ctx, R, {
-        width: 20,
-        twist: (u) =>
-          tw0 * u + flipRad * 0.5 * u + 0.3 * Math.sin(t + u * 4 + 2),
-        front: theme.front,
-        back: theme.back,
-        stitching: theme.stitching,
-        print: {
-          text: "BHAVYA VERMA · PRODUCT ENGINEER · ",
-          phase: 92,
-          color: theme.print,
-          font: "500 11px var(--font-geist-mono), monospace",
+      drawRibbon(
+        ctx,
+        R,
+        {
+          width: 20,
+          twist: (u) =>
+            tw0 * u + flipRad * 0.5 * u + 0.3 * Math.sin(t + u * 4 + 2),
+          front: theme.front,
+          back: theme.back,
+          stitching: theme.stitching,
+          print: {
+            text: "BHAVYA VERMA · PRODUCT ENGINEER · ",
+            phase: 92,
+            color: theme.print,
+            font: "500 11px var(--font-geist-mono), monospace",
+          },
         },
-      });
+        rightRibbonScratch
+      );
 
-      drawRibbon(ctx, K, {
-        width: 13,
-        twist: (u) => tw0 * u + flipRad * u,
-        front: theme.front,
-        back: theme.back,
-        stitching: theme.stitching,
-      });
+      drawRibbon(
+        ctx,
+        K,
+        {
+          width: 13,
+          twist: (u) => tw0 * u + flipRad * u,
+          front: theme.front,
+          back: theme.back,
+          stitching: theme.stitching,
+        },
+        stemRibbonScratch
+      );
 
       // Metallic Hardware
       const n3 = nodes[3],
@@ -1044,94 +1122,97 @@ export function Badge({
                 </div>
               </div>
 
-              {/* Socials Row below chart & above links */}
-              <div className="badge-back-socials">
-                <a
-                  href="https://x.com/Bee_Bombshell"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="badge-social-pill"
-                  onClick={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                  <span>X</span>
-                  <span className="badge-social-arrow">↗</span>
-                </a>
-
-                <a
-                  href="https://www.linkedin.com/in/beebombshell"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="badge-social-pill"
-                  onClick={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
-                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                  </svg>
-                  <span>LinkedIn</span>
-                  <span className="badge-social-arrow">↗</span>
-                </a>
-
-                <a
-                  href="https://github.com/BeeBombshell"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="badge-social-pill"
-                  onClick={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-                  </svg>
-                  <span>GitHub</span>
-                  <span className="badge-social-arrow">↗</span>
-                </a>
-              </div>
-
-              {/* Bottom Row: Actions (left) + Spotify Embed Widget (right) */}
-              <div className="badge-back-bottom">
-                {/* Actions Column */}
-                <div className="badge-back-actions">
-                  {copy.back.actions.map((act, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        act.onClick();
-                      }}
-                      className="badge-back-action"
-                    >
-                      {act.icon}
-                      <span>{act.text}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Spotify Now Playing Embed Widget */}
-                <div className="badge-back-spotify">
+              {/* Stable interaction panel: fixed card-relative bounds keep
+                  contribution loading from shifting controls under the pointer. */}
+              <div className="badge-back-controls">
+                <div className="badge-back-socials">
                   <a
-                    href="https://spotify.beebombshell.com/now-playing?uid=a55e8495c5"
+                    href="https://x.com/Bee_Bombshell"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="badge-spotify-link"
+                    className="badge-social-pill"
                     onClick={(e) => e.stopPropagation()}
                     onPointerDown={(e) => e.stopPropagation()}
                   >
-                    {showBackContent && (
-                      <img
-                        src="https://spotify.beebombshell.com/now-playing?uid=a55e8495c5"
-                        alt="Spotify Now Playing"
-                        className="badge-spotify-img"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    )}
+                    <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                    <span>X</span>
+                    <span className="badge-social-arrow">↗</span>
                   </a>
+
+                  <a
+                    href="https://www.linkedin.com/in/beebombshell"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="badge-social-pill"
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                    </svg>
+                    <span>LinkedIn</span>
+                    <span className="badge-social-arrow">↗</span>
+                  </a>
+
+                  <a
+                    href="https://github.com/BeeBombshell"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="badge-social-pill"
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    <span>GitHub</span>
+                    <span className="badge-social-arrow">↗</span>
+                  </a>
+                </div>
+
+                {/* Bottom Row: Actions (left) + Spotify Embed Widget (right) */}
+                <div className="badge-back-bottom">
+                  {/* Actions Column */}
+                  <div className="badge-back-actions">
+                    {copy.back.actions.map((act, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          act.onClick();
+                        }}
+                        className="badge-back-action"
+                      >
+                        {act.icon}
+                        <span>{act.text}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Spotify Now Playing Embed Widget */}
+                  <div className="badge-back-spotify">
+                    <a
+                      href="https://spotify.beebombshell.com/now-playing?uid=a55e8495c5"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="badge-spotify-link"
+                      onClick={(e) => e.stopPropagation()}
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      {showBackContent && (
+                        <img
+                          src="https://spotify.beebombshell.com/now-playing?uid=a55e8495c5"
+                          alt="Spotify Now Playing"
+                          className="badge-spotify-img"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      )}
+                    </a>
+                  </div>
                 </div>
               </div>
 

@@ -62,10 +62,7 @@
     --initial-card-h: min(max(340px, calc(100svh - 220px)), 420px);
     --card-w: var(--initial-card-w);
     --card-h: var(--initial-card-h);
-    --card-scale: min(
-      calc(var(--card-w) / 320),
-      calc(var(--card-h) / 420)
-    );
+    --card-scale: min(calc(var(--card-w) / 320), calc(var(--card-h) / 420));
     transform: translate(
       calc((100vw - var(--card-w)) / 2),
       calc(-40px + 168px * var(--card-scale))
@@ -510,8 +507,16 @@
 }
 
 /* Bottom Row: Links (left) + Spotify Widget (right) */
+.badge-back-controls {
+  position: absolute;
+  left: calc(24px * var(--card-scale, 1));
+  right: calc(24px * var(--card-scale, 1));
+  bottom: calc(38px * var(--card-scale, 1));
+  z-index: 6;
+  cursor: pointer;
+}
+
 .badge-back-bottom {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -593,6 +598,10 @@
 }
 
 .badge-back-footer {
+  position: absolute;
+  left: calc(24px * var(--card-scale, 1));
+  right: calc(24px * var(--card-scale, 1));
+  bottom: calc(14px * var(--card-scale, 1));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -737,13 +746,17 @@
     gap: calc(8px * var(--card-scale, 1));
     margin-bottom: calc(16px * var(--card-scale, 1));
   }
+  .badge-back-controls {
+    left: calc(20px * var(--card-scale, 1));
+    right: calc(20px * var(--card-scale, 1));
+    bottom: calc(44px * var(--card-scale, 1));
+  }
   .badge-social-pill {
     font-size: calc(10.5px * var(--card-scale, 1));
     padding: calc(4px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
     gap: calc(5px * var(--card-scale, 1));
   }
   .badge-back-bottom {
-    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -778,6 +791,9 @@
     border-color: rgba(255, 255, 255, 0.2);
   }
   .badge-back-footer {
+    left: calc(20px * var(--card-scale, 1));
+    right: calc(20px * var(--card-scale, 1));
+    bottom: calc(16px * var(--card-scale, 1));
     font-size: calc(9.5px * var(--card-scale, 1));
     padding-top: calc(8px * var(--card-scale, 1));
     border-top: 1px solid rgba(255, 255, 255, 0.08);

@@ -1203,6 +1203,8 @@ export function Badge({
                       onPointerDown={(e) => e.stopPropagation()}
                     >
                       {showBackContent && (
+                        // This endpoint returns a live SVG widget; Next Image cannot optimize it.
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src="https://spotify.beebombshell.com/now-playing?uid=a55e8495c5"
                           alt="Spotify Now Playing"

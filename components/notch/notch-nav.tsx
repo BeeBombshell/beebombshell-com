@@ -43,11 +43,9 @@ const NAV_ITEMS: NavItem[] = [
 export function NotchNav({
   bookingUrl = "https://cal.com/beebombshell/coffee",
   statusText = "open for chats",
-  enableSpotify = true,
 }: {
   bookingUrl?: string;
   statusText?: string;
-  enableSpotify?: boolean;
 }) {
   const pathname = usePathname();
   const { isOpen: isBookingOpen, toggle: toggleBooking, close: closeBooking } = useBookingStore();

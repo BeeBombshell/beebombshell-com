@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { COPY } from "@/lib/copy";
 import { PARTICLE_PALETTE } from "@/lib/tokens";
 
@@ -28,6 +28,14 @@ const LIGHT_SURFACE_PALETTE = [
   "#a41757", // 5: Deep Rose (hue matching #f7a6d1)
 ] as const;
 
+function getPathPaletteIndex(pathname: string): number {
+  let hash = 0;
+  for (const character of pathname) {
+    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  }
+  return hash % PARTICLE_PALETTE.light.length;
+}
+
 /**
  * PixelGlyph
  *
@@ -46,27 +54,23 @@ export function PixelGlyph({
 }: PixelGlyphProps) {
   const pathname = usePathname();
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [paletteIndex, setPaletteIndex] = useState(0);
+  const [paletteOffset, setPaletteOffset] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isBlinking, setIsBlinking] = useState(false);
-
-  // Pick a random particle color on mount and on route transitions
-  useEffect(() => {
-    setMounted(true);
-    const randomIndex = Math.floor(Math.random() * PARTICLE_PALETTE.light.length);
-    setPaletteIndex(randomIndex);
-  }, [pathname]);
+  const paletteIndex =
+    (getPathPaletteIndex(pathname) + paletteOffset) %
+    PARTICLE_PALETTE.light.length;
 
   // Easter egg click trigger: blinks and picks another random color
   const handleClick = () => {
     setIsBlinking(true);
-    setPaletteIndex((prev) => {
-      const next =
-        (prev + 1 + Math.floor(Math.random() * (PARTICLE_PALETTE.light.length - 1))) %
-        PARTICLE_PALETTE.light.length;
-      return next;
-    });
+    setPaletteOffset(
+      (offset) =>
+        (offset +
+          1 +
+          Math.floor(Math.random() * (PARTICLE_PALETTE.light.length - 1))) %
+        PARTICLE_PALETTE.light.length
+    );
   };
 
   useEffect(() => {
@@ -79,7 +83,7 @@ export function PixelGlyph({
 
   // The notch inverts the page: in dark mode the notch fill is --fg (#eeece6 / light paper),
   // in light mode the notch fill is --fg (#121212 / dark ink).
-  const isNotchSurfaceLight = mounted && resolvedTheme === "dark";
+  const isNotchSurfaceLight = resolvedTheme === "dark";
 
   // Select color: deep vibrant tone on light notch surface, luminous pastel on dark notch surface
   const activeColor = isNotchSurfaceLight

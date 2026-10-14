@@ -44,7 +44,7 @@ export async function GET() {
       endDate: recent[recent.length - 1].date,
       weeks,
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json(fallbackData);
   }
 }

@@ -161,7 +161,6 @@ export default async function RootLayout({
             <NotchNav
               bookingUrl={config.bookingUrl}
               statusText={profile.statusText}
-              enableSpotify={config.featureFlags?.spotifyNowPlaying !== false}
             />
 
             {/* Main page content area */}

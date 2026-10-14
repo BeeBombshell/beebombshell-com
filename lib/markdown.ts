@@ -58,10 +58,10 @@ export async function renderMarkdown(markdown: string): Promise<MarkdownRenderRe
           <video
             src="${href}"
             controls
+            autoplay
             loop
             muted
             playsinline
-            preload="metadata"
             class="w-full rounded-xl border border-[var(--line)] bg-black/5 shadow-sm block"
           ></video>
           ${caption ? `<figcaption class="mt-2.5 text-center text-xs font-mono text-[var(--mut)]">${caption}</figcaption>` : ""}

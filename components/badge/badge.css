@@ -58,11 +58,13 @@
 
 @media (max-width: 639px) {
   .badge-card {
-    --initial-card-w: min(calc(100vw - 28px), 344px);
-    --initial-card-h: min(max(340px, calc(100svh - 220px)), 420px);
-    --card-w: var(--initial-card-w);
-    --card-h: var(--initial-card-h);
-    --card-scale: min(calc(var(--card-w) / 320), calc(var(--card-h) / 420));
+    --mobile-scale: max(
+      0.8095,
+      min(calc((100vw - 28px) / 320), calc((100svh - 220px) / 420))
+    );
+    --card-scale: min(1, var(--mobile-scale));
+    --card-w: calc(320px * var(--card-scale));
+    --card-h: calc(420px * var(--card-scale));
     transform: translate(
       calc((100vw - var(--card-w)) / 2),
       calc(-40px + 168px * var(--card-scale))
@@ -235,6 +237,8 @@
   letter-spacing: -0.035em;
   color: #ffffff;
   font-weight: 400;
+  margin: 0;
+  overflow-wrap: anywhere;
   z-index: 5;
 }
 
@@ -258,6 +262,8 @@
   font-size: calc(13px * var(--card-scale, 1));
   line-height: 1.6;
   color: #c4c4cb;
+  margin: 0;
+  overflow-wrap: anywhere;
   z-index: 5;
 }
 
@@ -357,6 +363,7 @@
   margin-bottom: calc(10px * var(--card-scale, 1));
   z-index: 5;
   flex-shrink: 0;
+  min-width: 0;
 }
 
 .badge-back-label {
@@ -373,6 +380,11 @@
   color: #8a8a92;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* GitHub Contributions Chart */
@@ -388,6 +400,7 @@
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  min-width: 0;
 }
 
 .badge-contrib-wrap::-webkit-scrollbar {
@@ -666,21 +679,25 @@
     right: calc(20px * var(--card-scale, 1));
     top: calc(106px * var(--card-scale, 1));
     width: auto;
+    max-width: none;
     font-size: calc(20px * var(--card-scale, 1));
     line-height: 1.15;
     letter-spacing: -0.03em;
+    margin: 0;
   }
 
   /* Bio text with spacious line-height */
   .badge-bio {
     left: calc(20px * var(--card-scale, 1));
     right: calc(20px * var(--card-scale, 1));
-    top: calc(196px * var(--card-scale, 1));
+    top: calc(208px * var(--card-scale, 1));
     width: auto;
+    max-width: none;
     font-size: calc(11.5px * var(--card-scale, 1));
     line-height: 1.55;
     max-height: unset;
     overflow-y: visible;
+    margin: 0;
   }
 
   /* Chips on their own row above footer meta */
@@ -712,13 +729,20 @@
 
   /* Back Face Mobile Adaptations */
   .badge-face.back {
-    padding: calc(20px * var(--card-scale, 1)) calc(20px * var(--card-scale, 1))
-      calc(16px * var(--card-scale, 1));
+    padding: calc(18px * var(--card-scale, 1)) calc(18px * var(--card-scale, 1))
+      calc(42px * var(--card-scale, 1));
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     height: 100%;
     box-sizing: border-box;
+    background:
+      radial-gradient(
+        circle at 100% 0%,
+        rgba(177, 145, 255, 0.13),
+        transparent 48%
+      ),
+      linear-gradient(145deg, #111117 0%, #0b0b0c 65%);
   }
   .badge-back-header {
     margin-bottom: calc(8px * var(--card-scale, 1));
@@ -730,30 +754,41 @@
     font-size: calc(9px * var(--card-scale, 1));
   }
   .badge-contrib-wrap {
-    padding: calc(8px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
-    margin-bottom: calc(10px * var(--card-scale, 1));
+    padding: calc(7px * var(--card-scale, 1));
+    margin-bottom: calc(12px * var(--card-scale, 1));
+    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.13);
   }
   .badge-contrib-cell {
-    width: calc(6px * var(--card-scale, 1));
-    height: calc(6px * var(--card-scale, 1));
+    width: calc(4px * var(--card-scale, 1));
+    height: calc(4px * var(--card-scale, 1));
     border-radius: calc(1px * var(--card-scale, 1));
   }
   .badge-contrib-grid,
   .badge-contrib-col {
-    gap: calc(2px * var(--card-scale, 1));
+    gap: calc(1px * var(--card-scale, 1));
   }
   .badge-back-socials {
-    gap: calc(8px * var(--card-scale, 1));
-    margin-bottom: calc(16px * var(--card-scale, 1));
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: calc(6px * var(--card-scale, 1));
+    margin-bottom: calc(14px * var(--card-scale, 1));
   }
   .badge-back-controls {
+    position: static;
     left: calc(20px * var(--card-scale, 1));
     right: calc(20px * var(--card-scale, 1));
-    bottom: calc(44px * var(--card-scale, 1));
+    bottom: auto;
+    width: 100%;
+    margin-top: calc(4px * var(--card-scale, 1));
+    margin-bottom: calc(32px * var(--card-scale, 1));
+    flex-shrink: 0;
   }
   .badge-social-pill {
+    justify-content: center;
+    min-width: 0;
     font-size: calc(10.5px * var(--card-scale, 1));
-    padding: calc(4px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
+    padding: calc(5px * var(--card-scale, 1)) calc(4px * var(--card-scale, 1));
     gap: calc(5px * var(--card-scale, 1));
   }
   .badge-back-bottom {
@@ -778,7 +813,8 @@
     align-items: center;
     gap: calc(8px * var(--card-scale, 1));
     font-size: calc(11px * var(--card-scale, 1));
-    padding: calc(8px * var(--card-scale, 1)) calc(10px * var(--card-scale, 1));
+    min-width: 0;
+    padding: calc(8px * var(--card-scale, 1)) calc(8px * var(--card-scale, 1));
     border-radius: calc(8px * var(--card-scale, 1));
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);

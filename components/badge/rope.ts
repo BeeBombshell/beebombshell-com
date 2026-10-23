@@ -95,9 +95,13 @@ export function step(
   drag: { active: boolean; target: { x: number; y: number } },
   iterations = 12
 ) {
-  // 1. Verlet integration for free nodes
-  for (const p of nodes) {
-    if (p.pin) continue;
+  // 1. Verlet integration for free nodes. The card endpoint is kinematic
+  // while dragging: integrating it and then teleporting it to the pointer
+  // leaves stale velocity in ox/oy, which makes touch drags oscillate when
+  // the constraint solver catches up (especially at mobile frame rates).
+  for (let i = 0; i < nodes.length; i++) {
+    const p = nodes[i];
+    if (p.pin || (drag.active && i === 10)) continue;
     const vx = (p.x - p.ox) * DAMPING;
     const vy = (p.y - p.oy) * DAMPING;
     p.ox = p.x;
@@ -111,8 +115,11 @@ export function step(
   if (drag.active) {
     bottom.x = drag.target.x;
     bottom.y = drag.target.y;
-    bottom.ox = bottom.x - (bottom.x - bottom.ox) * 0.5; // keep half velocity so release flings
-    bottom.oy = bottom.y - (bottom.y - bottom.oy) * 0.5;
+    // A dragged endpoint must not carry the previous frame's Verlet
+    // velocity. The rope is still free to settle; only the grabbed point is
+    // controlled by the pointer.
+    bottom.ox = bottom.x;
+    bottom.oy = bottom.y;
   }
 
   // 3. Relax constraints

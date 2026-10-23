@@ -218,12 +218,18 @@ export function Badge({
       stageHeight = stage.clientHeight || window.innerHeight;
       isMobile = stageWidth < 640;
       if (isMobile) {
-        cardW = Math.min(stageWidth - 28, 344);
-        cardH = Math.min(Math.max(340, stageHeight - 220), 420);
-        // Fit the contents to both axes. On short phones the card can lose up
-        // to 80px of height, so scaling from width alone makes its contents
-        // feel crowded even though the physical card has become smaller.
-        cardScale = Math.min(cardW / 320, cardH / 420);
+        // Mobile content is authored on a 320x420 card. Keep the shell and
+        // its contents on that same single scale; using an independent
+        // 344px-wide shell made the card look fine at one height and crowd or
+        // clip its contents at another.
+        cardScale = Math.min(
+          1,
+          (stageWidth - 28) / 320,
+          (stageHeight - 220) / 420
+        );
+        cardScale = Math.max(340 / 420, cardScale);
+        cardW = 320 * cardScale;
+        cardH = 420 * cardScale;
       } else {
         const cardAspect = 0.68;
         const ropeHeightRatio = 168 / 560;
@@ -579,7 +585,9 @@ export function Badge({
       scrollVelocity *= 0.92;
 
       // 2. Physics Step
-      const iterations = isMobile ? 8 : 12;
+      // Keep the mobile solver light at rest, but use enough passes during a
+      // pull to prevent the long card constraint from visibly separating.
+      const iterations = isMobile ? (drag.active ? 14 : 8) : 12;
       step(nodes, cons, drag, iterations);
 
       // 3. Card transform calculations

@@ -310,6 +310,12 @@ export function Badge({
     window.addEventListener("pointerleave", handleGlobalPointerLeave);
 
     // Card Pointer Drag & Flip
+    // Cache the stage rect at drag-start. On mobile, getBoundingClientRect()
+    // called on every pointermove returns a shifting rect because the browser
+    // chrome (address bar) resizes the viewport during a gesture — this is the
+    // primary cause of the jitter / coordinate jumps when dragging on mobile.
+    let cachedStageRect: DOMRect | null = null;
+
     const handlePointerDown = (e: PointerEvent) => {
       const target = e.target as HTMLElement;
       if (
@@ -320,9 +326,9 @@ export function Badge({
       }
       e.preventDefault();
       card.setPointerCapture(e.pointerId);
-      const rect = stage.getBoundingClientRect();
-      const px = e.clientX - rect.left;
-      const py = e.clientY - rect.top;
+      cachedStageRect = stage.getBoundingClientRect();
+      const px = e.clientX - cachedStageRect.left;
+      const py = e.clientY - cachedStageRect.top;
       stagePointer.x = px;
       stagePointer.y = py;
 
@@ -340,7 +346,8 @@ export function Badge({
 
     const handlePointerMove = (e: PointerEvent) => {
       if (!drag.active) return;
-      const rect = stage.getBoundingClientRect();
+      // Reuse the rect cached at drag-start to prevent viewport-resize jitter.
+      const rect = cachedStageRect ?? stage.getBoundingClientRect();
       const px = e.clientX - rect.left;
       const py = e.clientY - rect.top;
       const dx = px - stagePointer.x;
@@ -360,6 +367,7 @@ export function Badge({
       } catch {}
 
       drag.active = false;
+      cachedStageRect = null;
       card.classList.remove("is-dragging");
 
       const target = e.target as HTMLElement;
@@ -925,6 +933,15 @@ export function Badge({
         {/* Metal Split Ring */}
         <div className="badge-ring" />
 
+        {/* Dot Grid Holographic Overlay — must be OUTSIDE preserve-3d container.
+             mix-blend-mode on any preserve-3d descendant is a "grouping property"
+             per the CSS spec: it creates a new stacking context that collapses
+             the 3D context, causing both faces to show and the card to black out. */}
+        <div ref={dotsRef} className="badge-dots" />
+
+        {/* Specular Glare Band — same reason, kept outside preserve-3d */}
+        <div ref={glareRef} className="badge-glare" />
+
         {/* 3D Perspective & Flip Container */}
         <div className="badge-perspective">
           <div ref={flipRef} className="badge-flip">
@@ -932,12 +949,6 @@ export function Badge({
             {/* FRONT FACE                                           */}
             {/* ==================================================== */}
             <div ref={frontFaceRef} className="badge-face front">
-              {/* Dot Grid Holographic Overlay */}
-              <div ref={dotsRef} className="badge-dots" />
-
-              {/* Specular Glare Band */}
-              <div ref={glareRef} className="badge-glare" />
-
               {/* Meta Top-Left */}
               <div className="badge-meta-group">
                 <div className="badge-label">{copy.label}</div>

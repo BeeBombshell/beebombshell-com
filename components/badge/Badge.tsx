@@ -192,6 +192,12 @@ export function Badge({
     let vxc = 0;
     let flip = 0; // current flip angle (0 or 180)
     let flipTarget = 0; // target flip angle
+    // Smoothed card-center used for the DOM transform. Interpolating cx/cy
+    // eliminates the frame-to-frame oscillation caused by the constraint solver
+    // not being able to fully relax the 420px card-length constraint on mobile.
+    let smoothCx = prevCx;
+    let smoothCy = nodes[10].y - cardH / 2;
+    let smoothTheta = 0; // smoothed rotation angle in radians
 
     // Eye tracking state
     let ex = 0;
@@ -277,6 +283,10 @@ export function Badge({
       nodes = createRopeNodes(ax, cardH, curAnchorOffset, cardScale, curBaseY);
       cons = createRopeConstraints(cardH, cardScale);
       prevCx = (nodes[9].x + nodes[10].x) / 2;
+      // Reset smooth vars so the card snaps to new position without a sweep
+      smoothCx = prevCx;
+      smoothCy = nodes[10].y - cardH / 2;
+      smoothTheta = 0;
     };
 
     updateDimensions();
@@ -332,14 +342,28 @@ export function Badge({
       stagePointer.x = px;
       stagePointer.y = py;
 
-      // grab = bottom - pointer
-      const bottom = nodes[10];
-      grabOffset.x = bottom.x - px;
-      grabOffset.y = bottom.y - py;
+      // On mobile: store offset relative to the card CENTER (smoothCx/smoothCy)
+      // so we can drive the center directly from the pointer. Using nodes[10]
+      // (bottom) as the anchor caused the half-card-height uncertainty to feed
+      // back into cx/cy computation, amplifying constraint-solver oscillations.
+      // On desktop: keep the bottom-node grab so the lanyard feels natural.
+      if (isMobile) {
+        grabOffset.x = smoothCx - px;
+        grabOffset.y = smoothCy - py;
+        // Also keep nodes[10] moving so the physics rope stays attached.
+        const bottom = nodes[10];
+        drag.active = true;
+        drag.target.x = bottom.x;
+        drag.target.y = bottom.y;
+      } else {
+        const bottom = nodes[10];
+        grabOffset.x = bottom.x - px;
+        grabOffset.y = bottom.y - py;
+        drag.active = true;
+        drag.target.x = px + grabOffset.x;
+        drag.target.y = py + grabOffset.y;
+      }
       dragMovedDist = 0;
-      drag.active = true;
-      drag.target.x = px + grabOffset.x;
-      drag.target.y = py + grabOffset.y;
 
       card.classList.add("is-dragging");
     };
@@ -356,8 +380,15 @@ export function Badge({
       stagePointer.y = py;
 
       dragMovedDist += Math.abs(dx) + Math.abs(dy);
-      drag.target.x = px + grabOffset.x;
-      drag.target.y = py + grabOffset.y;
+      if (isMobile) {
+        // On mobile, grabOffset is relative to card CENTER. Update drag.target
+        // (which controls the rope's node[10] = bottom) by adding cardH/2.
+        drag.target.x = px + grabOffset.x;
+        drag.target.y = py + grabOffset.y + cardH * 0.5;
+      } else {
+        drag.target.x = px + grabOffset.x;
+        drag.target.y = py + grabOffset.y;
+      }
     };
 
     const handlePointerUp = (e: PointerEvent) => {
@@ -595,15 +626,41 @@ export function Badge({
       // 2. Physics Step
       // Keep the mobile solver light at rest, but use enough passes during a
       // pull to prevent the long card constraint from visibly separating.
-      const iterations = isMobile ? (drag.active ? 14 : 8) : 12;
+      const iterations = isMobile ? (drag.active ? 20 : 10) : 12;
       step(nodes, cons, drag, iterations);
 
       // 3. Card transform calculations
       const clip = nodes[9];
       const bottom = nodes[10];
-      const cx = (clip.x + bottom.x) / 2;
-      const cy = (clip.y + bottom.y) / 2;
-      const theta = Math.atan2(-(bottom.x - clip.x), bottom.y - clip.y); // 0 when hanging straight down
+
+      // On mobile during drag: drive the card center directly from the pointer.
+      // grabOffset was stored as (smoothCx - pointer) at drag start, so
+      // (stagePointer + grabOffset) == card center with zero physics involved.
+      // No constraint-solver oscillation can bleed through.
+      let rawCx: number;
+      let rawCy: number;
+      if (isMobile && drag.active) {
+        rawCx = stagePointer.x + grabOffset.x;
+        rawCy = stagePointer.y + grabOffset.y;
+      } else {
+        rawCx = (clip.x + bottom.x) / 2;
+        rawCy = (clip.y + bottom.y) / 2;
+      }
+
+      // Low-pass the center position. Use a fast lerp during drag so the card
+      // feels responsive, slower at rest so it settles smoothly.
+      const cxAlpha = drag.active ? (isMobile ? 0.55 : 0.7) : 0.3;
+      smoothCx += (rawCx - smoothCx) * cxAlpha;
+      smoothCy += (rawCy - smoothCy) * cxAlpha;
+
+      const cx = smoothCx;
+      const cy = smoothCy;
+      const rawTheta = Math.atan2(-(bottom.x - clip.x), bottom.y - clip.y); // 0 when hanging straight down
+      // Smooth the angle too — raw atan2 from physics nodes jitters on mobile
+      // because each solver iteration over/under-shoots slightly.
+      const thetaAlpha = drag.active ? (isMobile ? 0.45 : 0.65) : 0.25;
+      smoothTheta += (rawTheta - smoothTheta) * thetaAlpha;
+      const theta = smoothTheta;
       const vx = cx - prevCx;
       prevCx = cx;
       vxc += (vx - vxc) * 0.2; // smoothed horizontal speed

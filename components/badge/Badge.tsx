@@ -421,8 +421,11 @@ export function Badge({
           flip = flipTarget;
           flipEl.style.transform = `rotateY(${flip}deg)`;
           if (frontFace && backFace) {
-            frontFace.style.pointerEvents = flip > 90 ? "none" : "auto";
-            backFace.style.pointerEvents = flip > 90 ? "auto" : "none";
+            const isBack = flip > 90;
+            frontFace.style.pointerEvents = isBack ? "none" : "auto";
+            backFace.style.pointerEvents = isBack ? "auto" : "none";
+            frontFace.style.visibility = isBack ? "hidden" : "";
+            backFace.style.visibility = isBack ? "" : "hidden";
           }
         }
       }
@@ -447,8 +450,11 @@ export function Badge({
           flip = flipTarget;
           flipEl.style.transform = `rotateY(${flip}deg)`;
           if (frontFace && backFace) {
-            frontFace.style.pointerEvents = flip > 90 ? "none" : "auto";
-            backFace.style.pointerEvents = flip > 90 ? "auto" : "none";
+            const isBack = flip > 90;
+            frontFace.style.pointerEvents = isBack ? "none" : "auto";
+            backFace.style.pointerEvents = isBack ? "auto" : "none";
+            frontFace.style.visibility = isBack ? "hidden" : "";
+            backFace.style.visibility = isBack ? "" : "hidden";
           }
         }
       }
@@ -674,11 +680,21 @@ export function Badge({
       card.style.transform = `translate(${cx - cardW / 2}px, ${cy - cardH / 2}px) rotate(${theta}rad)`;
       flipEl.style.transform = `rotateY(${flip + tilt}deg)`;
 
-      // Front vs Back face pointer event toggling
+      // Front vs Back face visibility & pointer event toggling.
+      // CSS backface-visibility: hidden is unreliable on mobile when compositing
+      // layers are involved (will-change, GPU promotion, etc). We add explicit
+      // JS visibility toggling as a guaranteed cross-browser fallback:
+      // - visibility: hidden suppresses rendering without affecting layout
+      // - It does NOT create a stacking context (unlike opacity: 0)
+      // - Toggling at the 90° midpoint means neither face is hidden mid-flip
       if (frontFace && backFace) {
         const isShowingBack = flip > 90;
         frontFace.style.pointerEvents = isShowingBack ? "none" : "auto";
         backFace.style.pointerEvents = isShowingBack ? "auto" : "none";
+        // JS visibility fallback: hide the non-visible face so it cannot
+        // bleed through even if backface-visibility CSS is silently ignored.
+        frontFace.style.visibility = isShowingBack ? "hidden" : "";
+        backFace.style.visibility = isShowingBack ? "" : "hidden";
       }
 
       // Holographic text, glare, and dot overlay direct updates

@@ -49,7 +49,12 @@
     calc(-40px + var(--card-w) * 0.3)
   );
   transform-origin: center center;
-  will-change: transform;
+  /* NOTE: will-change: transform is intentionally omitted here.
+   * On mobile Chromium and some WebKit builds, will-change on the outer card
+   * promotes it to a GPU compositing layer, and any preserve-3d context in a
+   * child element gets flattened at the layer boundary — making
+   * backface-visibility: hidden silently stop working. The JS RAF loop already
+   * sets transform every frame, so will-change buys nothing here. */
   touch-action: none;
   cursor: grab;
   outline: none;
@@ -121,11 +126,25 @@
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d; /* Required for Safari & iOS Chrome */
   border-radius: 20px;
-  box-shadow: 0 30px 50px rgba(0, 0, 0, 0.24);
+  /* box-shadow is on a ::before pseudo-element instead of here.
+   * Some browser/GPU paths treat box-shadow directly on a preserve-3d element
+   * as a compositing group, which flattens the 3D context and breaks
+   * backface-visibility. A pseudo-element avoids that path. */
 }
 
-.dark .badge-flip {
+.badge-flip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  box-shadow: 0 30px 50px rgba(0, 0, 0, 0.24);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.dark .badge-flip::before {
   box-shadow:
     0 30px 60px rgba(0, 0, 0, 0.65),
     0 0 24px rgba(255, 255, 255, 0.04);
@@ -171,6 +190,10 @@
 
 .badge-face.back {
   transform: rotateY(180deg);
+  /* Start hidden — JS RAF loop manages visibility dynamically.
+   * This prevents the back face from bleeding through on first paint
+   * before the animation loop has run even once. */
+  visibility: hidden;
 }
 
 /*

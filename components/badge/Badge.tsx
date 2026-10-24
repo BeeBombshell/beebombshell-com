@@ -211,6 +211,13 @@ export function Badge({
     const stagePointer = { x: ax, y: 350 };
     const grabOffset = { x: 0, y: 0 };
     let dragMovedDist = 0;
+    // Delta-based mobile drag: track clientX/Y at drag start and card center at
+    // drag start. On every move we compute center = dragStartCenter + clientDelta.
+    // This is completely rect-independent — immune to browser chrome resizing.
+    let mobileDragStartClientX = 0;
+    let mobileDragStartClientY = 0;
+    let mobileDragStartCx = 0;
+    let mobileDragStartCy = 0;
     const idleTarget = { x: 0, y: 0 };
     let nextIdleTime = 0;
 
@@ -336,26 +343,26 @@ export function Badge({
       }
       e.preventDefault();
       card.setPointerCapture(e.pointerId);
-      cachedStageRect = stage.getBoundingClientRect();
-      const px = e.clientX - cachedStageRect.left;
-      const py = e.clientY - cachedStageRect.top;
-      stagePointer.x = px;
-      stagePointer.y = py;
+      dragMovedDist = 0;
 
-      // On mobile: store offset relative to the card CENTER (smoothCx/smoothCy)
-      // so we can drive the center directly from the pointer. Using nodes[10]
-      // (bottom) as the anchor caused the half-card-height uncertainty to feed
-      // back into cx/cy computation, amplifying constraint-solver oscillations.
-      // On desktop: keep the bottom-node grab so the lanyard feels natural.
       if (isMobile) {
-        grabOffset.x = smoothCx - px;
-        grabOffset.y = smoothCy - py;
-        // Also keep nodes[10] moving so the physics rope stays attached.
-        const bottom = nodes[10];
+        // Delta-based mobile drag: store the card center and raw clientX/Y at
+        // drag start. Move handler computes center = start + clientDelta.
+        // No getBoundingClientRect() call needed during the drag at all.
+        mobileDragStartClientX = e.clientX;
+        mobileDragStartClientY = e.clientY;
+        mobileDragStartCx = smoothCx;
+        mobileDragStartCy = smoothCy;
+        // Keep rope physics node attached to card bottom.
         drag.active = true;
-        drag.target.x = bottom.x;
-        drag.target.y = bottom.y;
+        drag.target.x = nodes[10].x;
+        drag.target.y = nodes[10].y;
       } else {
+        cachedStageRect = stage.getBoundingClientRect();
+        const px = e.clientX - cachedStageRect.left;
+        const py = e.clientY - cachedStageRect.top;
+        stagePointer.x = px;
+        stagePointer.y = py;
         const bottom = nodes[10];
         grabOffset.x = bottom.x - px;
         grabOffset.y = bottom.y - py;
@@ -363,29 +370,38 @@ export function Badge({
         drag.target.x = px + grabOffset.x;
         drag.target.y = py + grabOffset.y;
       }
-      dragMovedDist = 0;
 
       card.classList.add("is-dragging");
     };
 
     const handlePointerMove = (e: PointerEvent) => {
       if (!drag.active) return;
-      // Reuse the rect cached at drag-start to prevent viewport-resize jitter.
-      const rect = cachedStageRect ?? stage.getBoundingClientRect();
-      const px = e.clientX - rect.left;
-      const py = e.clientY - rect.top;
-      const dx = px - stagePointer.x;
-      const dy = py - stagePointer.y;
-      stagePointer.x = px;
-      stagePointer.y = py;
 
-      dragMovedDist += Math.abs(dx) + Math.abs(dy);
       if (isMobile) {
-        // On mobile, grabOffset is relative to card CENTER. Update drag.target
-        // (which controls the rope's node[10] = bottom) by adding cardH/2.
-        drag.target.x = px + grabOffset.x;
-        drag.target.y = py + grabOffset.y + cardH * 0.5;
+        // Delta-based: no rect needed at all. clientX/Y deltas are viewport-relative
+        // and cannot be affected by browser chrome resizing the layout viewport.
+        const dcx = e.clientX - mobileDragStartClientX;
+        const dcy = e.clientY - mobileDragStartClientY;
+        dragMovedDist += Math.abs(dcx) + Math.abs(dcy);
+        const newCx = mobileDragStartCx + dcx;
+        const newCy = mobileDragStartCy + dcy;
+        // Advance the running start so next event gets a fresh delta.
+        mobileDragStartClientX = e.clientX;
+        mobileDragStartClientY = e.clientY;
+        mobileDragStartCx = newCx;
+        mobileDragStartCy = newCy;
+        // Keep rope bottom node tracking the card bottom.
+        drag.target.x = newCx;
+        drag.target.y = newCy + cardH * 0.5;
       } else {
+        const rect = cachedStageRect ?? stage.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+        const dx = px - stagePointer.x;
+        const dy = py - stagePointer.y;
+        stagePointer.x = px;
+        stagePointer.y = py;
+        dragMovedDist += Math.abs(dx) + Math.abs(dy);
         drag.target.x = px + grabOffset.x;
         drag.target.y = py + grabOffset.y;
       }
@@ -424,8 +440,8 @@ export function Badge({
             const isBack = flip > 90;
             frontFace.style.pointerEvents = isBack ? "none" : "auto";
             backFace.style.pointerEvents = isBack ? "auto" : "none";
-            frontFace.style.visibility = isBack ? "hidden" : "";
-            backFace.style.visibility = isBack ? "" : "hidden";
+            frontFace.style.visibility = isBack ? "hidden" : "visible";
+            backFace.style.visibility = isBack ? "visible" : "hidden";
           }
         }
       }
@@ -453,8 +469,8 @@ export function Badge({
             const isBack = flip > 90;
             frontFace.style.pointerEvents = isBack ? "none" : "auto";
             backFace.style.pointerEvents = isBack ? "auto" : "none";
-            frontFace.style.visibility = isBack ? "hidden" : "";
-            backFace.style.visibility = isBack ? "" : "hidden";
+            frontFace.style.visibility = isBack ? "hidden" : "visible";
+            backFace.style.visibility = isBack ? "visible" : "hidden";
           }
         }
       }
@@ -639,32 +655,31 @@ export function Badge({
       const clip = nodes[9];
       const bottom = nodes[10];
 
-      // On mobile during drag: drive the card center directly from the pointer.
-      // grabOffset was stored as (smoothCx - pointer) at drag start, so
-      // (stagePointer + grabOffset) == card center with zero physics involved.
-      // No constraint-solver oscillation can bleed through.
+      // On mobile during drag: drive card center directly from clientX/Y deltas.
+      // mobileDragStartCx/Cy is updated each move event to hold the current
+      // pointer-derived card center — no physics midpoint, no rect dependency.
       let rawCx: number;
       let rawCy: number;
       if (isMobile && drag.active) {
-        rawCx = stagePointer.x + grabOffset.x;
-        rawCy = stagePointer.y + grabOffset.y;
+        rawCx = mobileDragStartCx;
+        rawCy = mobileDragStartCy;
       } else {
         rawCx = (clip.x + bottom.x) / 2;
         rawCy = (clip.y + bottom.y) / 2;
       }
 
-      // Low-pass the center position. Use a fast lerp during drag so the card
-      // feels responsive, slower at rest so it settles smoothly.
-      const cxAlpha = drag.active ? (isMobile ? 0.55 : 0.7) : 0.3;
+      // Smooth only during mobile drag (to absorb any residual input noise).
+      // At rest: alpha=1 means no smoothing — physics is already converging and
+      // running a low-pass filter on a settling signal causes visible slow drift.
+      const cxAlpha = (isMobile && drag.active) ? 0.7 : 1.0;
       smoothCx += (rawCx - smoothCx) * cxAlpha;
       smoothCy += (rawCy - smoothCy) * cxAlpha;
 
       const cx = smoothCx;
       const cy = smoothCy;
-      const rawTheta = Math.atan2(-(bottom.x - clip.x), bottom.y - clip.y); // 0 when hanging straight down
-      // Smooth the angle too — raw atan2 from physics nodes jitters on mobile
-      // because each solver iteration over/under-shoots slightly.
-      const thetaAlpha = drag.active ? (isMobile ? 0.45 : 0.65) : 0.25;
+      const rawTheta = Math.atan2(-(bottom.x - clip.x), bottom.y - clip.y);
+      // Smooth angle only during mobile drag; at rest follow physics directly.
+      const thetaAlpha = (isMobile && drag.active) ? 0.5 : 1.0;
       smoothTheta += (rawTheta - smoothTheta) * thetaAlpha;
       const theta = smoothTheta;
       const vx = cx - prevCx;
@@ -691,10 +706,12 @@ export function Badge({
         const isShowingBack = flip > 90;
         frontFace.style.pointerEvents = isShowingBack ? "none" : "auto";
         backFace.style.pointerEvents = isShowingBack ? "auto" : "none";
-        // JS visibility fallback: hide the non-visible face so it cannot
-        // bleed through even if backface-visibility CSS is silently ignored.
-        frontFace.style.visibility = isShowingBack ? "hidden" : "";
-        backFace.style.visibility = isShowingBack ? "" : "hidden";
+        // JS visibility: use explicit "visible"/"hidden" — never empty string.
+        // Setting style.visibility="" would remove the inline style and fall back
+        // to the CSS rule (.badge-face.back { visibility: hidden }) making the
+        // back face permanently invisible.
+        frontFace.style.visibility = isShowingBack ? "hidden" : "visible";
+        backFace.style.visibility = isShowingBack ? "visible" : "hidden";
       }
 
       // Holographic text, glare, and dot overlay direct updates

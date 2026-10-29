@@ -202,6 +202,8 @@ export function Badge({
     // Eye tracking state
     let ex = 0;
     let ey = 0;
+    let eyeScaleX = 1.0;
+    let eyeScaleY = 1.0;
     let nextBlinkTime = performance.now() + 2600;
     let blinkEndTime = 0;
     let isBlinking = false;
@@ -668,24 +670,22 @@ export function Badge({
         rawCy = (clip.y + bottom.y) / 2;
       }
 
-      // Smooth only during mobile drag (to absorb any residual input noise).
-      // At rest: alpha=1 means no smoothing — physics is already converging and
-      // running a low-pass filter on a settling signal causes visible slow drift.
-      const cxAlpha = (isMobile && drag.active) ? 0.7 : 1.0;
+      // Smooth position: crisp during drag (0.65), smooth & settling at rest (0.85)
+      const cxAlpha = drag.active ? 0.65 : 0.85;
       smoothCx += (rawCx - smoothCx) * cxAlpha;
       smoothCy += (rawCy - smoothCy) * cxAlpha;
 
       const cx = smoothCx;
       const cy = smoothCy;
       const rawTheta = Math.atan2(-(bottom.x - clip.x), bottom.y - clip.y);
-      // Smooth angle only during mobile drag; at rest follow physics directly.
-      const thetaAlpha = (isMobile && drag.active) ? 0.5 : 1.0;
+      // Smooth angle: low-pass filter eliminates solver jitter and gives real physical rotational inertia
+      const thetaAlpha = drag.active ? 0.45 : 0.75;
       smoothTheta += (rawTheta - smoothTheta) * thetaAlpha;
       const theta = smoothTheta;
       const vx = cx - prevCx;
       prevCx = cx;
-      vxc += (vx - vxc) * 0.2; // smoothed horizontal speed
-      const tilt = clamp(vxc * 4.5, -38, 38); // degrees
+      vxc += (vx - vxc) * 0.15; // smoother horizontal speed response
+      const tilt = clamp(vxc * 1.8, -14, 14); // subtle, realistic banking tilt (degrees)
       const deg = (theta * 180) / Math.PI;
 
       // Smooth flip transition
@@ -696,20 +696,14 @@ export function Badge({
       flipEl.style.transform = `rotateY(${flip + tilt}deg)`;
 
       // Front vs Back face visibility & pointer event toggling.
-      // CSS backface-visibility: hidden is unreliable on mobile when compositing
-      // layers are involved (will-change, GPU promotion, etc). We add explicit
-      // JS visibility toggling as a guaranteed cross-browser fallback:
-      // - visibility: hidden suppresses rendering without affecting layout
-      // - It does NOT create a stacking context (unlike opacity: 0)
-      // - Toggling at the 90° midpoint means neither face is hidden mid-flip
+      // Explicit JS visibility ensures zero bleed-through across all browsers and devices.
+      // We calculate the exact camera facing angle taking 3D tilt into account so neither
+      // face flashes or blacks out during flip or swing gestures.
       if (frontFace && backFace) {
-        const isShowingBack = flip > 90;
+        const totalAngle = (((flip + tilt) % 360) + 360) % 360;
+        const isShowingBack = totalAngle > 90 && totalAngle < 270;
         frontFace.style.pointerEvents = isShowingBack ? "none" : "auto";
         backFace.style.pointerEvents = isShowingBack ? "auto" : "none";
-        // JS visibility: use explicit "visible"/"hidden" — never empty string.
-        // Setting style.visibility="" would remove the inline style and fall back
-        // to the CSS rule (.badge-face.back { visibility: hidden }) making the
-        // back face permanently invisible.
         frontFace.style.visibility = isShowingBack ? "hidden" : "visible";
         backFace.style.visibility = isShowingBack ? "visible" : "hidden";
       }
@@ -799,17 +793,25 @@ export function Badge({
         nextBlinkTime = now + 2600 + Math.random() * 2600;
       }
 
-      // scaleY & scaleX expressions:
-      // blink .12, dragging or fast scroll 1.25 (scaleX 1.1), fast swing (|vxc| > 3) .7, else 1
-      let scaleY = 1.0;
-      let scaleX = 1.0;
+      // Smooth scaleY & scaleX expressions:
+      // blink .12, dragging or fast scroll 1.25 (scaleX 1.1), fast swing (|vxc| > 2.5) .85, else 1
+      let targetScaleY = 1.0;
+      let targetScaleX = 1.0;
       if (isBlinking) {
-        scaleY = 0.12;
+        targetScaleY = 0.12;
       } else if (drag.active || Math.abs(scrollVelocity) > 12) {
-        scaleY = 1.25;
-        scaleX = 1.1;
-      } else if (Math.abs(vxc) > 3) {
-        scaleY = 0.7;
+        targetScaleY = 1.25;
+        targetScaleX = 1.1;
+      } else if (Math.abs(vxc) > 2.5) {
+        targetScaleY = 0.85;
+      }
+
+      if (isBlinking) {
+        eyeScaleY = 0.12;
+        eyeScaleX = 1.0;
+      } else {
+        eyeScaleY += (targetScaleY - eyeScaleY) * 0.2;
+        eyeScaleX += (targetScaleX - eyeScaleX) * 0.2;
       }
 
       if (mascotSvgEl) {
@@ -818,7 +820,7 @@ export function Badge({
       }
       if (eyesEl) {
         eyesEl.style.transformOrigin = "center center";
-        eyesEl.style.transform = `translate(${ex + tilt * 0.15}px, ${ey}px) scale(${scaleX}, ${scaleY})`;
+        eyesEl.style.transform = `translate(${ex + tilt * 0.15}px, ${ey}px) scale(${eyeScaleX.toFixed(3)}, ${eyeScaleY.toFixed(3)})`;
       }
 
       // 4. Strap Rendering on 2D Canvas

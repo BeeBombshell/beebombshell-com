@@ -162,6 +162,10 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
+.badge-face.front {
+  transform: translateZ(1px);
+}
+
 .dark .badge-face {
   border-color: rgba(255, 255, 255, 0.24);
   box-shadow:
@@ -189,7 +193,7 @@
 }
 
 .badge-face.back {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(1px);
   /* Start hidden — JS RAF loop manages visibility dynamically.
    * This prevents the back face from bleeding through on first paint
    * before the animation loop has run even once. */
@@ -197,23 +201,19 @@
 }
 
 /*
- * Dot overlay & glare band — these MUST live as direct children of .badge-card
- * (outside .badge-perspective / .badge-flip which use transform-style:preserve-3d).
- * Any element with mix-blend-mode that is a descendant of a preserve-3d container
- * creates a new stacking context that collapses the 3D context, causing both
- * faces to show simultaneously and the card to go black on mobile.
- * Badge.tsx positions them as siblings of .badge-perspective in the DOM.
+ * Dot overlay & glare band — direct children of .badge-card.
+ * Use standard opacity instead of mix-blend-mode: screen, which breaks
+ * GPU compositing and collapses 3D contexts on mobile WebKit and Chrome.
  */
 .badge-dots {
   position: absolute;
   inset: 0;
   background-image: radial-gradient(
-    rgba(255, 255, 255, 0.14) 1px,
+    rgba(255, 255, 255, 0.12) 1px,
     transparent 1.3px
   );
   background-size: 7px 7px;
-  mix-blend-mode: screen;
-  opacity: 0.5;
+  opacity: 0.45;
   pointer-events: none;
   border-radius: 20px;
   z-index: 6;
@@ -224,14 +224,14 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  mix-blend-mode: screen;
   background-size: 260% 100%;
   background-image: linear-gradient(
     105deg,
     transparent 42%,
-    rgba(255, 255, 255, 0.16) 50%,
+    rgba(255, 255, 255, 0.12) 50%,
     transparent 58%
   );
+  opacity: 0.6;
   border-radius: 20px;
   z-index: 7;
 }
@@ -380,7 +380,7 @@
 }
 
 .badge-face.back {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(1px);
   display: flex;
   flex-direction: column;
   padding: calc(18px * var(--card-scale, 1)) calc(24px * var(--card-scale, 1))

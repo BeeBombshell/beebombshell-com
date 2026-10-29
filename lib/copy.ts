@@ -86,6 +86,9 @@ export const COPY = {
     micDisabledNotice:
       "Speech recognition is disabled on purpose: browser speech APIs can send audio to third-party cloud servers. To guarantee zero tracking, only keyboard input is accepted.",
     dailyLimitReached: "Daily limit reached (3/3). Come back tomorrow!",
+    credit: "powered by",
+    creditProject: "whodunit-ping",
+    creditUrl: "https://github.com/BeeBombshell/whodunit-ping",
   },
   index: {
     scrollHint: "scroll. the badge will survive.",

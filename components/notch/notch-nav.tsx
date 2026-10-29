@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, LayoutGroup } from "motion/react";
 import { Calendar, FileText, Menu, X } from "lucide-react";
 import { NotchLeftShoulder, NotchRightShoulder } from "./notch-shoulders";
@@ -38,6 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "work", href: "/work" },
   { label: "writing", href: "/writing" },
   { label: "about", href: "/about" },
+  { label: "ping", href: "/ping" },
 ];
 
 export function NotchNav({
@@ -50,11 +51,35 @@ export function NotchNav({
   enableSpotify?: boolean;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { isOpen: isBookingOpen, toggle: toggleBooking, close: closeBooking } = useBookingStore();
   const { open: openLlms } = useLlmsStore();
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [isPill, setIsPill] = useState(false);
   const [activeSectionNav, setActiveSectionNav] = useState<string>("index");
+
+  // Global 'P' shortcut: navigate to /ping when not typing in form controls
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "p" || e.key === "P") {
+        const target = e.target as HTMLElement | null;
+        if (
+          target &&
+          (target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.isContentEditable)
+        ) {
+          return;
+        }
+        if (pathname !== "/ping") {
+          router.push("/ping");
+        }
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [pathname, router]);
 
   const reducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
@@ -180,7 +205,6 @@ export function NotchNav({
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, item: NavItem) => {
     if (pathname === "/") {
-      e.preventDefault();
       const targetMap: Record<string, string> = {
         "/": "hero",
         "/work": "work",
@@ -189,6 +213,7 @@ export function NotchNav({
       };
       const sectionId = targetMap[item.href];
       if (sectionId) {
+        e.preventDefault();
         const el = document.getElementById(sectionId) ||
           document.getElementById(
             sectionId === "hero" ? "hero-section" :

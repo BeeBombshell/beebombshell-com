@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import { type Profile } from "@/lib/schemas";
 import { COPY } from "@/lib/copy";
 import { useBookingStore } from "@/lib/booking-store";
@@ -131,6 +132,15 @@ export function SiteFooter({ profile }: SiteFooterProps) {
             <span>{COPY.footer.links.llms}</span>
             <ExternalArrow />
           </button>
+          <Link
+            href="/ping"
+            className="group inline-flex items-center gap-1.5 transition-colors hover:text-[var(--fg)] focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[var(--fg)]"
+          >
+            <span>ping</span>
+            <span className="rounded bg-black/10 dark:bg-white/10 px-1.5 py-0.5 text-[10px] text-[var(--fg)] font-mono leading-none border border-black/10 dark:border-white/15">
+              P
+            </span>
+          </Link>
         </nav>
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3 sm:justify-end">

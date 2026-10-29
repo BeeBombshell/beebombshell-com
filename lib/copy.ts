@@ -60,6 +60,7 @@ export const COPY = {
     work: "work",
     writing: "writing",
     about: "about",
+    ping: "ping",
     calendarTooltip: "Book a call",
     llmsLabel: "llms.txt",
     llmsTooltip: "For the robots (and the curious)",
@@ -68,6 +69,23 @@ export const COPY = {
     statusOpen: "open for chats",
     statusBusy: "heads down, back soon",
     statusTooltip: "currently: not sitting still",
+  },
+  ping: {
+    eyebrow: "ANONYMOUS PING",
+    headlineLead: "Send me a ping. I won't know ",
+    headlineAccent: "it was you.",
+    explainer:
+      "Anonymous notes, confessions, roasts, or honest feedback delivered straight to my phone.",
+    disclosure:
+      "No name, IP or browser details are stored. I may share pings on X, without anything that could identify you.",
+    sharingRules:
+      "My rules when sharing: post only the message text, no tag or metadata; strip names and handles of third parties; skip anything abusive or that could identify the sender.",
+    footerHint: "arrows change tag and prompt · Ctrl+Enter sends",
+    deliveredToast: "Delivered. Bee's phone just buzzed.",
+    errorToast: "Couldn't send. Press Enter to retry.",
+    micDisabledNotice:
+      "Speech recognition is disabled on purpose: browser speech APIs can send audio to third-party cloud servers. To guarantee zero tracking, only keyboard input is accepted.",
+    dailyLimitReached: "Daily limit reached (3/3). Come back tomorrow!",
   },
   index: {
     scrollHint: "scroll. the badge will survive.",

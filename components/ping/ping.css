@@ -610,10 +610,40 @@
 }
 
 
+/* Cyber-Ticket Dispenser Animation */
+@keyframes ping-ticket-dispense {
+  0% {
+    transform: translateY(-40px) scale(0.92);
+    opacity: 0;
+    filter: blur(8px);
+  }
+  40% {
+    opacity: 0.8;
+    filter: blur(2px);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.animate-ticket-dispense {
+  animation: ping-ticket-dispense 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Perforated ticket zig-zag edge at bottom */
+.ping-ticket-sawtooth {
+  background-image: radial-gradient(circle at 10px 0, transparent 8px, #0b0b10 8.5px);
+  background-size: 20px 20px;
+  background-repeat: repeat-x;
+}
+
 /* Reject Key */
 .ping-key-reject:hover {
   color: #ff9ea8;
 }
+
 
 /* Accessibility: prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {

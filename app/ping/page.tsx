@@ -13,12 +13,26 @@ export const metadata: Metadata = {
     description:
       "Send me a ping. I won't know it was you. Zero logs, zero personal data stored.",
     url: "https://beebombshell.com/ping",
+    siteName: "BeeBombshell",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "https://beebombshell.com/og-ping.png",
+        width: 1200,
+        height: 630,
+        alt: "Anonymous Ping · Bhavya Verma",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Anonymous Ping · Bhavya Verma",
     description:
       "Send me a ping. I won't know it was you. Zero logs, zero personal data stored.",
+    creator: "@beebombshell",
+    site: "@beebombshell",
+    images: ["https://beebombshell.com/og-ping.png"],
   },
 };
 

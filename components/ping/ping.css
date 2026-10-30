@@ -506,6 +506,56 @@
   flex: 1;
 }
 
+/* Desktop default key placement */
+.ping-key--prompt-mobile {
+  display: none;
+}
+
+.ping-key--tag {
+  grid-column: 1 / span 2;
+  grid-row: 1;
+}
+
+.ping-key--up {
+  grid-column: 4;
+  grid-row: 1;
+}
+
+.ping-key--sound {
+  grid-column: 6 / span 2;
+  grid-row: 1;
+}
+
+.ping-key--left {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.ping-key--down {
+  grid-column: 4;
+  grid-row: 2;
+}
+
+.ping-key--right {
+  grid-column: 5;
+  grid-row: 2;
+}
+
+.ping-key--reject {
+  grid-column: 1 / span 2;
+  grid-row: 3;
+}
+
+.ping-key--enter {
+  grid-column: 3 / span 4;
+  grid-row: 3;
+}
+
+.ping-key--mic {
+  grid-column: 7;
+  grid-row: 3;
+}
+
 /* Individual Keycap */
 .ping-key {
   position: relative;
@@ -1013,6 +1063,196 @@
   padding: 4px 0 2px;
 }
 
+
+/* ─────────────────────────────────────────────────────
+   Mobile Responsive Optimizations
+   ───────────────────────────────────────────────────── */
+@container (max-width: 499px) {
+  .ping-shell {
+    aspect-ratio: 100 / 94;
+  }
+
+  .ping-body {
+    padding: 2.6cqw 3cqw 0;
+  }
+
+  .ping-head {
+    margin-bottom: 1.6cqw;
+  }
+
+  .ping-screen {
+    padding: 2cqw 2.4cqw 1.6cqw;
+    margin-bottom: 2cqw;
+  }
+
+  .ping-textarea {
+    font-size: 16px; /* Prevents iOS Safari auto-zoom on focus */
+    height: 56px;
+    line-height: 1.38;
+  }
+
+  .ping-keys {
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: 38px;
+    gap: 8px 6px;
+  }
+
+  .ping-key {
+    font-size: 11px;
+    border-radius: 6px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      0 1px 0 rgba(167, 139, 250, 0.3),
+      0 3px 0 #030304;
+  }
+
+  .ping-key:active,
+  .ping-key.is-pressed {
+    transform: translateY(2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 1px 0 #ff8ad1,
+      0 1px 0 #030304;
+  }
+
+  .ping-key-enter {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 1px 0 rgba(255, 255, 255, 0.4),
+      0 3px 0 #030304,
+      0 0 14px rgba(167, 139, 250, 0.35);
+  }
+
+  .ping-key-enter:active,
+  .ping-key-enter.is-pressed {
+    transform: translateY(2px);
+  }
+
+  /* Hide individual D-pad buttons on mobile */
+  .ping-key--up,
+  .ping-key--left,
+  .ping-key--down,
+  .ping-key--right {
+    display: none !important;
+  }
+
+  /* Show mobile prompt cycler */
+  .ping-key--prompt-mobile {
+    display: flex !important;
+    grid-column: 4 / span 2;
+    grid-row: 1;
+  }
+
+  /* Row 1 */
+  .ping-key--tag {
+    grid-column: 1 / span 3;
+    grid-row: 1;
+  }
+
+  .ping-key--sound {
+    grid-column: 6 / span 1;
+    grid-row: 1;
+  }
+
+  /* Row 2 */
+  .ping-key--reject {
+    grid-column: 1 / span 2;
+    grid-row: 2;
+  }
+
+  .ping-key--enter {
+    grid-column: 3 / span 3;
+    grid-row: 2;
+  }
+
+  .ping-key--mic {
+    grid-column: 6 / span 1;
+    grid-row: 2;
+  }
+}
+
+/* Fallback media query for viewport width */
+@media (max-width: 539px) {
+  .ping-shell {
+    aspect-ratio: 100 / 94;
+  }
+
+  .ping-body {
+    padding: 2.6cqw 3cqw 0;
+  }
+
+  .ping-screen {
+    padding: 2cqw 2.4cqw 1.6cqw;
+    margin-bottom: 2cqw;
+  }
+
+  .ping-textarea {
+    font-size: 16px;
+    height: 56px;
+  }
+
+  .ping-keys {
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: 38px;
+    gap: 8px 6px;
+  }
+
+  .ping-key--up,
+  .ping-key--left,
+  .ping-key--down,
+  .ping-key--right {
+    display: none;
+  }
+
+  .ping-key--prompt-mobile {
+    display: flex;
+    grid-column: 4 / span 2;
+    grid-row: 1;
+  }
+
+  .ping-key--tag {
+    grid-column: 1 / span 3;
+    grid-row: 1;
+  }
+
+  .ping-key--sound {
+    grid-column: 6 / span 1;
+    grid-row: 1;
+  }
+
+  .ping-key--reject {
+    grid-column: 1 / span 2;
+    grid-row: 2;
+  }
+
+  .ping-key--enter {
+    grid-column: 3 / span 3;
+    grid-row: 2;
+  }
+
+  .ping-key--mic {
+    grid-column: 6 / span 1;
+    grid-row: 2;
+  }
+
+  .receipt-body {
+    padding: 18px 16px 14px;
+    gap: 14px;
+  }
+
+  .receipt-hero-headline {
+    font-size: 20px;
+  }
+
+  .receipt-quota {
+    padding: 12px 14px;
+  }
+
+  .receipt-quota-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
 
 /* Accessibility: prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {

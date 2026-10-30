@@ -8,7 +8,7 @@ interface PingCableProps {
 
 export function PingCable({ isSending }: PingCableProps) {
   return (
-    <div className="relative flex justify-center w-full h-[64px] sm:h-[80px] pointer-events-none select-none overflow-visible -mb-2 z-10">
+    <div className="relative flex justify-center w-full h-[36px] sm:h-[72px] pointer-events-none select-none overflow-visible -mb-2 z-10">
       <svg
         className="w-28 h-full overflow-visible"
         viewBox="0 0 112 80"

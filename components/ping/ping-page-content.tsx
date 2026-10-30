@@ -44,7 +44,7 @@ export function PingPageContent() {
   return (
     <div
       ref={containerRef}
-      className="relative flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-10 md:py-16 flex flex-col items-center justify-start font-sans"
+      className="relative flex-1 w-full max-w-4xl mx-auto px-3.5 sm:px-6 py-6 sm:py-10 md:py-16 flex flex-col items-center justify-start font-sans"
     >
       {/* Ambient glowing spotlight behind card */}
       <div className="ping-ambient-spotlight" aria-hidden="true" />
@@ -55,27 +55,27 @@ export function PingPageContent() {
       {/* Main Glass Card (matches ID card on the home page) */}
       <div
         ref={cardRef}
-        className="ping-outer-card w-full max-w-2xl px-6 py-10 sm:px-12 sm:py-14 flex flex-col items-center z-10 transition-all duration-300"
+        className="ping-outer-card w-full max-w-2xl px-3.5 py-6 sm:px-12 sm:py-14 flex flex-col items-center z-10 transition-all duration-300"
       >
         {/* Dot grid texture & specular glare overlay */}
         <div className="ping-dots-grid" aria-hidden="true" />
         <div className="ping-glare" aria-hidden="true" />
 
         {/* Card Header Content */}
-        <div className="relative z-10 text-center max-w-xl mx-auto mb-4">
+        <div className="relative z-10 text-center max-w-xl mx-auto mb-2 sm:mb-4">
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2 mb-3">
+          <div className="inline-flex items-center gap-2 mb-2 sm:mb-3">
             <span
               className="h-1.5 w-1.5 rounded-full bg-[#ff8ad1] animate-pulse"
               aria-hidden="true"
             />
-            <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-white/60">
+            <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-white/60">
               {COPY.ping.eyebrow}
             </span>
           </div>
 
           {/* Headline */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.035em] text-white leading-[1.12] mb-3">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-normal tracking-[-0.035em] text-white leading-[1.15] mb-2 sm:mb-3">
             {COPY.ping.headlineLead}
             <span className="ping-accent-text italic font-medium">
               {COPY.ping.headlineAccent}
@@ -83,7 +83,7 @@ export function PingPageContent() {
           </h1>
 
           {/* Explainer */}
-          <p className="text-[14px] sm:text-[15px] text-white/70 leading-relaxed font-normal max-w-md mx-auto">
+          <p className="text-[13px] sm:text-[15px] text-white/70 leading-relaxed font-normal max-w-md mx-auto">
             {receipt
               ? "Your note was delivered into Bee's notification stream. Zero identifiers remain on our servers."
               : COPY.ping.explainer}
@@ -112,14 +112,15 @@ export function PingPageContent() {
 
         {/* Disclosure Copy & Hints (Only visible when composing) */}
         {!receipt && (
-          <div className="relative z-10 mt-9 text-center max-w-lg mx-auto">
-            <p className="text-[12px] sm:text-[13px] text-white/60 leading-relaxed font-sans border-t border-white/10 pt-5">
+          <div className="relative z-10 mt-6 sm:mt-9 text-center max-w-lg mx-auto">
+            <p className="text-[12px] sm:text-[13px] text-white/60 leading-relaxed font-sans border-t border-white/10 pt-4 sm:pt-5">
               {COPY.ping.disclosure}
             </p>
 
             {/* Footer keyboard navigation hint */}
-            <div className="mt-3 flex items-center justify-center gap-1.5 font-mono text-[11px] text-white/40">
-              <span>{COPY.ping.footerHint}</span>
+            <div className="mt-2.5 sm:mt-3 flex items-center justify-center gap-1.5 font-mono text-[10px] sm:text-[11px] text-white/40">
+              <span className="hidden sm:inline">{COPY.ping.footerHint}</span>
+              <span className="sm:hidden">tap pad buttons to cycle tag & prompt · tap send</span>
             </div>
           </div>
         )}
@@ -128,7 +129,7 @@ export function PingPageContent() {
       {/* Credit note at bottom */}
       <footer
         ref={footerRef}
-        className="relative z-10 mt-8 mb-4 text-center font-mono text-[11px] sm:text-[12px] text-white/40 flex items-center justify-center gap-1.5 tracking-wide select-none"
+        className="relative z-10 mt-6 sm:mt-8 mb-4 text-center font-mono text-[11px] sm:text-[12px] text-white/40 flex items-center justify-center gap-1.5 tracking-wide select-none"
       >
         <span>{COPY.ping.credit}</span>
         <a

@@ -5,7 +5,6 @@ import { pingAudio } from "./ping-audio";
 import { type ReceiptData } from "./privacy-receipt";
 
 const TAGS = ["compliment", "question", "roast", "confession", "secret"] as const;
-type Tag = (typeof TAGS)[number];
 
 const PROMPTS = [
   "What did you never say at standup?",
@@ -69,31 +68,37 @@ export function PingPad({
 
   // Daily limit tracker in localStorage
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
     try {
       const today = new Date().toISOString().slice(0, 10);
       const raw = localStorage.getItem("beebombshell_ping_daily");
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed.date === today) {
-          setDailyCount(parsed.count || 0);
-        } else {
+        const count = parsed.date === today ? parsed.count || 0 : 0;
+        if (parsed.date !== today) {
           localStorage.setItem(
             "beebombshell_ping_daily",
             JSON.stringify({ date: today, count: 0 })
           );
-          setDailyCount(0);
         }
+        timeoutId = setTimeout(() => {
+          setDailyCount(count);
+        }, 0);
       }
     } catch {
       // LocalStorage access fallback
     }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   // 3D Tilt and Spotlight tracking
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (
       typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      (window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+        window.matchMedia("(pointer: coarse)").matches)
     ) {
       return;
     }
@@ -423,15 +428,30 @@ export function PingPad({
                   aria-live="polite"
                   aria-label={`Tag: ${currentTag}`}
                 >
-                  <span className="font-mono text-[11px] text-[#ff8ad1] select-none">
+                  <button
+                    type="button"
+                    onClick={prevTag}
+                    aria-label="Previous tag"
+                    className="font-mono text-[11px] text-[#ff8ad1] hover:text-white transition-colors cursor-pointer select-none px-0.5 active:scale-90"
+                  >
                     ‹
-                  </span>
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-white font-medium">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={nextTag}
+                    aria-label={`Current tag: ${currentTag}. Tap to cycle.`}
+                    className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-white font-medium hover:text-[#ff8ad1] transition-colors cursor-pointer select-none truncate max-w-[84px] sm:max-w-none"
+                  >
                     {currentTag}
-                  </span>
-                  <span className="font-mono text-[11px] text-[#ff8ad1] select-none">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={nextTag}
+                    aria-label="Next tag"
+                    className="font-mono text-[11px] text-[#ff8ad1] hover:text-white transition-colors cursor-pointer select-none px-0.5 active:scale-90"
+                  >
                     ›
-                  </span>
+                  </button>
 
                   <div className="ping-level-bars ml-1.5" aria-hidden="true">
                     {levelBars.map((lvl, idx) => (
@@ -504,16 +524,15 @@ export function PingPad({
                 </div>
               </label>
 
-              {/* 3. Keys Grid (7-column, 3-row) */}
+              {/* 3. Keys Grid */}
               <div className="ping-keys" role="group" aria-label="Pad controls">
-                {/* Row 1 / Col 1-2: Tag */}
+                {/* Tag Key */}
                 <button
                   type="button"
                   aria-label={`Cycle tag. Current: ${currentTag}`}
-                  style={{ gridColumn: "1 / span 2", gridRow: 1 }}
                   onMouseDown={handleKeyMouseDown}
                   onClick={nextTag}
-                  className={`ping-key ${
+                  className={`ping-key ping-key--tag ${
                     litKeyId === "tag" ? "is-lit" : ""
                   } ${pressedKeyId === "tag" ? "is-pressed" : ""}`}
                 >
@@ -525,120 +544,130 @@ export function PingPad({
                   </span>
                 </button>
 
-                {/* Row 1 / Col 4: Up prompt */}
+                {/* Mobile Prompt Cycler Key */}
+                <button
+                  type="button"
+                  aria-label="Next prompt idea"
+                  onMouseDown={handleKeyMouseDown}
+                  onClick={nextPrompt}
+                  className={`ping-key ping-key--prompt-mobile ${
+                    litKeyId === "down" || litKeyId === "up" ? "is-lit" : ""
+                  } ${pressedKeyId === "down" ? "is-pressed" : ""}`}
+                >
+                  <span className="flex items-center justify-center gap-1 font-mono text-[10px] text-white/80">
+                    <span>prompt</span>
+                    <span className="text-[#ff8ad1] font-bold">⟳</span>
+                  </span>
+                </button>
+
+                {/* Up prompt (desktop D-pad) */}
                 <button
                   type="button"
                   aria-label="Previous prompt"
-                  style={{ gridColumn: 4, gridRow: 1 }}
                   onMouseDown={handleKeyMouseDown}
                   onClick={prevPrompt}
-                  className={`ping-key ${
+                  className={`ping-key ping-key--up ${
                     litKeyId === "up" ? "is-lit" : ""
                   } ${pressedKeyId === "up" ? "is-pressed" : ""}`}
                 >
                   ▲
                 </button>
 
-                {/* Row 1 / Col 6-7: Sound toggle */}
+                {/* Sound toggle */}
                 <button
                   type="button"
                   aria-label={`Toggle sound effects. Currently ${
                     soundEnabled ? "on" : "off"
                   }`}
-                  style={{ gridColumn: "6 / span 2", gridRow: 1 }}
                   onMouseDown={handleKeyMouseDown}
                   onClick={toggleSound}
-                  className={`ping-key ${
+                  className={`ping-key ping-key--sound ${
                     soundEnabled ? "border-[#ff8ad1]/40 text-white" : "text-white/60"
                   } ${litKeyId === "sound" ? "is-lit" : ""} ${
                     pressedKeyId === "sound" ? "is-pressed" : ""
                   }`}
                 >
-                  <span className="flex items-center gap-1.5 font-mono text-[11px]">
+                  <span className="flex items-center justify-center gap-1 sm:gap-1.5 font-mono text-[11px]">
                     <span>{soundEnabled ? "🔊" : "🔈"}</span>
-                    <span className="text-[10px] tracking-wider uppercase font-semibold text-white/70">
+                    <span className="hidden sm:inline text-[10px] tracking-wider uppercase font-semibold text-white/70">
                       {soundEnabled ? "sfx: on" : "sfx: off"}
+                    </span>
+                    <span className="sm:hidden text-[9px] tracking-wider uppercase font-semibold text-white/70">
+                      {soundEnabled ? "on" : "off"}
                     </span>
                   </span>
                 </button>
 
-
-                {/* Row 2 / Col 3: Left tag */}
+                {/* Left tag (desktop D-pad) */}
                 <button
                   type="button"
                   aria-label="Previous tag"
-                  style={{ gridColumn: 3, gridRow: 2 }}
                   onMouseDown={handleKeyMouseDown}
                   onClick={prevTag}
-                  className={`ping-key ${
+                  className={`ping-key ping-key--left ${
                     litKeyId === "left" ? "is-lit" : ""
                   } ${pressedKeyId === "left" ? "is-pressed" : ""}`}
                 >
                   ◄
                 </button>
 
-                {/* Row 2 / Col 4: Down prompt */}
+                {/* Down prompt (desktop D-pad) */}
                 <button
                   type="button"
                   aria-label="Next prompt"
-                  style={{ gridColumn: 4, gridRow: 2 }}
                   onMouseDown={handleKeyMouseDown}
                   onClick={nextPrompt}
-                  className={`ping-key ${
+                  className={`ping-key ping-key--down ${
                     litKeyId === "down" ? "is-lit" : ""
                   } ${pressedKeyId === "down" ? "is-pressed" : ""}`}
                 >
                   ▼
                 </button>
 
-                {/* Row 2 / Col 5: Right tag */}
+                {/* Right tag (desktop D-pad) */}
                 <button
                   type="button"
                   aria-label="Next tag"
-                  style={{ gridColumn: 5, gridRow: 2 }}
                   onMouseDown={handleKeyMouseDown}
                   onClick={nextTag}
-                  className={`ping-key ${
+                  className={`ping-key ping-key--right ${
                     litKeyId === "right" ? "is-lit" : ""
                   } ${pressedKeyId === "right" ? "is-pressed" : ""}`}
                 >
                   ►
                 </button>
 
-                {/* Row 3 / Col 1-2: Reject (Clear) */}
+                {/* Reject (Clear) */}
                 <button
                   type="button"
                   aria-label="Clear draft message"
-                  style={{ gridColumn: "1 / span 2", gridRow: 3 }}
                   onMouseDown={handleKeyMouseDown}
                   onClick={handleReject}
-                  className={`ping-key ping-key-reject ${
+                  className={`ping-key ping-key-reject ping-key--reject ${
                     litKeyId === "reject" ? "is-lit" : ""
                   } ${pressedKeyId === "reject" ? "is-pressed" : ""}`}
                 >
                   ✕ clear
                 </button>
 
-                {/* Row 3 / Col 3-6: Enter (Send) */}
+                {/* Enter (Send) */}
                 <button
                   type="button"
                   aria-label="Send message"
                   disabled={isSending}
-                  style={{ gridColumn: "3 / span 4", gridRow: 3 }}
                   onMouseDown={handleKeyMouseDown}
                   onClick={handleSend}
-                  className={`ping-key ping-key-enter ${
+                  className={`ping-key ping-key-enter ping-key--enter ${
                     pressedKeyId === "enter" ? "is-pressed" : ""
                   }`}
                 >
                   {isSending ? "SENDING..." : "SEND ↵"}
                 </button>
 
-                {/* Row 3 / Col 7: Mic (Disabled for privacy) */}
+                {/* Mic (Disabled for privacy) */}
                 <button
                   type="button"
                   aria-label="Voice input disabled for privacy"
-                  style={{ gridColumn: 7, gridRow: 3 }}
                   onMouseDown={handleKeyMouseDown}
                   onClick={() => {
                     pingAudio.playKeyClick(0.7);
@@ -646,7 +675,7 @@ export function PingPad({
                       "Voice is disabled on purpose: browser speech APIs can send audio to third parties. Your privacy comes first."
                     );
                   }}
-                  className={`ping-key ${
+                  className={`ping-key ping-key--mic ${
                     litKeyId === "mic" ? "is-lit" : ""
                   } text-white/50 hover:text-white`}
                 >
@@ -663,10 +692,10 @@ export function PingPad({
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.18)] bg-[#121217]/95 px-5 py-2.5 font-mono text-[12px] text-white shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-300"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-2xl sm:rounded-full border border-[rgba(255,255,255,0.18)] bg-[#121217]/95 px-4 py-2.5 sm:px-5 font-mono text-[11px] sm:text-[12px] text-white shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-[calc(100vw-2rem)] w-auto text-center"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-[#ff8ad1] animate-pulse" />
-          <span>{toastMessage}</span>
+          <span className="h-1.5 w-1.5 rounded-full bg-[#ff8ad1] animate-pulse shrink-0" />
+          <span className="leading-snug">{toastMessage}</span>
         </div>
       )}
     </div>

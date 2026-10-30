@@ -39,44 +39,18 @@ export default async function Image() {
             fontFamily: "monospace",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <span style={{ color: "#eeece6" }}>№ 002</span>
-            <span>FIG 0.2 · {COPY.ping.eyebrow}</span>
-          </div>
+          <span style={{ color: "#eeece6", fontWeight: 600 }}>BEEBOMBSHELL</span>
           <span>BEEBOMBSHELL.COM/PING</span>
         </div>
 
         {/* Center Headline */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div
             style={{
-              fontSize: "16px",
-              fontFamily: "monospace",
-              letterSpacing: "0.15em",
-              color: "#a2a19b",
-              textTransform: "uppercase",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <div
-              style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                backgroundColor: "#ff8ad1",
-              }}
-            />
-            <span>ZERO LOGS · ZERO PERSONAL DATA</span>
-          </div>
-
-          <div
-            style={{
-              fontSize: "68px",
+              fontSize: "72px",
               fontWeight: 400,
               letterSpacing: "-0.04em",
-              lineHeight: 1.06,
+              lineHeight: 1.05,
               color: "#eeece6",
               display: "flex",
               flexWrap: "wrap",
@@ -90,7 +64,7 @@ export default async function Image() {
 
           <div
             style={{
-              fontSize: "26px",
+              fontSize: "28px",
               letterSpacing: "-0.02em",
               color: "#a2a19b",
               lineHeight: 1.35,
@@ -115,11 +89,11 @@ export default async function Image() {
           }}
         >
           <div style={{ display: "flex", gap: "24px" }}>
-            <span>NO IP STORED</span>
+            <span>ZERO IP STORED</span>
             <span>NO FINGERPRINT</span>
             <span>ANONYMOUS RECEIPT</span>
           </div>
-          <span>POWERED BY WHODUNIT</span>
+          <span>BHAVYA VERMA</span>
         </div>
       </div>
     ),
